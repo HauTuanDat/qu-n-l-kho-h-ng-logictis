@@ -1,0 +1,361 @@
+<UserControl x:Class="Quanlykhohanglogicts.OverviewView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Quanlykhohanglogicts"
+             mc:Ignorable="d" 
+             d:DesignHeight="750" d:DesignWidth="1000"
+             Loaded="UserControl_Loaded">
+
+    <UserControl.Resources>
+        <!-- Style Thẻ Thống Kê KPI -->
+        <Style x:Key="KpiCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="16,14"/>
+            <Setter Property="Margin" Value="0,0,12,12"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="12" Direction="270" ShadowDepth="2" Color="#0F172A" Opacity="0.05"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style Card Khung Nội Dung -->
+        <Style x:Key="ContentPanelCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="18"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="14" Direction="270" ShadowDepth="3" Color="#0F172A" Opacity="0.06"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,16">
+        <StackPanel>
+
+            <!-- ================= TIÊU ĐỀ TRANG TỔNG QUAN & NÚT LÀM MỚI ================= -->
+            <Grid Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Bảng Điều Khiển Tổng Quan Kho &amp; Điều Phối Đơn Hàng" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
+                    <TextBlock Text="Theo dõi chỉ số vận hành thời gian thực, đơn hỏa tốc và cảnh báo tiến độ giao hàng" FontSize="12.5" Foreground="#64748B" Margin="0,3,0,0"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button x:Name="btnRefreshOverview" Style="{StaticResource PrimaryButtonStyle}" Height="36" Padding="14,0" Background="#F1F5F9" Foreground="#334155" BorderThickness="1" BorderBrush="#CBD5E1" Click="BtnRefresh_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔄" Margin="0,0,6,0"/>
+                            <TextBlock Text="Làm mới số liệu" FontWeight="SemiBold" FontSize="12.5"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- ================= 7 THẺ KPI THỐNG KÊ CHI TIẾT THEO YÊU CẦU ================= -->
+            <WrapPanel Margin="0,0,-12,12">
+
+                <!-- 1. TỔNG SỐ ĐƠN HÀNG -->
+                <Border Style="{StaticResource KpiCardStyle}" Width="230">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="TỔNG SỐ ĐƠN HÀNG" FontSize="11" FontWeight="Bold" Foreground="#64748B"/>
+                            <TextBlock x:Name="txtTotalOrders" Text="0" FontSize="26" FontWeight="ExtraBold" Foreground="#0F172A" Margin="0,4,0,0"/>
+                            <TextBlock Text="Toàn bộ luồng đơn trong kho" FontSize="11" Foreground="#10B981" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Border Grid.Column="1" Width="44" Height="44" CornerRadius="10" Background="#EFF6FF" VerticalAlignment="Top">
+                            <TextBlock Text="📦" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- 2. ĐƠN CHỜ XỬ LÝ -->
+                <Border Style="{StaticResource KpiCardStyle}" Width="230">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="ĐƠN CHỜ XỬ LÝ" FontSize="11" FontWeight="Bold" Foreground="#D97706"/>
+                            <TextBlock x:Name="txtPendingOrders" Text="0" FontSize="26" FontWeight="ExtraBold" Foreground="#D97706" Margin="0,4,0,0"/>
+                            <TextBlock Text="Chờ soạn hàng &amp; đóng gói" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Border Grid.Column="1" Width="44" Height="44" CornerRadius="10" Background="#FEF3C7" VerticalAlignment="Top">
+                            <TextBlock Text="⏳" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- 3. ĐƠN EXPRESS (HỎA TỐC) -->
+                <Border Style="{StaticResource KpiCardStyle}" Width="230">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="ĐƠN EXPRESS HỎA TỐC" FontSize="11" FontWeight="Bold" Foreground="#7C3AED"/>
+                            <TextBlock x:Name="txtExpressOrders" Text="0" FontSize="26" FontWeight="ExtraBold" Foreground="#7C3AED" Margin="0,4,0,0"/>
+                            <TextBlock Text="Ưu tiên giao gấp 2h - 4h" FontSize="11" Foreground="#7C3AED" Margin="0,2,0,0" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <Border Grid.Column="1" Width="44" Height="44" CornerRadius="10" Background="#F5F3FF" VerticalAlignment="Top">
+                            <TextBlock Text="⚡" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- 4. ĐƠN ĐANG GIAO -->
+                <Border Style="{StaticResource KpiCardStyle}" Width="230">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="ĐƠN ĐANG GIAO" FontSize="11" FontWeight="Bold" Foreground="#2563EB"/>
+                            <TextBlock x:Name="txtDeliveringOrders" Text="0" FontSize="26" FontWeight="ExtraBold" Foreground="#2563EB" Margin="0,4,0,0"/>
+                            <TextBlock Text="Shipper đang trên đường" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Border Grid.Column="1" Width="44" Height="44" CornerRadius="10" Background="#EFF6FF" VerticalAlignment="Top">
+                            <TextBlock Text="🚚" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- 5. ĐƠN GIAO THÀNH CÔNG -->
+                <Border Style="{StaticResource KpiCardStyle}" Width="230">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="ĐƠN GIAO THÀNH CÔNG" FontSize="11" FontWeight="Bold" Foreground="#059669"/>
+                            <TextBlock x:Name="txtDeliveredOrders" Text="0" FontSize="26" FontWeight="ExtraBold" Foreground="#059669" Margin="0,4,0,0"/>
+                            <TextBlock Text="Đã thu COD &amp; ký nhận" FontSize="11" Foreground="#059669" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Border Grid.Column="1" Width="44" Height="44" CornerRadius="10" Background="#ECFDF5" VerticalAlignment="Top">
+                            <TextBlock Text="✅" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- 6. SHIPPER ĐANG HOẠT ĐỘNG -->
+                <Border Style="{StaticResource KpiCardStyle}" Width="230">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="SHIPPER ĐANG HOẠT ĐỘNG" FontSize="11" FontWeight="Bold" Foreground="#0284C7"/>
+                            <TextBlock x:Name="txtActiveShippers" Text="0" FontSize="26" FontWeight="ExtraBold" Foreground="#0284C7" Margin="0,4,0,0"/>
+                            <TextBlock Text="Tài xế đang trực tuyến" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Border Grid.Column="1" Width="44" Height="44" CornerRadius="10" Background="#F0F9FF" VerticalAlignment="Top">
+                            <TextBlock Text="🛵" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- 7. CẢNH BÁO ĐƠN QUÁ HẠN -->
+                <Border Style="{StaticResource KpiCardStyle}" Width="230" BorderBrush="#FECACA" Background="#FEF2F2">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="CẢNH BÁO ĐƠN QUÁ HẠN" FontSize="11" FontWeight="Bold" Foreground="#DC2626"/>
+                            <TextBlock x:Name="txtOverdueOrders" Text="0" FontSize="26" FontWeight="ExtraBold" Foreground="#DC2626" Margin="0,4,0,0"/>
+                            <TextBlock Text="⚠️ Cần ưu tiên điều phối gấp!" FontSize="11" Foreground="#DC2626" Margin="0,2,0,0" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <Border Grid.Column="1" Width="44" Height="44" CornerRadius="10" Background="#FEE2E2" VerticalAlignment="Top">
+                            <TextBlock Text="🚨" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                </Border>
+            </WrapPanel>
+
+            <!-- ================= KHU VỰC 2 CỘT: DANH SÁCH ƯU TIÊN VÀ HOẠT ĐỘNG GẦN ĐÂY ================= -->
+            <Grid Margin="0,4,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.6*"/> <!-- Cột trái: Đơn Express & Quá Hạn Cần Xử Lý -->
+                    <ColumnDefinition Width="*" MinWidth="260"/>    <!-- Cột phải: Hoạt Động Gần Đây -->
+                </Grid.ColumnDefinitions>
+
+                <!-- CỘT TRÁI: ĐƠN HÀNG CẦN CHÚ Ý (EXPRESS & QUÁ HẠN) -->
+                <Border Grid.Column="0" Style="{StaticResource ContentPanelCardStyle}" Margin="0,0,12,0">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="⚡" FontSize="16" Margin="0,0,6,0"/>
+                                <TextBlock Text="Đơn Hỏa Tốc (Express) &amp; Cảnh Báo Giao Gấp" FontSize="15" FontWeight="Bold" Foreground="#0F172A"/>
+                            </StackPanel>
+                            <TextBlock Text="Tự động cập nhật SLA" FontSize="11.5" Foreground="#64748B" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- DataGrid Đơn Cần Chú Ý (Express & Quá Hạn) - Giao diện hiện đại, không cắt chữ, co giãn toàn chiều rộng -->
+                        <DataGrid x:Name="dgUrgentOrders" AutoGenerateColumns="False" CanUserAddRows="False"
+                                  IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  BorderThickness="1" BorderBrush="#E2E8F0" RowHeight="44"
+                                  Background="White" RowHeaderWidth="0" MaxHeight="300"
+                                  SelectionUnit="FullRow" SelectionMode="Single"
+                                  HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
+                                  ScrollViewer.CanContentScroll="False">
+                            <DataGrid.Resources>
+                                <!-- Ghi đè màu chọn mặc định của Windows để không bị nền xanh gắt và chữ bị mất màu -->
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#EFF6FF"/>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#0F172A"/>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#F8FAFC"/>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#0F172A"/>
+                            </DataGrid.Resources>
+
+                            <!-- Style Cell: Bỏ viền đen focus khi click chuột -->
+                            <DataGrid.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                    <Setter Property="Padding" Value="10,0"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="DataGridCell">
+                                                <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                            <Setter Property="Foreground" Value="#0F172A"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.CellStyle>
+
+                            <!-- Style Row: Hiệu ứng hover nhẹ và chọn dòng tinh tế -->
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Background" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#F1F5F9"/>
+                                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#F8FAFC"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#EFF6FF"/>
+                                            <Setter Property="Foreground" Value="#0F172A"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+
+                            <DataGrid.ColumnHeaderStyle>
+                                <Style TargetType="DataGridColumnHeader">
+                                    <Setter Property="Background" Value="#F8FAFC"/>
+                                    <Setter Property="Foreground" Value="#475569"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="Padding" Value="10,6"/>
+                                    <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                </Style>
+                            </DataGrid.ColumnHeaderStyle>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Mã Đơn" Binding="{Binding OrderCode}" FontWeight="Bold" Width="145"/>
+                                <DataGridTemplateColumn Header="Loại Đơn" Width="110">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" Background="#F5F3FF">
+                                                <TextBlock Text="{Binding ServiceTypeTag}" Foreground="#7C3AED" FontSize="10.5" FontWeight="Bold"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Người Nhận" Binding="{Binding ReceiverName}" Width="130"/>
+                                <DataGridTextColumn Header="Khu Vực Giao" Binding="{Binding DestinationArea}" Width="110"/>
+                                <DataGridTextColumn Header="Hạn Cam Kết" Binding="{Binding EstimatedDeliveryDate, StringFormat='HH:mm - dd/MM'}" Width="115"/>
+                                
+                                <!-- Cột Trạng thái sử dụng Width=* để phủ kín toàn bộ bề ngang bảng, không còn khoảng trống thừa -->
+                                <DataGridTemplateColumn Header="Trạng Thái &amp; Cảnh Báo" Width="*" MinWidth="180">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding StatusDisplayName}" Foreground="{Binding StatusColor}" FontWeight="Bold" FontSize="11.5" VerticalAlignment="Center"/>
+                                                <!-- Hiển thị cảnh báo nếu quá hạn -->
+                                                <Border Visibility="{Binding IsOverdue, Converter={x:Static local:OverviewView.BoolToVisibilityConverter}}"
+                                                        Background="#FEE2E2" CornerRadius="4" Padding="6,2" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="🚨 QUÁ HẠN!" Foreground="#DC2626" FontSize="10" FontWeight="Bold"/>
+                                                </Border>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+
+                <!-- CỘT PHẢI: HOẠT ĐỘNG GẦN ĐÂY (RECENT ACTIVITIES TIMELINE) -->
+                <Border Grid.Column="1" Style="{StaticResource ContentPanelCardStyle}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="⏱️" FontSize="15" Margin="0,0,6,0"/>
+                                <TextBlock Text="Hoạt Động Gần Đây" FontSize="15" FontWeight="Bold" Foreground="#0F172A"/>
+                            </StackPanel>
+                            <Border Background="#F1F5F9" CornerRadius="10" Padding="6,2" HorizontalAlignment="Right">
+                                <TextBlock Text="Live Feed" FontSize="10.5" FontWeight="Bold" Foreground="#475569"/>
+                            </Border>
+                        </Grid>
+
+                        <ItemsControl x:Name="listRecentActivities">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#F1F5F9" BorderThickness="0,0,0,1" Padding="0,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="34"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <!-- Icon Badge -->
+                                            <Border Grid.Column="0" Width="28" Height="28" CornerRadius="6" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1">
+                                                <TextBlock Text="{Binding Icon}" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+
+                                            <!-- Nội dung sự kiện -->
+                                            <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" Foreground="#0F172A"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="#64748B" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+
+                                            <!-- Thời gian trôi qua -->
+                                            <TextBlock Grid.Column="2" Text="{Binding TimeAgo}" FontSize="10.5" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

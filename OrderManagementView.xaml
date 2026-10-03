@@ -1,0 +1,561 @@
+<UserControl x:Class="Quanlykhohanglogicts.OrderManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Quanlykhohanglogicts"
+             mc:Ignorable="d" 
+             d:DesignHeight="750" d:DesignWidth="1050"
+             Loaded="UserControl_Loaded">
+
+    <UserControl.Resources>
+        <!-- Style cho Nút Tab Bộ Lọc Trạng Thái Đơn Hàng -->
+        <Style x:Key="OrderStatusTabButtonStyle" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="tabBorder" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="tabBorder" Property="Background" Value="#F1F5F9"/>
+                                <Setter Property="Foreground" Value="#0F172A"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="tabBorder" Property="Background" Value="#2563EB"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style Input Form -->
+        <Style x:Key="FormInputBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Margin" Value="0,4,0,12"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <!-- ================= GIAO DIỆN CHÍNH QUẢN LÝ ĐƠN HÀNG ================= -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,16">
+            <StackPanel>
+
+                <!-- 1. HEADER: TIÊU ĐỀ & NÚT TẠO ĐƠN HÀNG -->
+                <Grid Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock Text="Quản Lý Đơn Hàng Vận Chuyển Logistics" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
+                        <TextBlock Text="Kiểm soát toàn bộ vòng đời đơn hàng: Tiếp nhận • Xử lý • Xuất giao • Thu COD • Hoàn trả" FontSize="12.5" Foreground="#64748B" Margin="0,3,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <!-- NÚT ĐIỀU PHỐI & PHÂN BỔ ƯU TIÊN SLA (KHI QUÁ TẢI) -->
+                        <Button x:Name="btnOpenPriorityDispatch" Style="{StaticResource NutCongCuTintedStyle}" Height="38" Padding="14,0" Margin="0,0,10,0" Background="#FFF7ED" BorderBrush="#FED7AA" Foreground="#C2410C" Click="BtnOpenPriorityDispatch_Click" ToolTip="Phân bổ ưu tiên khi đơn vượt quá năng lực vận chuyển ngày (Hỏa tốc &amp; SLA)">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🎯" Margin="0,0,6,0" FontSize="13"/>
+                                <TextBlock Text="Phân Bổ SLA" FontWeight="SemiBold" FontSize="12.5"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- NÚT GOM TUYẾN ĐƯỜNG & ĐIỀU PHỐI (TÍNH NĂNG 5) -->
+                        <Button x:Name="btnOpenRouteBatching" Style="{StaticResource NutCongCuTintedStyle}" Height="38" Padding="14,0" Margin="0,0,10,0" Background="#EEF2FF" BorderBrush="#C7D2FE" Foreground="#4338CA" Click="BtnOpenRouteBatching_Click" ToolTip="Gom đơn theo tuyến đường &amp; điều phối chuyến giao hàng tập trung">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🗺️" Margin="0,0,6,0" FontSize="13"/>
+                                <TextBlock Text="Gom Tuyến (TN5)" FontWeight="SemiBold" FontSize="12.5"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- NÚT XUẤT EXCEL / CSV ĐỐI SOÁT COD -->
+                        <Button x:Name="btnExportCsv" Style="{StaticResource NutCongCuTintedStyle}" Height="38" Padding="14,0" Margin="0,0,10,0" Background="#ECFDF5" BorderBrush="#A7F3D0" Foreground="#047857" Click="BtnExportCsv_Click" ToolTip="Xuất toàn bộ đơn hàng và đối soát thu hộ COD ra Excel">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📊" Margin="0,0,6,0" FontSize="13"/>
+                                <TextBlock Text="Xuất Báo Cáo Excel" FontWeight="SemiBold" FontSize="12.5"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- NÚT SANG PHÂN HỆ TIẾP NHẬN & NHẬP KHO (2 KIỂU) -->
+                        <Button x:Name="btnOpenInboundReceiving" Style="{StaticResource NutCongCuTintedStyle}" Height="38" Padding="14,0" Margin="0,0,10,0" Background="#F0FDF4" BorderBrush="#86EFAC" Foreground="#15803D" Click="BtnOpenInboundReceiving_Click" ToolTip="Tiếp nhận hàng: Nhập xe tải trung chuyển hoặc bưu kiện khách lẻ tại quầy">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📥" Margin="0,0,6,0" FontSize="13"/>
+                                <TextBlock Text="Bến Nhập Kho (2 Kiểu)" FontWeight="SemiBold" FontSize="12.5"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- NÚT TẠO ĐƠN HÀNG MỚI THEO YÊU CẦU -->
+                        <Button x:Name="btnOpenCreateOrder" Style="{StaticResource PrimaryButtonStyle}" Height="38" Padding="16,0" Click="BtnOpenCreateOrder_Click" Background="#2563EB">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="➕" Margin="0,0,6,0" FontSize="13"/>
+                                <TextBlock Text="Tạo Đơn Hàng Mới" FontWeight="Bold" FontSize="12.5"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 2. THANH TÌM KIẾM & BỘ LỌC DỊCH VỤ -->
+                <Border Background="White" CornerRadius="10" Padding="14,10" Margin="0,0,0,12" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Ô TÌM KIẾM NHANH -->
+                        <Border Grid.Column="0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Height="38" Margin="0,0,10,0">
+                            <Grid Margin="10,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="24"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="🔍" FontSize="13" VerticalAlignment="Center" Foreground="#94A3B8"/>
+                                <TextBox x:Name="txtSearchKeyword" Grid.Column="1" Margin="6,0,0,0" FontSize="13"
+                                         Background="Transparent" BorderThickness="0" VerticalAlignment="Center"
+                                         TextChanged="TxtSearchKeyword_TextChanged"/>
+                                <TextBlock x:Name="txtSearchPlaceholder" Grid.Column="1" Margin="6,0,0,0"
+                                           Text="Tìm kiếm mã vận đơn, người nhận, SĐT, địa chỉ..."
+                                           FontSize="13" Foreground="#94A3B8" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- LỌC THEO LOẠI HÌNH VẬN CHUYỂN -->
+                        <ComboBox x:Name="cbServiceTypeFilter" Grid.Column="1" Height="38" Margin="0,0,10,0"
+                                  FontSize="12.5" VerticalContentAlignment="Center" SelectionChanged="CbServiceTypeFilter_SelectionChanged">
+                            <ComboBoxItem Content="-- Tất cả loại dịch vụ --" IsSelected="True"/>
+                            <ComboBoxItem Content="⚡ Chỉ đơn Express (Hỏa tốc)"/>
+                            <ComboBoxItem Content="📦 Chỉ đơn Tiêu chuẩn"/>
+                        </ComboBox>
+
+                        <!-- NÚT LÀM MỚI -->
+                        <Button x:Name="btnResetFilters" Grid.Column="2" Style="{StaticResource NutCongCuTintedStyle}" Height="38" Padding="14,0" Background="#F1F5F9" Foreground="#334155" BorderBrush="#CBD5E1" Click="BtnResetFilters_Click" ToolTip="Xóa lọc">
+                            <TextBlock Text="Đặt Lại"/>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- 3. THANH DANH MỤC TRẠNG THÁI ĐƠN HÀNG (ĐÚNG THEO CẤU TRÚC YÊU CẦU) -->
+                <!--
+                Quản lý đơn hàng
+                ├── Tất cả đơn hàng
+                ├── Đơn mới tiếp nhận
+                ├── Đơn chờ xử lý
+                ├── Đơn Express
+                ├── Đơn đang giao
+                ├── Đơn giao thành công
+                ├── Đơn giao thất bại
+                └── Đơn hoàn trả
+                -->
+                <Border Background="White" CornerRadius="10" Padding="10,8" Margin="0,0,0,12" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="tabAll" Style="{StaticResource OrderStatusTabButtonStyle}" Content="📋 Tất Cả Đơn Hàng" IsChecked="True" Checked="TabFilter_Checked"/>
+                            <RadioButton x:Name="tabNew" Style="{StaticResource OrderStatusTabButtonStyle}" Content="📥 Mới Tiếp Nhận" Checked="TabFilter_Checked"/>
+                            <RadioButton x:Name="tabPending" Style="{StaticResource OrderStatusTabButtonStyle}" Content="⏳ Chờ Xử Lý" Checked="TabFilter_Checked"/>
+                            <RadioButton x:Name="tabExpress" Style="{StaticResource OrderStatusTabButtonStyle}" Content="⚡ Đơn Express" Checked="TabFilter_Checked"/>
+                            <RadioButton x:Name="tabDelivering" Style="{StaticResource OrderStatusTabButtonStyle}" Content="🚚 Đang Giao" Checked="TabFilter_Checked"/>
+                            <RadioButton x:Name="tabDelivered" Style="{StaticResource OrderStatusTabButtonStyle}" Content="✅ Giao Thành Công" Checked="TabFilter_Checked"/>
+                            <RadioButton x:Name="tabFailed" Style="{StaticResource OrderStatusTabButtonStyle}" Content="❌ Giao Thất Bại" Checked="TabFilter_Checked"/>
+                            <RadioButton x:Name="tabReturned" Style="{StaticResource OrderStatusTabButtonStyle}" Content="↩️ Đơn Hoàn Trả" Checked="TabFilter_Checked"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 4. BẢNG DANH SÁCH ĐƠN HÀNG (DATAGRID CHUYÊN NGHIỆP) -->
+                <Border Background="White" CornerRadius="12" Padding="14" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,10">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Danh Sách Vận Đơn:" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A"/>
+                                <TextBlock x:Name="txtResultCount" Text=" Đang hiển thị 11 đơn hàng" FontSize="13" Foreground="#64748B"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- DataGrid với thanh cuộn ngang & dọc tự động hiển thị khi nội dung vượt quá kích thước -->
+                        <DataGrid x:Name="dgShippingOrders" AutoGenerateColumns="False" CanUserAddRows="False"
+                                  IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  BorderThickness="1" BorderBrush="#E2E8F0" RowHeight="44"
+                                  Background="White" RowHeaderWidth="0" MaxHeight="450"
+                                  SelectionUnit="FullRow" SelectionMode="Single"
+                                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                  ScrollViewer.CanContentScroll="False">
+                            <DataGrid.Resources>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#EFF6FF"/>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#0F172A"/>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#F8FAFC"/>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#0F172A"/>
+                            </DataGrid.Resources>
+                            <DataGrid.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                    <Setter Property="Padding" Value="8,0"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="DataGridCell">
+                                                <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                            <Setter Property="Foreground" Value="#0F172A"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.CellStyle>
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Background" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#F1F5F9"/>
+                                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#F8FAFC"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#EFF6FF"/>
+                                            <Setter Property="Foreground" Value="#0F172A"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                            <DataGrid.ColumnHeaderStyle>
+                                <Style TargetType="DataGridColumnHeader">
+                                    <Setter Property="Background" Value="#F8FAFC"/>
+                                    <Setter Property="Foreground" Value="#475569"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="Padding" Value="10,8"/>
+                                    <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                </Style>
+                            </DataGrid.ColumnHeaderStyle>
+                            <DataGrid.Columns>
+                                <!-- Mã đơn & Tag Express -->
+                                <DataGridTemplateColumn Header="Mã Vận Đơn" Width="145">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding OrderCode}" FontWeight="Bold" FontSize="12.5" Foreground="#0F172A"/>
+                                                <Border Visibility="{Binding IsExpress, Converter={x:Static local:OverviewView.BoolToVisibilityConverter}}"
+                                                        Background="#F5F3FF" CornerRadius="4" Padding="4,1" Margin="6,0,0,0">
+                                                    <TextBlock Text="⚡" FontSize="10" Foreground="#7C3AED"/>
+                                                </Border>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Người Gửi -->
+                                <DataGridTemplateColumn Header="Bên Gửi" Width="140">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding SenderName}" FontWeight="SemiBold" FontSize="12" Foreground="#1E293B" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding SenderPhone}" FontSize="10.5" Foreground="#64748B"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Người Nhận & Địa chỉ -->
+                                <DataGridTemplateColumn Header="Bên Nhận &amp; Địa Chỉ" Width="*" MinWidth="180">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ReceiverName}" FontWeight="SemiBold" FontSize="12" Foreground="#0F172A"/>
+                                                <TextBlock Text="{Binding ReceiverAddress}" FontSize="11" Foreground="#64748B" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Hàng Hóa & Trọng lượng -->
+                                <DataGridTemplateColumn Header="Hàng Hóa / KL" Width="130">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ProductSummary}" FontSize="11.5" Foreground="#1E293B" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding Weight, StringFormat='{}{0} kg'}" FontSize="10.5" Foreground="#64748B" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Tiền COD -->
+                                <DataGridTextColumn Header="Thu Hộ COD" Binding="{Binding CodAmount, StringFormat='{}{0:N0} đ'}" FontWeight="Bold" Foreground="#059669" Width="110"/>
+
+                                <!-- Trạng Thái -->
+                                <DataGridTemplateColumn Header="Trạng Thái" Width="130">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border CornerRadius="12" Padding="8,3" HorizontalAlignment="Left" Background="#F1F5F9">
+                                                <TextBlock Text="{Binding StatusDisplayName}" Foreground="{Binding StatusColor}" FontWeight="Bold" FontSize="11"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Shipper Phụ Trách -->
+                                <DataGridTextColumn Header="Shipper Giao" Binding="{Binding AssignedShipperName}" Width="130"/>
+
+                                <!-- Thao tác nhanh -->
+                                <DataGridTemplateColumn Header="Thao Tác" Width="270">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Button Content="🛵 Phân Xe" Height="28" Padding="8,0" FontSize="11" Margin="0,0,5,0"
+                                                        Background="#FEF3C7" Foreground="#B45309" BorderBrush="#FDE68A"
+                                                        Style="{StaticResource NutCongCuTintedStyle}" Click="BtnOpenAssignShipper_Click" ToolTip="Phân công Shipper giao đơn này"/>
+                                                <Button Style="{StaticResource NutCongCuTintedStyle}" Height="28" Padding="8,0" FontSize="11" Margin="0,0,5,0"
+                                                        Background="#EFF6FF" Foreground="#2563EB" BorderBrush="#BFDBFE"
+                                                        Click="BtnQuickAdvanceStatus_Click" ToolTip="Chuyển sang trạng thái tiếp theo">
+                                                    <TextBlock Text="Tiến Độ ➔"/>
+                                                </Button>
+                                                <Button Style="{StaticResource NutCongCuTintedStyle}" Height="28" Padding="8,0" FontSize="11"
+                                                        Background="#ECFDF5" Foreground="#059669" BorderBrush="#A7F3D0"
+                                                        Click="BtnQuickTrackOrder_Click" ToolTip="Xem dòng thời gian hành trình chi tiết (Tính năng 7)">
+                                                    <TextBlock Text="🔍 Tra Cứu"/>
+                                                </Button>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ================= MODAL TẠO ĐƠN HÀNG MỚI (POPUP FORM) ================= -->
+        <Grid x:Name="modalCreateOrder" Visibility="Collapsed" Background="#800F172A">
+            <Border Background="White" CornerRadius="16" Width="680" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="28" MaxHeight="680">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="25" Direction="270" ShadowDepth="4" Color="Black" Opacity="0.3"/>
+                </Border.Effect>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- Header Modal -->
+                        <Grid Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="➕ Tạo Mới Đơn Hàng Vận Chuyển" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
+                                <TextBlock Text="Nhập đầy đủ thông tin gửi, nhận và quy cách bưu kiện hàng hóa" FontSize="12" Foreground="#64748B"/>
+                            </StackPanel>
+                            <Button x:Name="btnCloseCreateModalIcon" Content="✕" Width="30" Height="30" FontSize="14" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnCloseCreateModal_Click"/>
+                        </Grid>
+
+                        <!-- KHU VỰC THÔNG TIN BÊN GỬI -->
+                        <TextBlock Text="1. THÔNG TIN BÊN GỬI (SENDER)" FontSize="11" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,0,4"/>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                                <TextBlock Text="Tên người gửi / Cửa hàng *" FontSize="11" Foreground="#475569"/>
+                                <Border Style="{StaticResource FormInputBorderStyle}">
+                                    <TextBox x:Name="txtNewSenderName" Margin="8,0" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" FontSize="12.5"/>
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                                <TextBlock Text="Số điện thoại bên gửi *" FontSize="11" Foreground="#475569"/>
+                                <Border Style="{StaticResource FormInputBorderStyle}">
+                                    <TextBox x:Name="txtNewSenderPhone" Margin="8,0" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" FontSize="12.5"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- KHU VỰC THÔNG TIN BÊN NHẬN -->
+                        <TextBlock Text="2. THÔNG TIN BÊN NHẬN (RECEIVER)" FontSize="11" FontWeight="Bold" Foreground="#2563EB" Margin="0,4,0,4"/>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                                <TextBlock Text="Họ tên người nhận *" FontSize="11" Foreground="#475569"/>
+                                <Border Style="{StaticResource FormInputBorderStyle}">
+                                    <TextBox x:Name="txtNewReceiverName" Margin="8,0" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" FontSize="12.5"/>
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                                <TextBlock Text="Số điện thoại người nhận *" FontSize="11" Foreground="#475569"/>
+                                <Border Style="{StaticResource FormInputBorderStyle}">
+                                    <TextBox x:Name="txtNewReceiverPhone" Margin="8,0" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" FontSize="12.5"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Địa chỉ giao hàng chi tiết *" FontSize="11" Foreground="#475569"/>
+                        <Border Style="{StaticResource FormInputBorderStyle}">
+                            <TextBox x:Name="txtNewReceiverAddress" Margin="8,0" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" FontSize="12.5"/>
+                        </Border>
+
+                        <!-- KHU VỰC BƯU KIỆN & CƯỚC -->
+                        <TextBlock Text="3. THÔNG TIN BƯU KIỆN &amp; DỊCH VỤ" FontSize="11" FontWeight="Bold" Foreground="#2563EB" Margin="0,4,0,4"/>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                                <TextBlock Text="Mô tả hàng hóa *" FontSize="11" Foreground="#475569"/>
+                                <Border Style="{StaticResource FormInputBorderStyle}">
+                                    <TextBox x:Name="txtNewProductSummary" Margin="8,0" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" FontSize="12.5"/>
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="6,0,6,0">
+                                <TextBlock Text="Cân nặng (kg) *" FontSize="11" Foreground="#475569"/>
+                                <Border Style="{StaticResource FormInputBorderStyle}">
+                                    <TextBox x:Name="txtNewWeight" Text="1.0" Margin="8,0" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" FontSize="12.5" TextChanged="TxtNewFeeInputs_TextChanged"/>
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Margin="6,0,0,0">
+                                <TextBlock Text="Tiền thu COD (đ)" FontSize="11" Foreground="#475569"/>
+                                <Border Style="{StaticResource FormInputBorderStyle}">
+                                    <TextBox x:Name="txtNewCodAmount" Text="0" Margin="8,0" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" FontSize="12.5" TextChanged="TxtNewFeeInputs_TextChanged"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- CHECKBOX EXPRESS HỎA TỐC -->
+                        <Border Background="#F5F3FF" CornerRadius="8" Padding="12,10" Margin="0,4,0,10" BorderBrush="#DDD6FE" BorderThickness="1">
+                            <Grid>
+                                <CheckBox x:Name="chkNewIsExpress" IsChecked="False" Content="⚡ Sử Dụng Dịch Vụ Giao Hỏa Tốc (Express 2h - 4h)" FontWeight="Bold" Foreground="#7C3AED" FontSize="13" VerticalAlignment="Center" Checked="FeeOption_Changed" Unchecked="FeeOption_Changed"/>
+                                <TextBlock Text="Cước +20.000đ" FontSize="11" Foreground="#7C3AED" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- 4. BẢNG TÍNH CƯỚC PHÍ & THANH TOÁN THEO YÊU CẦU -->
+                        <TextBlock Text="4. BẢNG TÍNH CƯỚC PHÍ &amp; THANH TOÁN" FontSize="11" FontWeight="Bold" Foreground="#2563EB" Margin="0,2,0,6"/>
+                        <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="14,12" Margin="0,0,0,16">
+                            <StackPanel>
+                                <!-- Tùy chọn người trả cước -->
+                                <Grid Margin="0,0,0,8">
+                                    <TextBlock Text="Người trả cước vận chuyển:" FontSize="11.5" FontWeight="SemiBold" Foreground="#334155" VerticalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <RadioButton x:Name="rbReceiverPays" Content="Khách nhận trả cước" IsChecked="True" FontSize="11.5" Foreground="#1E293B" Margin="0,0,12,0" Checked="FeeOption_Changed"/>
+                                        <RadioButton x:Name="rbSenderPays" Content="Người gửi trả (Freeship)" FontSize="11.5" Foreground="#1E293B" Checked="FeeOption_Changed"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Banner trạng thái chính sách FREESHIP -->
+                                <Border x:Name="borderFreeshipPolicy" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,10">
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock x:Name="txtFreeshipIcon" Text="💡" Margin="0,0,6,0" FontSize="12"/>
+                                            <TextBlock x:Name="txtFreeshipPolicyMessage" Text="Chính sách Freeship: Miễn phí vận chuyển cho đơn hàng từ 500.000đ" FontSize="11" FontWeight="SemiBold" Foreground="#1D4ED8"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <!-- 1. Tiền thu hộ COD -->
+                                <Grid Margin="0,2,0,4">
+                                    <TextBlock Text="Tiền thu hộ COD" FontSize="12.5" Foreground="#475569"/>
+                                    <TextBlock x:Name="txtFeeCod" Text="0đ" FontSize="13" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Right"/>
+                                </Grid>
+
+                                <!-- 2. Phí vận chuyển -->
+                                <Grid Margin="0,2,0,4">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="Phí vận chuyển" FontSize="12.5" Foreground="#475569"/>
+                                        <Border x:Name="badgeFreeshipTag" Background="#DCFCE7" CornerRadius="4" Padding="6,1" Margin="6,0,0,0" Visibility="Collapsed">
+                                            <TextBlock Text="FREESHIP" FontSize="9.5" FontWeight="Bold" Foreground="#15803D"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock x:Name="txtFeeShipping" Text="20.000đ" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A" HorizontalAlignment="Right"/>
+                                </Grid>
+
+                                <!-- 3. Phụ phí hỏa tốc -->
+                                <Grid Margin="0,2,0,8">
+                                    <TextBlock Text="Phụ phí hỏa tốc" FontSize="12.5" Foreground="#475569"/>
+                                    <TextBlock x:Name="txtFeeExpress" Text="0đ" FontSize="13" FontWeight="SemiBold" Foreground="#7C3AED" HorizontalAlignment="Right"/>
+                                </Grid>
+
+                                <!-- Đường phân cách tổng cộng -->
+                                <Border BorderBrush="#CBD5E1" BorderThickness="0,1,0,0" Margin="0,2,0,8"/>
+
+                                <!-- 4. Tổng tiền khách cần thanh toán -->
+                                <Grid Margin="0,2,0,6">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Tổng tiền khách cần thanh toán" FontSize="13" FontWeight="Bold" Foreground="#0F172A"/>
+                                        <TextBlock x:Name="txtFeePayerNote" Text="(Bao gồm COD: 0đ + Phí vận chuyển)" FontSize="10.5" Foreground="#64748B"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="txtFeeTotal" Text="20.000đ" FontSize="18" FontWeight="ExtraBold" Foreground="#059669" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <!-- 5. Minh họa ghi chú hệ thống -->
+                                <Border Background="#FEF3C7" CornerRadius="6" Padding="8,5" Margin="0,4,0,0">
+                                    <TextBlock Text="ℹ️ Minh họa: Số tiền thực tế cần tính theo chính sách phí của hệ thống." FontSize="10.5" Foreground="#B45309" FontWeight="Medium"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- NÚT LƯU & HỦY -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="btnCancelCreateOrder" Grid.Column="0" Content="Hủy Bỏ" Height="40" Margin="0,0,6,0" Style="{StaticResource NutCongCuTintedStyle}" Background="#F1F5F9" Foreground="#475569" BorderBrush="#CBD5E1" Click="BtnCloseCreateModal_Click"/>
+                            <Button x:Name="btnSaveNewOrder" Grid.Column="1" Content="💾 Lưu &amp; Phát Hành Đơn Hàng" Height="40" Margin="6,0,0,0" Style="{StaticResource PrimaryButtonStyle}" Background="#2563EB" Click="BtnSaveNewOrder_Click"/>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- ================= MODAL ĐIỀU PHỐI SHIPPER ================= -->
+        <Grid x:Name="modalAssignShipper" Visibility="Collapsed" Background="#800F172A">
+            <Border Background="White" CornerRadius="16" Width="480" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="28">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="25" Direction="270" ShadowDepth="4" Color="Black" Opacity="0.3"/>
+                </Border.Effect>
+
+                <StackPanel>
+                    <!-- Header Modal -->
+                    <Grid Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="🛵 Điều Phối Nhân Viên Giao Hàng" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock x:Name="txtAssignModalTargetOrder" Text="Phân công tài xế giao đơn hàng" FontSize="12" Foreground="#64748B"/>
+                        </StackPanel>
+                        <Button Content="✕" Width="30" Height="30" FontSize="14" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnCloseAssignModal_Click"/>
+                    </Grid>
+
+                    <TextBlock Text="Chọn nhân viên giao hàng (Shipper) *" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,4"/>
+                    <ComboBox x:Name="cbShipperList" Height="40" Margin="0,4,0,16" FontSize="12.5" VerticalContentAlignment="Center"/>
+
+                    <!-- Buttons -->
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="Hủy" Height="40" Margin="0,0,6,0" Style="{StaticResource NutCongCuTintedStyle}" Background="#F1F5F9" Foreground="#475569" BorderBrush="#CBD5E1" Click="BtnCloseAssignModal_Click"/>
+                        <Button Grid.Column="1" Content="🛵 Xác Nhận Điều Phối" Height="40" Margin="6,0,0,0" Style="{StaticResource PrimaryButtonStyle}" Background="#2563EB" Click="BtnConfirmAssignShipper_Click"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

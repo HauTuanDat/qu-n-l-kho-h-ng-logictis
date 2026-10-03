@@ -1,0 +1,423 @@
+<UserControl x:Class="Quanlykhohanglogicts.TrackingPortalView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Quanlykhohanglogicts"
+             mc:Ignorable="d" 
+             d:DesignHeight="950" d:DesignWidth="1200"
+             Background="#F8FAFC">
+
+    <UserControl.Resources>
+        <!-- Style Button Thao Tác -->
+        <Style x:Key="NutTraCuuStyle" TargetType="Button">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="khungNut" Background="{TemplateBinding Background}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="khungNut" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="khungNut" Property="Opacity" Value="0.75"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style Chip Nút Gợi Ý Nhanh -->
+        <Style x:Key="NutGoiYStyle" TargetType="Button">
+            <Setter Property="Background" Value="#F1F5F9"/>
+            <Setter Property="Foreground" Value="#334155"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="khungChip" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="khungChip" Property="Background" Value="#E2E8F0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="24,18">
+            <StackPanel MaxWidth="1100" HorizontalAlignment="Center">
+
+                <!-- ================= 1. TIÊU ĐỀ & MÔ TẢ PHÂN HỆ ================= -->
+                <Grid Margin="0,0,0,16">
+                    <StackPanel HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="🔍" FontSize="26" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="Cổng Tra Cứu Hành Trình Vận Đơn Trực Tuyến" FontSize="22" FontWeight="Bold" Foreground="#0F172A"/>
+                            <Border Background="#ECFDF5" CornerRadius="6" Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="TÍNH NĂNG 7 • TRACKING PORTAL" FontSize="11" FontWeight="Bold" Foreground="#059669"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="Kiểm tra trạng thái thời gian thực • Dòng thời gian chuyển phát 5 mốc trực quan • Minh bạch cước phí &amp; thông tin người nhận" 
+                                   FontSize="13" Foreground="#64748B" Margin="0,4,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- ================= 2. KHUNG TÌM KIẾM TRUNG TÂM NỔI BẬT ================= -->
+                <Border Background="White" CornerRadius="14" Padding="20" BorderBrush="#E2E8F0" BorderThickness="1" Margin="0,0,0,18">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="15" Direction="270" ShadowDepth="2" Color="#0F172A" Opacity="0.05"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <!-- Hàng tìm kiếm chính -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="150"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1.5" CornerRadius="10" Height="48" Margin="0,0,12,0">
+                                <Grid Margin="14,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="28"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="📦" FontSize="18" VerticalAlignment="Center" Foreground="#64748B"/>
+                                    <TextBox x:Name="txtMaVanDonTraCuu" Grid.Column="1" Margin="8,0" FontSize="15" FontWeight="SemiBold"
+                                             Foreground="#0F172A" Background="Transparent" BorderThickness="0" VerticalAlignment="Center"
+                                             KeyDown="TxtMaVanDonTraCuu_KeyDown" TextChanged="TxtMaVanDonTraCuu_TextChanged"/>
+                                    <TextBlock x:Name="txtPlaceholderTraCuu" Grid.Column="1" Margin="8,0"
+                                               Text="Nhập mã vận đơn (VD: LOGIX-98001, LOGIX-EXP-001) hoặc số điện thoại..."
+                                               FontSize="14" Foreground="#94A3B8" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                                    <Button x:Name="btnXoaTrang" Grid.Column="2" Content="✕" Width="24" Height="24" Background="Transparent"
+                                            BorderThickness="0" Foreground="#94A3B8" Cursor="Hand" Click="BtnXoaTrang_Click" Visibility="Collapsed"/>
+                                </Grid>
+                            </Border>
+
+                            <Button x:Name="btnTraCuu" Grid.Column="1" Style="{StaticResource NutTraCuuStyle}" Height="48"
+                                    Background="#2563EB" Foreground="White" Click="BtnTraCuu_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔍" Margin="0,0,6,0" FontSize="14"/>
+                                    <TextBlock Text="Tra Cứu Ngay" FontSize="14" FontWeight="Bold"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <!-- Các chip gợi ý mã mẫu bấm thử -->
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Gợi ý tra cứu nhanh:" FontSize="12" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <Button Style="{StaticResource NutGoiYStyle}" Content="LOGIX-EXP-001 (Đang giao)" Click="BtnChipGoiY_Click" Tag="LOGIX-EXP-001"/>
+                            <Button Style="{StaticResource NutGoiYStyle}" Content="LOGIX-98008 (Đã giao)" Click="BtnChipGoiY_Click" Tag="LOGIX-98008"/>
+                            <Button Style="{StaticResource NutGoiYStyle}" Content="LOGIX-98001 (Mới nhận)" Click="BtnChipGoiY_Click" Tag="LOGIX-98001"/>
+                            <Button Style="{StaticResource NutGoiYStyle}" Content="LOGIX-OVERDUE-01 (Quá hạn)" Click="BtnChipGoiY_Click" Tag="LOGIX-OVERDUE-01"/>
+                            <Button Style="{StaticResource NutGoiYStyle}" Content="0977112233 (SĐT)" Click="BtnChipGoiY_Click" Tag="0977112233"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= 3. TRẠNG THÁI KHÔNG TÌM THẤY ================= -->
+                <Border x:Name="khungKhongTimThay" Visibility="Collapsed" Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="⚠️" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                        <TextBlock Text="Không tìm thấy bưu kiện phù hợp!" FontSize="16" FontWeight="Bold" Foreground="#991B1B" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="txtLyDoKhongTimThay" Text="Vui lòng kiểm tra lại chính xác mã vận đơn hoặc số điện thoại người nhận." FontSize="13" Foreground="#B91C1C" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= 4. KHUNG KẾT QUẢ TRA CỨU CHI TIẾT ================= -->
+                <StackPanel x:Name="khungKetQuaTraCuu" Visibility="Collapsed">
+
+                    <!-- 4.1 THẺ HERO: TRẠNG THÁI TỔNG QUÁT & TIẾN TRÌNH % -->
+                    <Border Background="White" CornerRadius="14" Padding="22" BorderBrush="#E2E8F0" BorderThickness="1" Margin="0,0,0,16">
+                        <StackPanel>
+                            <!-- Hàng 1: Mã đơn, Loại dịch vụ, Trạng thái, Nút Copy -->
+                            <Grid Margin="0,0,0,14">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock x:Name="txtKetQuaMaVanDon" Text="LOGIX-260925-001" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <Button x:Name="btnSaoChepMa" Style="{StaticResource NutTraCuuStyle}" Background="#F1F5F9" Foreground="#475569" 
+                                            Padding="8,2" Margin="10,0,0,0" ToolTip="Sao chép mã vận đơn" Click="BtnSaoChepMa_Click">
+                                        <TextBlock Text="📋 Sao chép" FontSize="11"/>
+                                    </Button>
+                                    <Border x:Name="badgeLoaiDichVu" Background="#F5F3FF" CornerRadius="6" Padding="8,3" Margin="10,0,0,0">
+                                        <TextBlock x:Name="txtBadgeLoaiDichVu" Text="⚡ HỎA TỐC EXPRESS" FontSize="11" FontWeight="Bold" Foreground="#7C3AED"/>
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <Border x:Name="badgeTrangThaiDon" Background="#EFF6FF" CornerRadius="20" Padding="12,4">
+                                        <TextBlock x:Name="txtBadgeTrangThaiDon" Text="Đang Giao Hàng" FontSize="12.5" FontWeight="Bold" Foreground="#2563EB"/>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Hàng 2: Thanh tiến trình phần trăm hoàn thành hành trình -->
+                            <Grid Margin="0,4,0,10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0" Margin="0,0,0,6">
+                                    <TextBlock Text="Tiến trình hoàn tất hành trình vận chuyển:" FontSize="12" Foreground="#64748B"/>
+                                    <TextBlock x:Name="txtPhanTramTienTrinh" Text="70% Hoàn Thành" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#2563EB"/>
+                                </Grid>
+                                <!-- Thanh ProgressBar -->
+                                <ProgressBar x:Name="pbTienTrinhDonHang" Grid.Row="1" Height="10" Value="70" Maximum="100" 
+                                             Foreground="#2563EB" Background="#E2E8F0" BorderThickness="0"/>
+                            </Grid>
+
+                            <!-- Hàng 3: Hạn cam kết giao hàng (SLA) & Cảnh báo -->
+                            <Grid Margin="0,8,0,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="🕒 Hạn cam kết giao hàng (SLA): " FontSize="12" Foreground="#64748B"/>
+                                    <TextBlock x:Name="txtHanGiaoSla" Text="25/09/2026 18:00" FontSize="12" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                </StackPanel>
+                                <Border x:Name="badgeCanhBaoQuaHan" Visibility="Collapsed" Background="#FEF2F2" CornerRadius="6" Padding="8,2" HorizontalAlignment="Right">
+                                    <TextBlock Text="⚠️ Đơn đã quá hạn giao dự kiến!" FontSize="11" FontWeight="Bold" Foreground="#DC2626"/>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 4.2 BỐ CỤC 3 THẺ THÔNG TIN: BÊN GỬI • BÊN NHẬN • SHIAPPER & THANH TOÁN -->
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- THẺ 1: BÊN GỬI -->
+                        <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="16" BorderBrush="#E2E8F0" BorderThickness="1" Margin="0,0,10,0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <TextBlock Text="📤" FontSize="16" Margin="0,0,6,0"/>
+                                    <TextBlock Text="THÔNG TIN BÊN GỬI" FontSize="12" FontWeight="Bold" Foreground="#0F172A"/>
+                                </StackPanel>
+                                <TextBlock x:Name="txtNguoiGuiTen" Text="Shop Thời Trang GenZ" FontWeight="SemiBold" FontSize="13" Foreground="#1E293B"/>
+                                <TextBlock x:Name="txtNguoiGuiSdt" Text="📞 0944 555 666" FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
+                                <TextBlock x:Name="txtNguoiGuiDiaChi" Text="📍 Số 12 Chùa Bộc, Đống Đa, Hà Nội" FontSize="11.5" Foreground="#64748B" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                <Border Background="#F8FAFC" CornerRadius="6" Padding="8,4" Margin="0,10,0,0">
+                                    <TextBlock x:Name="txtHangHoaTomTat" Text="Kiện hàng: Áo khoác gió (0.8 kg)" FontSize="11" Foreground="#334155"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- THẺ 2: BÊN NHẬN -->
+                        <Border Grid.Column="1" Background="White" CornerRadius="12" Padding="16" BorderBrush="#E2E8F0" BorderThickness="1" Margin="0,0,10,0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <TextBlock Text="📥" FontSize="16" Margin="0,0,6,0"/>
+                                    <TextBlock Text="THÔNG TIN BÊN NHẬN" FontSize="12" FontWeight="Bold" Foreground="#0F172A"/>
+                                </StackPanel>
+                                <TextBlock x:Name="txtNguoiNhanTen" Text="Hoàng Thị Mai" FontWeight="SemiBold" FontSize="13" Foreground="#1E293B"/>
+                                <TextBlock x:Name="txtNguoiNhanSdt" Text="📞 0977 112 233" FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
+                                <TextBlock x:Name="txtNguoiNhanDiaChi" Text="📍 Số 45 Chùa Láng, Đống Đa, Hà Nội" FontSize="11.5" Foreground="#64748B" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                <Border Background="#F8FAFC" CornerRadius="6" Padding="8,4" Margin="0,10,0,0">
+                                    <TextBlock x:Name="txtKhuVucGiaoHang" Text="Khu vực: Đống Đa - Ba Đình" FontSize="11" Foreground="#334155"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- THẺ 3: TÀI XẾ & DÒNG TIỀN COD -->
+                        <Border Grid.Column="2" Background="White" CornerRadius="12" Padding="16" BorderBrush="#E2E8F0" BorderThickness="1">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <TextBlock Text="🛵" FontSize="16" Margin="0,0,6,0"/>
+                                    <TextBlock Text="SHIPPER &amp; THANH TOÁN" FontSize="12" FontWeight="Bold" Foreground="#0F172A"/>
+                                </StackPanel>
+                                <TextBlock x:Name="txtTaiXePhuTrach" Text="Nguyễn Văn Tuấn" FontWeight="SemiBold" FontSize="13" Foreground="#1E293B"/>
+                                <TextBlock x:Name="txtTaiXeSdt" Text="📞 0981 111 222 (Wave 29H1-892.11)" FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
+
+                                <Grid Margin="0,10,0,0">
+                                    <TextBlock Text="Tiền thu hộ COD:" FontSize="12" Foreground="#64748B"/>
+                                    <TextBlock x:Name="txtTienCodHienThi" Text="450.000 đ" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#059669"/>
+                                </Grid>
+                                <Grid Margin="0,4,0,0">
+                                    <TextBlock Text="Cước vận chuyển:" FontSize="12" Foreground="#64748B"/>
+                                    <TextBlock x:Name="txtPhiVanChuyenHienThi" Text="25.000 đ" HorizontalAlignment="Right" FontSize="12" Foreground="#64748B"/>
+                                </Grid>
+                                <Separator Margin="0,6"/>
+                                <Grid>
+                                    <TextBlock Text="Tổng khách cần trả:" FontSize="12" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <TextBlock x:Name="txtTongTienKhachTra" Text="475.000 đ" HorizontalAlignment="Right" FontSize="13" FontWeight="Bold" Foreground="#2563EB"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- 4.3 DÒNG THỜI GIAN HÀNH TRÌNH 5 MỐC TRỰC QUAN (VISUAL STEPPER TIMELINE) -->
+                    <Border Background="White" CornerRadius="14" Padding="24" BorderBrush="#E2E8F0" BorderThickness="1" Margin="0,0,0,16">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+                                <TextBlock Text="📍" FontSize="18" Margin="0,0,8,0"/>
+                                <TextBlock Text="DÒNG THỜI GIAN LỘ TRÌNH CHUYỂN PHÁT" FontSize="14" FontWeight="Bold" Foreground="#0F172A"/>
+                            </StackPanel>
+
+                            <!-- DÒNG THỜI GIAN CÁC BƯỚC -->
+                            <StackPanel Margin="10,0,0,0">
+
+                                <!-- MỐC 1: TIẾP NHẬN ĐƠN HÀNG -->
+                                <Grid Margin="0,0,0,18">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="36"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <!-- Icon tròn mốc 1 -->
+                                    <Border x:Name="iconMoc1" Grid.Column="0" Width="30" Height="30" CornerRadius="15" Background="#10B981" VerticalAlignment="Top">
+                                        <TextBlock Text="✓" Foreground="White" FontWeight="Bold" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <!-- Nội dung mốc 1 -->
+                                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                        <Grid>
+                                            <TextBlock Text="1. Tiếp Nhận Đơn Hàng &amp; Phát Hành Vận Đơn" FontWeight="Bold" FontSize="13" Foreground="#0F172A"/>
+                                            <TextBlock x:Name="txtThoiGianMoc1" Text="25/09/2026 08:30" HorizontalAlignment="Right" FontSize="11.5" Foreground="#64748B"/>
+                                        </Grid>
+                                        <TextBlock Text="Đơn hàng được khởi tạo thành công trên hệ thống. Nhân viên đã xác nhận thông tin người nhận và bưu kiện." FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- MỐC 2: PHÂN LOẠI KHO -->
+                                <Grid Margin="0,0,0,18">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="36"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <!-- Icon tròn mốc 2 -->
+                                    <Border x:Name="iconMoc2" Grid.Column="0" Width="30" Height="30" CornerRadius="15" Background="#10B981" VerticalAlignment="Top">
+                                        <TextBlock x:Name="txtIconMoc2" Text="✓" Foreground="White" FontWeight="Bold" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <!-- Nội dung mốc 2 -->
+                                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                        <Grid>
+                                            <TextBlock Text="2. Phân Loại Tuyến &amp; Đóng Gói Tại Kho Hub" FontWeight="Bold" FontSize="13" Foreground="#0F172A"/>
+                                            <TextBlock x:Name="txtThoiGianMoc2" Text="25/09/2026 09:15" HorizontalAlignment="Right" FontSize="11.5" Foreground="#64748B"/>
+                                        </Grid>
+                                        <TextBlock x:Name="txtMoTaMoc2" Text="Kiện hàng đã qua cân đo tải trọng, dán tem nhãn QR/Barcode và chuyển vào máng gom tuyến giao hàng." FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- MỐC 3: XUẤT KHO BÀN GIAO SHIPPER -->
+                                <Grid Margin="0,0,0,18">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="36"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <!-- Icon tròn mốc 3 -->
+                                    <Border x:Name="iconMoc3" Grid.Column="0" Width="30" Height="30" CornerRadius="15" Background="#2563EB" VerticalAlignment="Top">
+                                        <TextBlock x:Name="txtIconMoc3" Text="3" Foreground="White" FontWeight="Bold" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <!-- Nội dung mốc 3 -->
+                                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                        <Grid>
+                                            <TextBlock Text="3. Xuất Kho &amp; Điều Phối Cho Shipper" FontWeight="Bold" FontSize="13" Foreground="#0F172A"/>
+                                            <TextBlock x:Name="txtThoiGianMoc3" Text="25/09/2026 10:00" HorizontalAlignment="Right" FontSize="11.5" Foreground="#64748B"/>
+                                        </Grid>
+                                        <TextBlock x:Name="txtMoTaMoc3" Text="Bưu tá nhận đơn hàng và xếp lên xe theo đúng thứ tự lộ trình điểm dừng." FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- MỐC 4: ĐANG GIAO HÀNG TRÊN TUYẾN -->
+                                <Grid Margin="0,0,0,18">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="36"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <!-- Icon tròn mốc 4 -->
+                                    <Border x:Name="iconMoc4" Grid.Column="0" Width="30" Height="30" CornerRadius="15" Background="#E2E8F0" VerticalAlignment="Top">
+                                        <TextBlock x:Name="txtIconMoc4" Text="4" Foreground="#64748B" FontWeight="Bold" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <!-- Nội dung mốc 4 -->
+                                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                        <Grid>
+                                            <TextBlock Text="4. Đang Trên Tuyến Giao Hàng Đến Khách Nhận" FontWeight="Bold" FontSize="13" Foreground="#0F172A"/>
+                                            <TextBlock x:Name="txtThoiGianMoc4" Text="Đang cập nhật..." HorizontalAlignment="Right" FontSize="11.5" Foreground="#64748B"/>
+                                        </Grid>
+                                        <TextBlock x:Name="txtMoTaMoc4" Text="Shipper đang di chuyển tới địa chỉ nhận. Vui lòng để ý điện thoại khi shipper liên hệ." FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- MỐC 5: GIAO THÀNH CÔNG -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="36"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <!-- Icon tròn mốc 5 -->
+                                    <Border x:Name="iconMoc5" Grid.Column="0" Width="30" Height="30" CornerRadius="15" Background="#E2E8F0" VerticalAlignment="Top">
+                                        <TextBlock x:Name="txtIconMoc5" Text="5" Foreground="#64748B" FontWeight="Bold" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <!-- Nội dung mốc 5 -->
+                                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                        <Grid>
+                                            <TextBlock Text="5. Giao Hàng Thành Công &amp; Ký Nhận Hoàn Tất" FontWeight="Bold" FontSize="13" Foreground="#0F172A"/>
+                                            <TextBlock x:Name="txtThoiGianMoc5" Text="Chưa hoàn tất" HorizontalAlignment="Right" FontSize="11.5" Foreground="#64748B"/>
+                                        </Grid>
+                                        <TextBlock x:Name="txtMoTaMoc5" Text="Kiện hàng được giao tận tay khách nhận. Tiền thu hộ COD đã nộp về quỹ theo quy trình." FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 4.4 HỘP THAO TÁC: MÔ PHỎNG & IN ẤN -->
+                    <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="16">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <!-- Nút in phiếu tra cứu -->
+                                <Button x:Name="btnInPhieuTraCuu" Style="{StaticResource NutTraCuuStyle}" Height="38" Padding="14,0"
+                                        Background="#475569" Foreground="White" Margin="0,0,10,0" Click="BtnInPhieuTraCuu_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🖨️" Margin="0,0,6,0" FontSize="12"/>
+                                        <TextBlock Text="In Phiếu Hành Trình Vận Đơn" FontSize="12.5"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Nút sao chép đường dẫn tra cứu -->
+                                <Button x:Name="btnSaoChepLink" Style="{StaticResource NutTraCuuStyle}" Height="38" Padding="14,0"
+                                        Background="#059669" Foreground="White" Click="BtnSaoChepLink_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🔗" Margin="0,0,6,0" FontSize="12"/>
+                                        <TextBlock Text="Sao Chép Link Tra Cứu" FontSize="12.5"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <!-- Nút mô phỏng tiến độ tiếp theo -->
+                            <Button x:Name="btnMoPhongTienTrinh" HorizontalAlignment="Right"
+                                    Style="{StaticResource NutTraCuuStyle}" Height="38" Padding="16,0"
+                                    Background="#2563EB" Foreground="White" Click="BtnMoPhongTienTrinh_Click" ToolTip="Chuyển đơn hàng sang mốc hành trình tiếp theo để thử nghiệm">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Cập Nhật Tiến Trình Tiếp Theo ➔" FontWeight="Bold" FontSize="12.5"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

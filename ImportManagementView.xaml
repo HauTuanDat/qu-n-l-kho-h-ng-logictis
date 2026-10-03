@@ -1,0 +1,846 @@
+<UserControl x:Class="Quanlykhohanglogicts.ImportManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Quanlykhohanglogicts"
+             mc:Ignorable="d" 
+             d:DesignHeight="850" d:DesignWidth="1180"
+             Loaded="UserControl_Loaded">
+
+    <UserControl.Resources>
+        <!-- Style cho thẻ Card nền trắng -->
+        <Style x:Key="ModernCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0,0,0,14"/>
+        </Style>
+
+        <!-- Style cho nhãn Form Label -->
+        <Style x:Key="FormLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#475569"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+
+        <!-- Style cho ô nhập liệu TextBox tiêu chuẩn -->
+        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#2563EB"/>
+                                <Setter TargetName="border" Property="Background" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style cho ComboBox tiêu chuẩn -->
+        <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Style cho nút Tab Segmented -->
+        <Style x:Key="SegmentedTabRadioStyle" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="tabBorder"
+                                Background="Transparent"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}"
+                                Margin="2">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="tabBorder" Property="Background" Value="#F1F5F9"/>
+                                <Setter Property="Foreground" Value="#0F172A"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="tabBorder" Property="Background" Value="#2563EB"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#F1F5F9">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,16">
+            <StackPanel>
+                <!-- 1. HEADER & TIÊU ĐỀ TRANG -->
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="36" Height="36" Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="8" Margin="0,0,10,0">
+                                <TextBlock Text="📥" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel>
+                                <TextBlock Text="HỆ THỐNG TIẾP NHẬN &amp; NHẬP KHO LOGISTICS" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
+                                <TextBlock Text="Phân hệ nhập bưu kiện: Nhận hàng xe tải trung chuyển &amp; Nhận hàng khách lẻ tại quầy" FontSize="12.5" Foreground="#64748B"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- CÁC NÚT ĐIỀU HƯỚNG NHANH -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="btnJumpToRouteBatching" Style="{StaticResource NutCongCuTintedStyle}" 
+                                Background="#F0FDF4" BorderBrush="#86EFAC" Foreground="#166534" Margin="0,0,8,0" 
+                                ToolTip="Chuyển ngay sang Phân hệ Gom Đơn Theo Tuyến Đường (TN5) để tối ưu lộ trình &amp; phân công Shipper"
+                                Click="BtnJumpToRouteBatching_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🗺️" Margin="0,0,6,0"/>
+                                <TextBlock Text="Sang Gom Tuyến (TN5)" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="btnJumpToOrders" Style="{StaticResource NutCongCuTintedStyle}" 
+                                Background="#EFF6FF" BorderBrush="#BFDBFE" Foreground="#1D4ED8" 
+                                ToolTip="Chuyển ngay sang Phân hệ Quản Lý Đơn Hàng để xem danh sách toàn bộ bưu kiện, tra cứu và in phiếu"
+                                Click="BtnJumpToOrders_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📋" Margin="0,0,6,0"/>
+                                <TextBlock Text="Xem Danh Sách Đơn Hàng" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 2. THANH CHUYỂN ĐỔI TAB CHUYÊN DỤNG (SEGMENTED TAB BAR) -->
+                <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="4" Margin="0,0,0,16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- TAB 1: NHẬN HÀNG XE TẢI -->
+                        <RadioButton x:Name="tabTruckInbound" Grid.Column="0"
+                                     Style="{StaticResource SegmentedTabRadioStyle}"
+                                     IsChecked="True"
+                                     Checked="TabInbound_Checked">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🚛" FontSize="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="1. Nhập Hàng Xe Tải" FontWeight="Bold"/>
+                                    <TextBlock Text="Trung chuyển liên tỉnh / Chuyến xe / B2B" FontSize="10.5" Opacity="0.85"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- TAB 2: NHẬN HÀNG KHÁCH LẺ -->
+                        <RadioButton x:Name="tabRetailInbound" Grid.Column="1"
+                                     Style="{StaticResource SegmentedTabRadioStyle}"
+                                     Checked="TabInbound_Checked">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📦" FontSize="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="2. Nhận Hàng Khách Lẻ" FontWeight="Bold"/>
+                                    <TextBlock Text="Tiếp nhận tại quầy bưu cục / POS" FontSize="10.5" Opacity="0.85"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- TAB 3: SỔ NHẬT KÝ & LỊCH SỬ -->
+                        <RadioButton x:Name="tabHistoryInbound" Grid.Column="2"
+                                     Style="{StaticResource SegmentedTabRadioStyle}"
+                                     Checked="TabInbound_Checked">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📑" FontSize="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="3. Sổ Nhật Ký Nhập Kho" FontWeight="Bold"/>
+                                    <TextBlock Text="Tra cứu lịch sử &amp; Đối soát lô hàng đã nhập" FontSize="10.5" Opacity="0.85"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </RadioButton>
+                    </Grid>
+                </Border>
+
+                <!-- ========================================================================= -->
+                <!-- PHÂN HỆ TAB 1: NHẬP HÀNG XE TẢI (TRUCK INBOUND / B2B)                     -->
+                <!-- ========================================================================= -->
+                <StackPanel x:Name="panelTruckInbound" Visibility="Visible">
+                    <!-- BANNER HƯỚNG DẪN XE TẢI -->
+                    <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,14">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="💡" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="Quy trình nhập xe tải: Điền thông tin xe tải &amp; mã seal kiểm định $\rightarrow$ Nhập số kiện thực nhận $\rightarrow$ Hệ thống tự động gợi ý vị trí ô kệ lưu kho và đẩy đơn sang gom tuyến." FontSize="12" Foreground="#1E40AF" VerticalAlignment="Center"/>
+                            <Button Grid.Column="2" x:Name="btnFillSampleTruck" Style="{StaticResource ChipButtonStyle}" Click="BtnFillSampleTruck_Click">
+                                <TextBlock Text="📄 Điền Mẫu Xe Hà Nội - Thái Nguyên (Demo)"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- LƯỚI 2 CỘT THÔNG TIN XE TẢI -->
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- CỘT 1: THÔNG TIN XE & HÀNH TRÌNH -->
+                        <Border Grid.Column="0" Style="{StaticResource ModernCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="THÔNG TIN PHƯƠNG TIỆN &amp; TÀI XẾ" FontSize="13" FontWeight="Bold" Foreground="#1E293B" Margin="0,0,0,12"/>
+
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Biển Số Xe Tải (Chọn từ danh sách) *" Style="{StaticResource FormLabelStyle}"/>
+                                        <ComboBox x:Name="cbTruckPlate" Style="{StaticResource ModernComboBoxStyle}" IsEditable="True" TextSearch.TextPath="LicensePlate" SelectionChanged="CbTruckPlate_SelectionChanged">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border BorderBrush="#F1F5F9" BorderThickness="0,0,0,1" Padding="4,6">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding LicensePlate}" FontWeight="Bold" FontSize="13" Foreground="#0F172A"/>
+                                                                <Border Background="#EFF6FF" CornerRadius="4" Padding="5,1" Margin="0,2,0,0" HorizontalAlignment="Left">
+                                                                    <TextBlock Text="{Binding VehicleTypeName}" FontSize="10" Foreground="#2563EB" FontWeight="SemiBold"/>
+                                                                </Border>
+                                                            </StackPanel>
+
+                                                            <StackPanel Grid.Column="1" Margin="14,0,10,0" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding DriverSummary}" FontSize="11.5" FontWeight="SemiBold" Foreground="#334155"/>
+                                                                <TextBlock Text="{Binding RouteSummary}" FontSize="10.5" Foreground="#64748B" Margin="0,2,0,0"/>
+                                                            </StackPanel>
+
+                                                            <Border Grid.Column="2" Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="6" Padding="8,4" VerticalAlignment="Center">
+                                                                <StackPanel HorizontalAlignment="Center">
+                                                                    <TextBlock Text="{Binding ExpectedQuantity, StringFormat='{}{0} kiện'}" FontSize="11.5" FontWeight="Bold" Foreground="#166534" HorizontalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding TotalWeight, StringFormat='{}{0:N0} kg'}" FontSize="10" Foreground="#15803D" HorizontalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Loại Phương Tiện *" Style="{StaticResource FormLabelStyle}"/>
+                                        <ComboBox x:Name="cbTruckType" Style="{StaticResource ModernComboBoxStyle}" SelectedIndex="1">
+                                            <ComboBoxItem Content="Xe tải 1.25 Tấn"/>
+                                            <ComboBoxItem Content="Xe tải 2.5 Tấn (Tiêu chuẩn)"/>
+                                            <ComboBoxItem Content="Xe tải 5.0 Tấn"/>
+                                            <ComboBoxItem Content="Xe tải 10 Tấn (Liên tỉnh)"/>
+                                            <ComboBoxItem Content="Xe Đầu Kéo Container"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Họ Tên Lái Xe *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtTruckDriverName" Style="{StaticResource ModernTextBoxStyle}" Text="" TextChanged="ControlValue_ClearedError"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Số Điện Thoại Tài Xế *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtTruckDriverPhone" Style="{StaticResource ModernTextBoxStyle}" Text="" TextChanged="ControlValue_ClearedError"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Mã Chuyến Xe / Manifest *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtTruckManifestCode" Style="{StaticResource ModernTextBoxStyle}" Text="" TextChanged="ControlValue_ClearedError"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Hub / Kho Xuất Phát *" Style="{StaticResource FormLabelStyle}"/>
+                                        <ComboBox x:Name="cbTruckOriginHub" Style="{StaticResource ModernComboBoxStyle}" SelectedIndex="0">
+                                            <ComboBoxItem Content="Kho Tổng Cầu Giấy (Hà Nội)"/>
+                                            <ComboBoxItem Content="Hub Hải Phòng (Cảng Đình Vũ)"/>
+                                            <ComboBoxItem Content="Hub Bắc Ninh (KCN Quế Võ)"/>
+                                            <ComboBoxItem Content="Hub Thái Nguyên (Sông Công)"/>
+                                            <ComboBoxItem Content="Kho ICD Tiên Sơn"/>
+                                            <ComboBoxItem Content="Nhà Cung Cấp B2B Giao Trực Tiếp"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Cửa Nhận Hàng (Inbound Dock) *" Style="{StaticResource FormLabelStyle}"/>
+                                        <ComboBox x:Name="cbTruckDock" Style="{StaticResource ModernComboBoxStyle}" SelectedIndex="0">
+                                            <ComboBoxItem Content="Cửa Dock số 1 (Bến hàng nặng)"/>
+                                            <ComboBoxItem Content="Cửa Dock số 2 (Bến bưu kiện thường)"/>
+                                            <ComboBoxItem Content="Cửa Dock số 3 (Bến Cross-docking nhanh)"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Tổng Khối Lượng Toàn Xe (kg) *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtTruckTotalWeight" Style="{StaticResource ModernTextBoxStyle}" Text="" TextChanged="TruckCalculationInputs_Changed"/>
+                                        <TextBlock x:Name="lblTruckWeightHint" Text="Nhập khối lượng theo kg (VD: 22500 kg = 22.5 tấn)" FontSize="10.5" Foreground="#64748B" Margin="2,4,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- CỘT 2: KIỂM SOÁT NIÊM PHONG SEAL & KIỂM ĐẾM SỐ LƯỢNG -->
+                        <Border Grid.Column="2" Style="{StaticResource ModernCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="KIỂM SOÁT AN NINH SEAL &amp; KIỂM ĐẾM THỰC TẾ" FontSize="13" FontWeight="Bold" Foreground="#1E293B" Margin="0,0,0,12"/>
+
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Mã Số Seal Chì Niêm Phong *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtTruckSealCode" Style="{StaticResource ModernTextBoxStyle}" Text="" TextChanged="ControlValue_ClearedError"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Tình Trạng Seal Khi Cập Bến *" Style="{StaticResource FormLabelStyle}"/>
+                                        <ComboBox x:Name="cbTruckSealStatus" Style="{StaticResource ModernComboBoxStyle}" SelectedIndex="0">
+                                            <ComboBoxItem Content="✅ Nguyên Vẹn - Khớp Hồ Sơ"/>
+                                            <ComboBoxItem Content="⚠️ Nứt Rách Bao Bì"/>
+                                            <ComboBoxItem Content="🚨 Bị Đứt / Nghi Can Thiệp"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Số Kiện Manifest *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtTruckExpectedQuantity" Style="{StaticResource ModernTextBoxStyle}" Text="" TextChanged="TruckCalculationInputs_Changed"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Số Kiện Thực Nhận *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtTruckActualQuantity" Style="{StaticResource ModernTextBoxStyle}" Text="" TextChanged="TruckCalculationInputs_Changed"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="4">
+                                        <TextBlock Text="Số Kiện Bẹp/Hỏng" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtTruckDamagedQuantity" Style="{StaticResource ModernTextBoxStyle}" Text="0"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Margin="0,0,0,10">
+                                    <TextBlock Text="Phân Luồng Hàng Hóa Sau Dỡ Xe *" Style="{StaticResource FormLabelStyle}"/>
+                                    <ComboBox x:Name="cbTruckFlowType" Style="{StaticResource ModernComboBoxStyle}" SelectedIndex="0" SelectionChanged="CbTruckFlowType_SelectionChanged">
+                                        <ComboBoxItem Content="1. Hàng Cross-Docking (Chuyển sang xe tiếp theo ngay trong ngày)"/>
+                                        <ComboBoxItem Content="2. Hàng Lưu Kho (Xếp lên pallet đưa vào ô kệ lưu trữ)"/>
+                                        <ComboBoxItem Content="3. Hàng Giao Chặng Cuối (Phân bổ trực tiếp cho Shipper nội tỉnh)"/>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <StackPanel>
+                                    <TextBlock Text="Ghi Chú Kiểm Đếm &amp; Biên Bản Dỡ Xe" Style="{StaticResource FormLabelStyle}"/>
+                                    <TextBox x:Name="txtTruckNotes" Style="{StaticResource ModernTextBoxStyle}" Height="36" Text=""/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- THẺ THÔNG MINH: GỢI Ý VỊ TRÍ LƯU KỆ (SMART PUT-AWAY SUGGESTION) -->
+                    <Border x:Name="borderTruckPutAway" Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1.5" CornerRadius="10" Padding="16,12" Margin="0,0,0,14">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Width="44" Height="44" Background="#DCFCE7" CornerRadius="10" Margin="0,0,12,0">
+                                <TextBlock x:Name="txtTruckPutAwayIcon" Text="🧠" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="THUẬT TOÁN GỢI Ý VỊ TRÍ LƯU KỆ THÔNG MINH (SMART PUT-AWAY)" FontSize="12.5" FontWeight="Bold" Foreground="#166534"/>
+                                    <Border Background="#16A34A" CornerRadius="6" Padding="6,1" Margin="8,0,0,0">
+                                        <TextBlock Text="TỰ ĐỘNG CHỈ ĐỊNH" FontSize="9.5" FontWeight="Bold" Foreground="White"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock x:Name="txtTruckPutAwaySuggestion" Text="Khuyên đặt: Khu Cross-Docking Cửa Xuất (Hàng chuyển tiếp trong ngày, xuất bến ngay không cần cất vào kệ sâu)" FontSize="12" Foreground="#15803D" FontWeight="SemiBold" Margin="0,3,0,0"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                <TextBlock Text="Xác nhận vị trí kệ:" FontSize="11" Foreground="#166534" Margin="0,0,0,3"/>
+                                <ComboBox x:Name="cbTruckLocationCode" Width="200" Height="32" FontSize="11.5" SelectedIndex="0">
+                                    <ComboBoxItem Content="Khu Cross-Docking (Cửa Xuất)"/>
+                                    <ComboBoxItem Content="Khu C - Kệ 01 (Tầng 1 Hàng Nặng)"/>
+                                    <ComboBoxItem Content="Khu B - Kệ 02 (Kệ Pallet Tiêu Chuẩn)"/>
+                                    <ComboBoxItem Content="Khu A - Tủ Khóa An Toàn"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- CẢNH BÁO KIỂM TRA DỮ LIỆU ĐẦU VÀO XE TẢI -->
+                    <Border x:Name="borderTruckValidationAlert" Visibility="Collapsed" Background="#FEF2F2" BorderBrush="#FCA5A5" BorderThickness="1.5" CornerRadius="8" Padding="14,10" Margin="0,0,0,12">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚠️" FontSize="14" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="KIỂM TRA DỮ LIỆU ĐẦU VÀO XE TẢI CHƯA ĐẠT CHUẨN:" FontSize="12.5" FontWeight="Bold" Foreground="#991B1B" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock x:Name="txtTruckValidationDetails" Text="" FontSize="11.5" Foreground="#B91C1C" TextWrapping="Wrap" Margin="20,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- NÚT XÁC NHẬN NHẬP KHO XE TẢI -->
+                    <Border Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="Sẵn sàng hoàn tất tiếp nhận chuyến xe tải?" FontSize="13.5" FontWeight="Bold" Foreground="#0F172A"/>
+                                <TextBlock Text="Hệ thống sẽ lưu phiếu nhập kho, tự động sinh đơn hàng tương ứng và đẩy sang trang Gom Tuyến &amp; Điều Phối." FontSize="11.5" Foreground="#64748B"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" x:Name="btnSaveTruckInbound" Style="{StaticResource PrimaryButtonStyle}" Background="#059669" Height="44" Padding="24,0" Click="BtnSaveTruckInbound_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📥" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="XÁC NHẬN NHẬP KHO XE TẢI &amp; TỰ ĐỘNG ĐẨY ĐIỀU PHỐI" FontWeight="Bold" FontSize="13.5" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <!-- ========================================================================= -->
+                <!-- PHÂN HỆ TAB 2: NHẬN HÀNG KHÁCH LẺ (RETAIL POS COUNTER)                     -->
+                <!-- ========================================================================= -->
+                <StackPanel x:Name="panelRetailInbound" Visibility="Collapsed">
+                    <!-- BANNER HƯỚNG DẪN KHÁCH LẺ -->
+                    <Border Background="#FDF4FF" BorderBrush="#F0ABFC" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,14">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="💡" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="Tiếp nhận bưu kiện tại quầy: Nhập cân nặng &amp; kích thước D x R x C hệ thống tự tính trọng lượng thể tích và cước phí. Khi bấm lưu, đơn hàng tự động xuất hiện ở Gom Tuyến &amp; Điều Phối Shipper!" FontSize="12" Foreground="#86198F" VerticalAlignment="Center"/>
+                            <Button Grid.Column="2" x:Name="btnFillSampleRetail" Style="{StaticResource ChipButtonStyle}" Background="#FAE8FF" BorderBrush="#F0ABFC" Foreground="#A21CAF" Click="BtnFillSampleRetail_Click">
+                                <TextBlock Text="📝 Điền Mẫu Nhanh Khách Quen (Demo)"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- LƯỚI 3 CỘT TIẾP NHẬN TẠI QUẦY -->
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3.2*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="3.6*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="3.2*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- CỘT 1: THÔNG TIN BÊN GỬI & BÊN NHẬN -->
+                        <Border Grid.Column="0" Style="{StaticResource ModernCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="1. THÔNG TIN BÊN GỬI &amp; BÊN NHẬN" FontSize="13" FontWeight="Bold" Foreground="#1E293B" Margin="0,0,0,12"/>
+
+                                <!-- Người gửi -->
+                                <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="BÊN GỬI HÀNG (SENDER)" FontSize="11" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,0,6"/>
+                                        <TextBlock Text="Họ Tên Người Gửi *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtRetailSenderName" Style="{StaticResource ModernTextBoxStyle}" Text="" Margin="0,0,0,8" TextChanged="ControlValue_ClearedError"/>
+
+                                        <TextBlock Text="Số Điện Thoại Gửi * (10 chữ số)" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtRetailSenderPhone" Style="{StaticResource ModernTextBoxStyle}" Text="" Margin="0,0,0,8" TextChanged="ControlValue_ClearedError"/>
+
+                                        <TextBlock Text="Địa Chỉ Người Gửi *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtRetailSenderAddress" Style="{StaticResource ModernTextBoxStyle}" Text="" Margin="0,0,0,8" TextChanged="ControlValue_ClearedError"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Người nhận -->
+                                <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="10">
+                                    <StackPanel>
+                                        <TextBlock Text="BÊN NHẬN HÀNG (RECEIVER)" FontSize="11" FontWeight="Bold" Foreground="#059669" Margin="0,0,0,6"/>
+                                        <TextBlock Text="Họ Tên Người Nhận *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtRetailReceiverName" Style="{StaticResource ModernTextBoxStyle}" Text="" Margin="0,0,0,8" TextChanged="ControlValue_ClearedError"/>
+
+                                        <TextBlock Text="Số Điện Thoại Nhận * (10 chữ số)" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtRetailReceiverPhone" Style="{StaticResource ModernTextBoxStyle}" Text="" Margin="0,0,0,8" TextChanged="ControlValue_ClearedError"/>
+
+                                        <TextBlock Text="Địa Chỉ Giao Hàng Chi Tiết *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtRetailReceiverAddress" Style="{StaticResource ModernTextBoxStyle}" Text="" Margin="0,0,0,8" TextChanged="ControlValue_ClearedError"/>
+
+                                        <TextBlock Text="Tỉnh / Thành Phố Giao Đến *" Style="{StaticResource FormLabelStyle}"/>
+                                        <ComboBox x:Name="cbRetailDestinationArea" Style="{StaticResource ModernComboBoxStyle}" SelectedIndex="0" SelectionChanged="ControlValue_ClearedError">
+                                            <ComboBoxItem Content="-- Chọn Tỉnh / Thành Phố Giao Đến --"/>
+                                            <ComboBoxItem Content="Thái Nguyên (TP Thái Nguyên)"/>
+                                            <ComboBoxItem Content="Thái Nguyên (Sông Công - Phổ Yên)"/>
+                                            <ComboBoxItem Content="Hà Nội (Nội thành)"/>
+                                            <ComboBoxItem Content="Hà Nội (Ngoại thành)"/>
+                                            <ComboBoxItem Content="Hải Phòng"/>
+                                            <ComboBoxItem Content="Bắc Ninh"/>
+                                            <ComboBoxItem Content="Đà Nẵng"/>
+                                            <ComboBoxItem Content="TP. Hồ Chí Minh"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- CỘT 2: THÔNG TIN BƯU KIỆN & CÂN ĐO THỂ TÍCH -->
+                        <Border Grid.Column="2" Style="{StaticResource ModernCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="2. QUY CÁCH BƯU KIỆN &amp; THỂ TÍCH" FontSize="13" FontWeight="Bold" Foreground="#1E293B" Margin="0,0,0,12"/>
+
+                                <TextBlock Text="Tên Mặt Hàng / Tóm Tắt Bưu Kiện *" Style="{StaticResource FormLabelStyle}"/>
+                                <TextBox x:Name="txtRetailProductName" Style="{StaticResource ModernTextBoxStyle}" Text="" Margin="0,0,0,8" TextChanged="ControlValue_ClearedError"/>
+
+                                <TextBlock Text="Loại Hàng Hóa *" Style="{StaticResource FormLabelStyle}"/>
+                                <ComboBox x:Name="cbRetailProductType" Style="{StaticResource ModernComboBoxStyle}" SelectedIndex="0" Margin="0,0,0,8" SelectionChanged="RetailInputs_Changed">
+                                    <ComboBoxItem Content="📦 Hàng Tiêu Chuẩn Thông Thường"/>
+                                    <ComboBoxItem Content="🍷 Hàng Dễ Vỡ (Cần Bọc Xốp Cẩn Thận)"/>
+                                    <ComboBoxItem Content="💎 Hàng Giá Trị Cao (Điện Tử / Điện Thoại)"/>
+                                    <ComboBoxItem Content="📄 Tài Liệu / Giấy Tờ Hợp Đồng"/>
+                                </ComboBox>
+
+                                <!-- KÍCH THƯỚC VÀ CÂN NẶNG: MẶC ĐỊNH RỖNG ĐỂ KIỂM ĐẾM THỰC TẾ -->
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Cân Thực (kg) *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtRetailWeight" Style="{StaticResource ModernTextBoxStyle}" Text="" TextChanged="RetailInputs_Changed"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Dài (cm) *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtRetailLength" Style="{StaticResource ModernTextBoxStyle}" Text="" TextChanged="RetailInputs_Changed"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="4">
+                                        <TextBlock Text="Rộng (cm) *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtRetailWidth" Style="{StaticResource ModernTextBoxStyle}" Text="" TextChanged="RetailInputs_Changed"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="6">
+                                        <TextBlock Text="Cao (cm) *" Style="{StaticResource FormLabelStyle}"/>
+                                        <TextBox x:Name="txtRetailHeight" Style="{StaticResource ModernTextBoxStyle}" Text="" TextChanged="RetailInputs_Changed"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- HỘP TỰ ĐỘNG TÍNH THỂ TÍCH THEO CHUẨN LOGISTICS -->
+                                <Border Background="#FEF3C7" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,10">
+                                    <StackPanel>
+                                        <TextBlock Text="📐 QUY ĐỔI THỂ TÍCH (CHUẨN D x R x C / 5000):" FontSize="11" FontWeight="Bold" Foreground="#92400E"/>
+                                        <TextBlock x:Name="txtVolumetricFormula" Text="• Vui lòng nhập trọng lượng và kích thước để tính thể tích..." FontSize="11.5" Foreground="#B45309" Margin="0,2,0,0"/>
+                                        <TextBlock x:Name="txtBillableWeightText" Text="• Trọng lượng tính cước: 0.0 kg (Chờ cân đo)" FontSize="12" FontWeight="Bold" Foreground="#78350F" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- GÓI DỊCH VỤ -->
+                                <TextBlock Text="Gói Dịch Vụ Vận Chuyển *" Style="{StaticResource FormLabelStyle}"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <RadioButton x:Name="rbRetailStandardService" Content="📦 Tiêu Chuẩn (24-48h)" IsChecked="True" Margin="0,0,14,0" Checked="RetailInputs_Changed"/>
+                                    <RadioButton x:Name="rbRetailExpressService" Content="⚡ Hỏa Tốc Express (2-4h)" Foreground="#7C3AED" FontWeight="Bold" Checked="RetailInputs_Changed"/>
+                                </StackPanel>
+
+                                <!-- PHỤ PHÍ DỊCH VỤ -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <CheckBox x:Name="chkRetailFragile" Content="Bảo hiểm Dễ Vỡ (+10k)" Margin="0,0,12,0" Checked="RetailInputs_Changed" Unchecked="RetailInputs_Changed"/>
+                                    <CheckBox x:Name="chkRetailHighValue" Content="Khai Giá Cao (+15k)" Checked="RetailInputs_Changed" Unchecked="RetailInputs_Changed"/>
+                                </StackPanel>
+
+                                <!-- THẺ GỢI Ý VỊ TRÍ LƯU KỆ CHO KHÁCH LẺ -->
+                                <Border x:Name="borderRetailPutAway" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="6" Padding="8">
+                                    <StackPanel>
+                                        <TextBlock Text="🧠 GỢI Ý VỊ TRÍ XẾP KỆ (SMART PUT-AWAY):" FontSize="10.5" FontWeight="Bold" Foreground="#1D4ED8"/>
+                                        <TextBlock x:Name="txtRetailPutAwaySuggestion" Text="Khuyên đặt: Chờ nhập trọng lượng và loại hàng để gợi ý vị trí ô kệ." FontSize="11.5" Foreground="#1E40AF" FontWeight="SemiBold" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- CỘT 3: BẢNG TÍNH CƯỚC & THANH TOÁN -->
+                        <Border Grid.Column="4" Style="{StaticResource ModernCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="3. BẢNG TÍNH CƯỚC &amp; THANH TOÁN" FontSize="13" FontWeight="Bold" Foreground="#1E293B" Margin="0,0,0,12"/>
+
+                                <TextBlock Text="Số Tiền Thu Hộ COD (VNĐ)" Style="{StaticResource FormLabelStyle}"/>
+                                <TextBox x:Name="txtRetailCodAmount" Style="{StaticResource ModernTextBoxStyle}" Text="0" Margin="0,0,0,10" TextChanged="RetailInputs_Changed"/>
+
+                                <!-- BẢNG CHI TIẾT CƯỚC -->
+                                <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,6">
+                                            <TextBlock Text="Cước vận chuyển chính:" FontSize="12" Foreground="#64748B"/>
+                                            <TextBlock x:Name="txtRetailShippingFee" Text="0 đ" FontSize="12" FontWeight="SemiBold" Foreground="#0F172A" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,6">
+                                            <TextBlock Text="Phụ phí (Hỏa tốc / Dễ vỡ):" FontSize="12" Foreground="#64748B"/>
+                                            <TextBlock x:Name="txtRetailSurcharge" Text="0 đ" FontSize="12" FontWeight="SemiBold" Foreground="#0F172A" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                        <Grid Margin="0,0,0,6">
+                                            <TextBlock Text="Tiền thu hộ COD:" FontSize="12" Foreground="#64748B"/>
+                                            <TextBlock x:Name="txtRetailCodDisplay" Text="0 đ" FontSize="12" FontWeight="SemiBold" Foreground="#0F172A" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                        <Rectangle Height="1" Fill="#E2E8F0" Margin="0,4,0,8"/>
+                                        <Grid>
+                                            <TextBlock Text="TỔNG TIỀN KHÁCH TRẢ:" FontSize="13" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="txtRetailTotalAmount" Text="0 đ" FontSize="18" FontWeight="Bold" Foreground="#DC2626" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- NGƯỜI CHỊU CƯỚC -->
+                                <TextBlock Text="Bên Chịu Cước Vận Chuyển *" Style="{StaticResource FormLabelStyle}"/>
+                                <StackPanel Margin="0,0,0,10">
+                                    <RadioButton x:Name="rbRetailSenderPays" Content="Người gửi trả ngay tại quầy" Margin="0,0,0,4" Checked="RetailInputs_Changed"/>
+                                    <RadioButton x:Name="rbRetailReceiverPays" Content="Khách nhận trả (Cộng cước vào thu COD)" IsChecked="True" Checked="RetailInputs_Changed"/>
+                                </StackPanel>
+
+                                <!-- HÌNH THỨC THANH TOÁN -->
+                                <TextBlock Text="Phương Thức Thanh Toán *" Style="{StaticResource FormLabelStyle}"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <RadioButton x:Name="rbRetailPayCash" Content="💵 Tiền Mặt" IsChecked="True" Margin="0,0,14,0"/>
+                                    <RadioButton x:Name="rbRetailPayQR" Content="📱 Quét Mã VietQR / MoMo"/>
+                                </StackPanel>
+
+                                <!-- CẢNH BÁO KIỂM TRA DỮ LIỆU ĐẦU VÀO KHÁCH LẺ -->
+                                <Border x:Name="borderRetailValidationAlert" Visibility="Collapsed" Background="#FEF2F2" BorderBrush="#FCA5A5" BorderThickness="1.5" CornerRadius="8" Padding="12,8" Margin="0,0,0,10">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="⚠️" FontSize="13" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="THIẾU THÔNG TIN BẮT BUỘC (*):" FontSize="11.5" FontWeight="Bold" Foreground="#991B1B" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock x:Name="txtRetailValidationDetails" Text="" FontSize="11" Foreground="#B91C1C" TextWrapping="Wrap" Margin="16,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- NÚT HÀNH ĐỘNG -->
+                                <Button x:Name="btnSaveRetailInbound" Style="{StaticResource PrimaryButtonStyle}" Background="#2563EB" Height="42" Margin="0,0,0,8" Click="BtnSaveRetailInbound_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📥" Margin="0,0,6,0"/>
+                                        <TextBlock Text="LƯU ĐƠN NHẬP KHO &amp; ĐẨY ĐIỀU PHỐI" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" x:Name="btnPrintRetailThermalLabel" Style="{StaticResource NutCongCuTintedStyle}" Background="#F8FAFC" BorderBrush="#CBD5E1" Foreground="#475569" Height="34" Click="BtnPrintRetailThermalLabel_Click">
+                                        <TextBlock Text="🏷️ In Tem (100x150)"/>
+                                    </Button>
+                                    <Button Grid.Column="2" x:Name="btnResetRetailForm" Style="{StaticResource NutCongCuTintedStyle}" Background="#F8FAFC" BorderBrush="#CBD5E1" Foreground="#475569" Height="34" Click="BtnResetRetailForm_Click">
+                                        <TextBlock Text="🔄 Xóa Trắng Form"/>
+                                    </Button>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+
+                <!-- ========================================================================= -->
+                <!-- PHÂN HỆ TAB 3: SỔ NHẬT KÝ NHẬP KHO & LỊCH SỬ LÔ HÀNG (HISTORY & AUDIT)     -->
+                <!-- ========================================================================= -->
+                <StackPanel x:Name="panelHistoryInbound" Visibility="Collapsed">
+                    <!-- 4 THẺ KPI TỔNG HỢP -->
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Tổng số phiếu nhập -->
+                        <Border Grid.Column="0" Style="{StaticResource ModernCardStyle}" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock Text="TỔNG SỐ PHIẾU NHẬP" FontSize="11" FontWeight="Bold" Foreground="#64748B"/>
+                                <TextBlock x:Name="txtTotalImportOrders" Text="12 phiếu" FontSize="20" FontWeight="Bold" Foreground="#0F172A" Margin="0,4,0,0"/>
+                                <TextBlock Text="Bao gồm xe tải &amp; khách lẻ" FontSize="10.5" Foreground="#94A3B8"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Xe tải trung chuyển -->
+                        <Border Grid.Column="1" Style="{StaticResource ModernCardStyle}" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock Text="CHUYẾN XE TẢI TRUNG CHUYỂN" FontSize="11" FontWeight="Bold" Foreground="#2563EB"/>
+                                <TextBlock x:Name="txtTotalTruckBatches" Text="4 chuyến" FontSize="20" FontWeight="Bold" Foreground="#1D4ED8" Margin="0,4,0,0"/>
+                                <TextBlock Text="Tiếp nhận tại các cửa dock" FontSize="10.5" Foreground="#94A3B8"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Khách gửi lẻ tại quầy -->
+                        <Border Grid.Column="2" Style="{StaticResource ModernCardStyle}" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock Text="BƯU KIỆN KHÁCH LẺ (QUẦY)" FontSize="11" FontWeight="Bold" Foreground="#059669"/>
+                                <TextBlock x:Name="txtTotalRetailParcels" Text="8 kiện" FontSize="20" FontWeight="Bold" Foreground="#047857" Margin="0,4,0,0"/>
+                                <TextBlock Text="Đã dán tem &amp; chuyển điều phối" FontSize="10.5" Foreground="#94A3B8"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Tổng khối lượng nhập -->
+                        <Border Grid.Column="3" Style="{StaticResource ModernCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="TỔNG TRỌNG LƯỢNG ĐÃ NHẬP" FontSize="11" FontWeight="Bold" Foreground="#D97706"/>
+                                <TextBlock x:Name="txtTotalInboundWeight" Text="5.420 kg" FontSize="20" FontWeight="Bold" Foreground="#B45309" Margin="0,4,0,0"/>
+                                <TextBlock Text="Tổng hợp luân chuyển kho" FontSize="10.5" Foreground="#94A3B8"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- BỘ LỌC VÀ BẢNG LỊCH SỬ -->
+                    <Border Style="{StaticResource ModernCardStyle}">
+                        <StackPanel>
+                            <!-- THANH TÌM KIẾM & BỘ LỌC -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <ComboBox x:Name="cbHistoryFilterType" Grid.Column="0" Width="180" Height="36" SelectedIndex="0" SelectionChanged="CbHistoryFilterType_SelectionChanged">
+                                    <ComboBoxItem Content="-- Tất Cả Nguồn Nhập --"/>
+                                    <ComboBoxItem Content="🚛 Chuyến Xe Tải (Trung Chuyển)"/>
+                                    <ComboBoxItem Content="📦 Khách Lẻ (Tại Quầy)"/>
+                                </ComboBox>
+
+                                <TextBox x:Name="txtHistorySearch" Grid.Column="2" Style="{StaticResource ModernTextBoxStyle}" TextChanged="TxtHistorySearch_TextChanged"/>
+                                <TextBlock Grid.Column="2" Text="🔍 Tìm theo mã phiếu, tài xế, biển số xe, người gửi..." Foreground="#94A3B8" FontSize="12" Margin="12,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" x:Name="txtHistorySearchPlaceholder"/>
+
+                                <Button Grid.Column="4" Style="{StaticResource NutCongCuTintedStyle}" Background="#F8FAFC" BorderBrush="#CBD5E1" Foreground="#475569" Click="BtnHistoryResetFilter_Click">
+                                    <TextBlock Text="Đặt Lại"/>
+                                </Button>
+
+                                <Button Grid.Column="6" Style="{StaticResource NutCongCuTintedStyle}" Background="#ECFDF5" BorderBrush="#86EFAC" Foreground="#065F46" Click="BtnHistoryExportCsv_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📊" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Xuất Báo Cáo Excel/CSV"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <!-- BẢNG LỊCH SỬ NHẬP KHO -->
+                            <DataGrid x:Name="dgImportHistory" AutoGenerateColumns="False" CanUserAddRows="False"
+                                      IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                      BorderThickness="1" BorderBrush="#E2E8F0" RowHeight="46"
+                                      Background="White" RowHeaderWidth="0" MaxHeight="450"
+                                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                      ScrollViewer.CanContentScroll="False">
+                                <DataGrid.ColumnHeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="Background" Value="#F8FAFC"/>
+                                        <Setter Property="Foreground" Value="#475569"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="FontSize" Value="12"/>
+                                        <Setter Property="Padding" Value="10,8"/>
+                                        <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                                        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                    </Style>
+                                </DataGrid.ColumnHeaderStyle>
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Mã Phiếu" Binding="{Binding ImportCode}" FontWeight="Bold" Width="140"/>
+                                    <DataGridTextColumn Header="Thời Gian" Binding="{Binding CreatedDate, StringFormat='dd/MM/yyyy HH:mm'}" Width="125"/>
+                                    <DataGridTemplateColumn Header="Nguồn Nhập" Width="140">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border CornerRadius="6" Padding="6,2" HorizontalAlignment="Left" Background="#F1F5F9">
+                                                    <TextBlock Text="{Binding SourceTypeName}" Foreground="{Binding SourceTypeBadgeColor}" FontWeight="Bold" FontSize="11"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="Bên Gửi / Xe Tải" Binding="{Binding SenderName}" Width="160"/>
+                                    <DataGridTextColumn Header="Biển Số / Mã Chuyến" Binding="{Binding VehiclePlate}" Width="140"/>
+                                    <DataGridTextColumn Header="Trọng Lượng (kg)" Binding="{Binding TotalWeight, StringFormat='N1'}" Width="110"/>
+                                    <DataGridTextColumn Header="Trạng Thái" Binding="{Binding StatusDisplayName}" Width="120"/>
+                                    <DataGridTextColumn Header="Ghi Chú" Binding="{Binding Notes}" Width="*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

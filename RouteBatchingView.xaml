@@ -1,0 +1,381 @@
+<UserControl x:Class="Quanlykhohanglogicts.RouteBatchingView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Quanlykhohanglogicts"
+             mc:Ignorable="d" 
+             d:DesignHeight="850" d:DesignWidth="1200"
+             Background="#F8FAFC">
+
+    <UserControl.Resources>
+        <!-- Style Button Thao Tác Chuẩn -->
+        <Style x:Key="NutThaoTacStyle" TargetType="Button">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="khungVien" Background="{TemplateBinding Background}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="khungVien" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="khungVien" Property="Opacity" Value="0.75"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Thẻ KPI Thống Kê -->
+        <Style x:Key="TheKpiTuyenStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,16">
+            <StackPanel>
+
+                <!-- ================= HEADER: TIÊU ĐỀ & MÔ TẢ NGHIỆP VỤ ================= -->
+                <Grid Margin="0,0,0,14">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="🗺️" FontSize="22" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="Gom Đơn Theo Tuyến Đường &amp; Tối Ưu Lộ Trình Giao Hàng" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
+                            <Border Background="#EEF2FF" CornerRadius="6" Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="TÍNH NĂNG 5 • ROUTE BATCHING" FontSize="11" FontWeight="Bold" Foreground="#4F46E5"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="Tự động phân nhóm bưu kiện theo cụm địa bàn quận/huyện • Tối ưu thứ tự điểm dừng (Stop Sequence) • Điều phối hàng loạt 1-Click" 
+                                   FontSize="12.5" Foreground="#64748B" Margin="0,4,0,0"/>
+                    </StackPanel>
+
+                    <!-- Nút làm mới dữ liệu -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button x:Name="btnLamMoiDuLieu" Style="{StaticResource NutThaoTacStyle}" Height="38" Padding="14,0" 
+                                Background="#F1F5F9" Foreground="#334155" BorderBrush="#CBD5E1" Click="BtnLamMoiDuLieu_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🔄" Margin="0,0,6,0" FontSize="12"/>
+                                <TextBlock Text="Quét Lại Đơn Tuyến" FontSize="12.5"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- ================= THANH KPI THỐNG KÊ TOÀN CỤC ================= -->
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- KPI 1: Tổng đơn chờ gom tuyến -->
+                    <Border Grid.Column="0" Style="{StaticResource TheKpiTuyenStyle}">
+                        <StackPanel>
+                            <TextBlock Text="ĐƠN CẦN ĐIỀU PHỐI" FontSize="11" FontWeight="SemiBold" Foreground="#64748B"/>
+                            <TextBlock x:Name="txtTongDonChoGom" Text="0" FontSize="24" FontWeight="Bold" Foreground="#2563EB" Margin="0,4,0,0"/>
+                            <TextBlock Text="Bưu kiện chưa gán chuyến" FontSize="11" Foreground="#94A3B8"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- KPI 2: Số tuyến hoạt động -->
+                    <Border Grid.Column="1" Style="{StaticResource TheKpiTuyenStyle}">
+                        <StackPanel>
+                            <TextBlock Text="TUYẾN GOM HOẠT ĐỘNG" FontSize="11" FontWeight="SemiBold" Foreground="#64748B"/>
+                            <TextBlock x:Name="txtSoTuyenHoatDong" Text="0" FontSize="24" FontWeight="Bold" Foreground="#7C3AED" Margin="0,4,0,0"/>
+                            <TextBlock Text="Cụm địa bàn nội/ngoại thành" FontSize="11" Foreground="#94A3B8"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- KPI 3: Tổng khối lượng bưu kiện -->
+                    <Border Grid.Column="2" Style="{StaticResource TheKpiTuyenStyle}">
+                        <StackPanel>
+                            <TextBlock Text="TỔNG TẢI TRỌNG CHỜ GIAO" FontSize="11" FontWeight="SemiBold" Foreground="#64748B"/>
+                            <TextBlock x:Name="txtTongKhoiLuongKg" Text="0.0 kg" FontSize="24" FontWeight="Bold" Foreground="#D97706" Margin="0,4,0,0"/>
+                            <TextBlock Text="Khối lượng gom toàn tuyến" FontSize="11" Foreground="#94A3B8"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- KPI 4: Tổng tiền thu hộ COD -->
+                    <Border Grid.Column="3" Style="{StaticResource TheKpiTuyenStyle}" Margin="0">
+                        <StackPanel>
+                            <TextBlock Text="TỔNG TIỀN THU HỘ COD" FontSize="11" FontWeight="SemiBold" Foreground="#64748B"/>
+                            <TextBlock x:Name="txtTongTienCodTuyen" Text="0 đ" FontSize="24" FontWeight="Bold" Foreground="#059669" Margin="0,4,0,0"/>
+                            <TextBlock Text="Dòng tiền shipper sẽ thu về" FontSize="11" Foreground="#94A3B8"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- ================= BỐ CỤC 2 CỘT: DANH SÁCH TUYẾN & CHI TIẾT LỘ TRÌNH ================= -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="410"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- CỘT TRÁI: DANH SÁCH CÁC CHUYẾN GOM THEO TUYẾN ĐỊA BÀN -->
+                    <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="16" BorderBrush="#E2E8F0" BorderThickness="1" Margin="0,0,14,0">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,12">
+                                <TextBlock Text="CÁC TUYẾN ĐƯỜNG ĐÃ GOM" FontSize="13" FontWeight="Bold" Foreground="#0F172A"/>
+                                <TextBlock x:Name="txtSoLuongTuyenBadge" Text="0 tuyến" HorizontalAlignment="Right" FontSize="11.5" Foreground="#64748B"/>
+                            </Grid>
+
+                            <!-- Danh sách các Card Tuyến chiếm trọn 100% chiều rộng -->
+                            <ListView x:Name="lvDanhSachTuyen" BorderThickness="0" Background="Transparent"
+                                      SelectionChanged="LvDanhSachTuyen_SelectionChanged"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                      HorizontalContentAlignment="Stretch">
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                        <Setter Property="Margin" Value="0,0,0,10"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ListViewItem">
+                                                    <Border x:Name="itemBorder"
+                                                            Background="#F8FAFC"
+                                                            BorderBrush="#E2E8F0"
+                                                            BorderThickness="1.5"
+                                                            CornerRadius="10"
+                                                            Padding="14,12"
+                                                            HorizontalAlignment="Stretch">
+                                                        <ContentPresenter HorizontalAlignment="Stretch"/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="itemBorder" Property="Background" Value="#F1F5F9"/>
+                                                            <Setter TargetName="itemBorder" Property="BorderBrush" Value="#CBD5E1"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsSelected" Value="True">
+                                                            <Setter TargetName="itemBorder" Property="Background" Value="#EFF6FF"/>
+                                                            <Setter TargetName="itemBorder" Property="BorderBrush" Value="#3B82F6"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel HorizontalAlignment="Stretch">
+                                            <!-- Tiêu đề tuyến: Tự động co giãn theo 3 cột, không bao giờ bị đè chữ -->
+                                            <Grid Margin="0,0,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding BieuTuongTuyen}" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding TenTuyenDuong}" FontWeight="Bold" FontSize="13" Foreground="#0F172A" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                <Border Grid.Column="2" Background="#DBEAFE" CornerRadius="10" Padding="8,2" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding TongSoDon, StringFormat='{}{0} đơn'}" FontSize="11" FontWeight="Bold" Foreground="#1D4ED8"/>
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- Thông số tuyến: Trọng lượng, Hỏa tốc, COD -->
+                                            <Grid Margin="0,2,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="{Binding TongTrongLuongKg, StringFormat='⚖️ {0:N1} kg'}" FontSize="11.5" Foreground="#475569" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding TongTienCod, StringFormat='💰 {0:N0} đ'}" FontSize="11.5" Foreground="#059669" FontWeight="Bold" Margin="0,3,0,0"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                    <Border Visibility="{Binding CanhBaoQuaTai, Converter={x:Static local:OverviewView.BoolToVisibilityConverter}}"
+                                                            Background="#FEF2F2" CornerRadius="4" Padding="6,2" Margin="0,0,0,4">
+                                                        <TextBlock Text="⚠️ Cần xe tải" FontSize="10" FontWeight="Bold" Foreground="#DC2626"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding SoDonHoaToc, StringFormat='⚡ {0} hỏa tốc'}" FontSize="11" Foreground="#7C3AED" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Shipper đề xuất -->
+                                            <Border Background="#F1F5F9" CornerRadius="6" Padding="8,4" Margin="0,2,0,0">
+                                                <TextBlock Text="{Binding ShipperGoiY, StringFormat='🛵 Phụ trách: {0}'}" FontSize="11" Foreground="#334155"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- CỘT PHẢI: CHI TIẾT LỘ TRÌNH ĐIỂM DỪNG & HỘP ĐIỀU PHỐI HÀNG LOẠT -->
+                    <Border Grid.Column="1" Background="White" CornerRadius="12" Padding="18" BorderBrush="#E2E8F0" BorderThickness="1">
+                        <StackPanel>
+
+                            <!-- Tiêu đề tuyến được chọn -->
+                            <Grid Margin="0,0,0,14">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock x:Name="txtChiTietTenTuyen" Text="Chọn một tuyến để xem lộ trình" FontSize="16" FontWeight="Bold" Foreground="#0F172A"/>
+                                        <Border x:Name="badgeChiTietSoDon" Background="#2563EB" CornerRadius="10" Padding="8,2" Margin="10,0,0,0" Visibility="Collapsed">
+                                            <TextBlock x:Name="txtBadgeSoDonText" Text="0 đơn" FontSize="11" FontWeight="Bold" Foreground="White"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock x:Name="txtChiTietMoTaTuyen" Text="Lộ trình các điểm dừng được tối ưu tự động: Ưu tiên đơn hỏa tốc Express lên đầu danh sách" 
+                                               FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- BẢNG DANH SÁCH ĐIỂM DỪNG LỘ TRÌNH (STOP SEQUENCE) -->
+                            <DataGrid x:Name="dgDiemDungLoTrinh" AutoGenerateColumns="False" CanUserAddRows="False"
+                                      IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                                      BorderThickness="1" BorderBrush="#E2E8F0" Background="White"
+                                      RowHeight="44" MaxHeight="380" Margin="0,0,0,16">
+                                <DataGrid.ColumnHeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="Background" Value="#F8FAFC"/>
+                                        <Setter Property="Foreground" Value="#475569"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="FontSize" Value="11.5"/>
+                                        <Setter Property="Padding" Value="8,6"/>
+                                        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                        <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                                    </Style>
+                                </DataGrid.ColumnHeaderStyle>
+                                <DataGrid.Columns>
+                                    <!-- Thứ tự điểm dừng -->
+                                    <DataGridTemplateColumn Header="Điểm Dừng" Width="95">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Border Background="#2563EB" CornerRadius="10" Width="20" Height="20" Margin="0,0,6,0">
+                                                        <TextBlock Text="{Binding ThuTuDung}" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding ThuTuDung, StringFormat='Stop #{0}'}" FontWeight="SemiBold" FontSize="11.5" Foreground="#0F172A"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <!-- Mã đơn & Ưu tiên -->
+                                    <DataGridTemplateColumn Header="Mã Bưu Kiện" Width="130">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding MaDonHang}" FontWeight="Bold" FontSize="11.5" Foreground="#0F172A"/>
+                                                    <TextBlock Text="{Binding GhiChuLoTrinh}" FontSize="10" Foreground="#7C3AED" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <!-- Người nhận & SĐT -->
+                                    <DataGridTemplateColumn Header="Người Nhận" Width="140">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding TenNguoiNhan}" FontWeight="SemiBold" FontSize="11.5" Foreground="#1E293B"/>
+                                                    <TextBlock Text="{Binding SoDienThoaiNguoiNhan}" FontSize="10.5" Foreground="#64748B"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <!-- Địa chỉ giao chi tiết -->
+                                    <DataGridTemplateColumn Header="Địa Chỉ Giao Hàng" Width="*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding DiaChiNhan}" FontSize="11.5" Foreground="#334155" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <!-- Tiền COD -->
+                                    <DataGridTextColumn Header="Thu COD" Binding="{Binding TienCod, StringFormat='{}{0:N0} đ'}" FontWeight="Bold" Foreground="#059669" Width="100"/>
+
+                                    <!-- Trạng thái -->
+                                    <DataGridTextColumn Header="Trạng Thái" Binding="{Binding TrangThaiHienThi}" Foreground="#475569" FontSize="11" Width="110"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <!-- ================= HỘP THAO TÁC ĐIỀU PHỐI TUYẾN 1-CLICK ================= -->
+                            <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="10" Padding="16">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Dòng 1: Chọn Shipper phụ trách -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,14,0">
+                                            <TextBlock Text="Phân Công Shipper Tuyến:" FontWeight="Bold" FontSize="13" Foreground="#0F172A"/>
+                                            <TextBlock Text="Gán một tài xế phụ trách toàn bộ lộ trình" FontSize="11" Foreground="#64748B"/>
+                                        </StackPanel>
+
+                                        <ComboBox x:Name="cbShipperTuyen" Grid.Column="1" Height="40" FontSize="12.5" VerticalContentAlignment="Center"/>
+                                    </Grid>
+
+                                    <!-- Dòng 2: Các nút hành động phát hành chuyến -->
+                                    <Grid Grid.Row="1">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                            <!-- Nút Xuất Bảng Kê Chuyến Đi (Manifest CSV) -->
+                                            <Button x:Name="btnXuatBangKeLoTrinh" Style="{StaticResource NutThaoTacStyle}" Height="40" Padding="14,0"
+                                                    Background="#059669" Foreground="White" Margin="0,0,10,0" Click="BtnXuatBangKeLoTrinh_Click" ToolTip="Xuất bảng kê điểm dừng để giao cho tài xế ký nhận">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="📄" Margin="0,0,6,0" FontSize="13"/>
+                                                    <TextBlock Text="Xuất Bảng Kê Chuyến Đi (CSV)" FontSize="12.5"/>
+                                                </StackPanel>
+                                            </Button>
+
+                                            <!-- Nút In Lệnh Giao Hàng -->
+                                            <Button x:Name="btnInLenhGiaoHang" Style="{StaticResource NutThaoTacStyle}" Height="40" Padding="14,0"
+                                                    Background="#475569" Foreground="White" Click="BtnInLenhGiaoHang_Click" ToolTip="In phiếu điều động chuyến giao hàng">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="🖨️" Margin="0,0,6,0" FontSize="13"/>
+                                                    <TextBlock Text="In Lệnh Điều Động" FontSize="12.5"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+
+                                        <!-- Nút Phát Hành Chuyến Giao Tuyến (1-Click Dispatch) -->
+                                        <Button x:Name="btnPhatHanhChuyenGom" Grid.Column="1" HorizontalAlignment="Right"
+                                                Style="{StaticResource NutThaoTacStyle}" Height="40" Padding="18,0"
+                                                Background="#2563EB" Foreground="White" Click="BtnPhatHanhChuyenGom_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="🚀" Margin="0,0,6,0" FontSize="14"/>
+                                                <TextBlock Text="Phát Hành Chuyến Giao (Batch Dispatch)" FontWeight="Bold" FontSize="13"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

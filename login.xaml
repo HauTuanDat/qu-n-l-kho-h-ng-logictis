@@ -1,0 +1,283 @@
+<Window x:Class="Quanlykhohanglogicts.login"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Quanlykhohanglogicts"
+        mc:Ignorable="d"
+        Title="Đăng Nhập - Hệ Thống Quản Lý Kho Hàng Logistics"
+        Height="580" Width="920"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MouseDown="Window_MouseDown">
+
+    <Window.Resources>
+        <!-- Style cho viền Input khi Focus -->
+        <Style x:Key="ModernInputBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Height" Value="44"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="#93C5FD"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <!-- Khung viền ngoài đổ bóng hiện đại -->
+    <Border CornerRadius="18"
+            Background="#FFFFFF"
+            BorderBrush="#E2E8F0"
+            BorderThickness="1"
+            ClipToBounds="True">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="30" Direction="270" ShadowDepth="6" Color="#0F172A" Opacity="0.3"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="380"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ================= CỘT TRÁI: NHẬN DIỆN THƯƠNG HIỆU LOGISTICS ================= -->
+            <Border Grid.Column="0">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#091428" Offset="0"/>
+                        <GradientStop Color="#0F2B59" Offset="0.5"/>
+                        <GradientStop Color="#1E3A8A" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+
+                <Grid Margin="32">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- LOGO & TIÊU ĐỀ HỆ THỐNG -->
+                    <StackPanel Grid.Row="0">
+                        <Border Width="60" Height="60" CornerRadius="14" HorizontalAlignment="Left" Margin="0,0,0,16">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#38BDF8" Offset="0"/>
+                                    <GradientStop Color="#2563EB" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <!-- Vector Icon Thùng Hàng / Container -->
+                            <Path Data="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                                  Stroke="White" StrokeThickness="2.2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Stretch="Uniform" Width="30" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <TextBlock Text="LOGIX WMS" FontSize="26" FontWeight="ExtraBold" Foreground="White"/>
+                        <TextBlock Text="HỆ THỐNG QUẢN LÝ KHO &amp; LOGISTICS" FontSize="11" FontWeight="Bold" Foreground="#38BDF8" Margin="0,4,0,0"/>
+                        <Rectangle Height="2" Fill="#1E40AF" HorizontalAlignment="Stretch" Margin="0,18,0,0"/>
+                    </StackPanel>
+
+                    <!-- GIỚI THIỆU TÍNH NĂNG VÀ PHÂN QUYỀN -->
+                    <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="0,15,0,15">
+                        <TextBlock Text="Nền tảng kiểm soát luồng hàng hóa và phân quyền nghiệp vụ chuyên sâu:"
+                                   FontSize="13" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,0,0,18" LineHeight="20"/>
+
+                        <!-- Item 1 -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="28"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="22" Height="22" CornerRadius="11" Background="#1E3A8A">
+                                <TextBlock Text="✓" Foreground="#38BDF8" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                <TextBlock Text="Quản lý Nhập / Xuất / Tồn" Foreground="White" FontWeight="SemiBold" FontSize="13"/>
+                                <TextBlock Text="Cập nhật vị trí bãi hàng &amp; số lượng thời gian thực" Foreground="#94A3B8" FontSize="11"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Item 2 -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="28"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="22" Height="22" CornerRadius="11" Background="#1E3A8A">
+                                <TextBlock Text="✓" Foreground="#38BDF8" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                <TextBlock Text="Phân quyền 3 Cấp Độ Chặt Chẽ" Foreground="White" FontWeight="SemiBold" FontSize="13"/>
+                                <TextBlock Text="Admin (Quản trị) • Manager (Quản lý) • Staff (Vận hành)" Foreground="#94A3B8" FontSize="11"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Item 3 -->
+                        <Grid Margin="0,0,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="28"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="22" Height="22" CornerRadius="11" Background="#1E3A8A">
+                                <TextBlock Text="✓" Foreground="#38BDF8" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                <TextBlock Text="Kiểm Kê &amp; Báo Cáo Thông Minh" Foreground="White" FontWeight="SemiBold" FontSize="13"/>
+                                <TextBlock Text="Dự báo tồn đọng và tối ưu luồng lưu thông kho" Foreground="#94A3B8" FontSize="11"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- THẺ PHIÊN BẢN HỆ THỐNG -->
+                    <Border Grid.Row="2" Background="#0C1B35" CornerRadius="10" Padding="12,10" BorderBrush="#1E3A5F" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="🛡️" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Phiên bản 2.5.0 Enterprise • Logistics 4.0" Foreground="#E2E8F0" FontSize="11" FontWeight="SemiBold"/>
+                                <TextBlock Text="Bảo mật cơ sở dữ liệu &amp; mã hóa mật khẩu SHA-256" Foreground="#64748B" FontSize="10"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- ================= CỘT PHẢI: FORM ĐĂNG NHẬP ================= -->
+            <Grid Grid.Column="1" Margin="36,20,36,24">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Title Bar Controls -->
+                    <RowDefinition Height="Auto"/> <!-- Header -->
+                    <RowDefinition Height="*"/>    <!-- Inputs & Actions -->
+                    <RowDefinition Height="Auto"/> <!-- Footer -->
+                </Grid.RowDefinitions>
+
+                <!-- NÚT THU NHỎ & ĐÓNG CỬA SỔ -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,-8,-20,10">
+                    <Button x:Name="btnMinimize" Style="{StaticResource WindowControlBtnStyle}" Content="─" Click="BtnMinimize_Click" ToolTip="Thu nhỏ"/>
+                    <Button x:Name="btnClose" Style="{StaticResource WindowCloseBtnStyle}" Content="✕" Click="BtnClose_Click" ToolTip="Đóng"/>
+                </StackPanel>
+
+                <!-- TIÊU ĐỀ CHÍNH FORM -->
+                <StackPanel Grid.Row="1" Margin="0,0,0,24">
+                    <TextBlock Text="Đăng Nhập Hệ Thống" FontSize="26" FontWeight="Bold" Foreground="{StaticResource TextDarkBrush}"/>
+                    <TextBlock Text="Nhập tài khoản để truy cập nghiệp vụ quản lý kho" FontSize="13" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <!-- KHU VỰC NHẬP LIỆU -->
+                <StackPanel Grid.Row="2" VerticalAlignment="Top">
+
+                    <!-- HỘP THÔNG BÁO LỖI / THÀNH CÔNG -->
+                    <Border x:Name="AlertBox" Visibility="Collapsed" CornerRadius="8" Padding="12,10" Margin="0,0,0,14">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="txtAlertIcon" Text="⚠️" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="txtAlertMessage" Grid.Column="1" Text="Thông báo lỗi" FontSize="12.5" FontWeight="Medium" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Ô NHẬP TÊN ĐĂNG NHẬP -->
+                    <TextBlock Text="TÊN ĐĂNG NHẬP" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,6"/>
+                    <Border Style="{StaticResource ModernInputBorderStyle}">
+                        <Grid Margin="12,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="22"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <!-- User Icon -->
+                            <Path Data="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                                  Fill="#94A3B8" Stretch="Uniform" Width="16" Height="16" VerticalAlignment="Center"/>
+                            
+                            <TextBox x:Name="txtUsername" Grid.Column="1" Margin="8,0,0,0"
+                                     FontSize="13.5" Foreground="#0F172A" Background="Transparent" BorderThickness="0"
+                                     VerticalAlignment="Center" VerticalContentAlignment="Center"
+                                     KeyDown="Input_KeyDown" TextChanged="TxtUsername_TextChanged"/>
+                            
+                            <!-- Placeholder Watermark -->
+                            <TextBlock x:Name="txtUsernamePlaceholder" Grid.Column="1" Margin="8,0,0,0"
+                                       Text="Nhập tên đăng nhập (vd: admin, quanly, nhanvien)..."
+                                       FontSize="13" Foreground="#94A3B8" IsHitTestVisible="False"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Ô NHẬP MẬT KHẨU -->
+                    <TextBlock Text="MẬT KHẨU" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,14,0,6"/>
+                    <Border Style="{StaticResource ModernInputBorderStyle}">
+                        <Grid Margin="12,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="22"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="30"/>
+                            </Grid.ColumnDefinitions>
+                            <!-- Lock Icon -->
+                            <Path Data="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"
+                                  Fill="#94A3B8" Stretch="Uniform" Width="15" Height="15" VerticalAlignment="Center"/>
+
+                            <!-- PasswordBox (Ẩn mật khẩu mặc định) -->
+                            <PasswordBox x:Name="txtPassword" Grid.Column="1" Margin="8,0,0,0"
+                                         FontSize="13.5" Foreground="#0F172A" Background="Transparent" BorderThickness="0"
+                                         VerticalAlignment="Center" VerticalContentAlignment="Center"
+                                         KeyDown="Input_KeyDown" PasswordChanged="TxtPassword_PasswordChanged"/>
+
+                            <!-- TextBox phụ để hiển thị mật khẩu khi nhấn con mắt -->
+                            <TextBox x:Name="txtPasswordUnmasked" Grid.Column="1" Margin="8,0,0,0" Visibility="Collapsed"
+                                     FontSize="13.5" Foreground="#0F172A" Background="Transparent" BorderThickness="0"
+                                     VerticalAlignment="Center" VerticalContentAlignment="Center"
+                                     KeyDown="Input_KeyDown" TextChanged="TxtPasswordUnmasked_TextChanged"/>
+
+                            <!-- Placeholder Watermark cho Mật khẩu -->
+                            <TextBlock x:Name="txtPasswordPlaceholder" Grid.Column="1" Margin="8,0,0,0"
+                                       Text="Nhập mật khẩu..."
+                                       FontSize="13" Foreground="#94A3B8" IsHitTestVisible="False"
+                                       VerticalAlignment="Center"/>
+
+                            <!-- Nút hiển thị / ẩn mật khẩu (Con mắt) -->
+                            <Button x:Name="btnTogglePassword" Grid.Column="2" Width="26" Height="26"
+                                    Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                    Click="BtnTogglePassword_Click" ToolTip="Ẩn/Hiện mật khẩu">
+                                <TextBlock x:Name="txtEyeIcon" Text="👁️" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- HÀNG GHI NHỚ & QUÊN MẬT KHẨU -->
+                    <Grid Margin="0,12,0,18">
+                        <CheckBox x:Name="chkRememberMe" Content="Ghi nhớ đăng nhập" FontSize="12.5" Foreground="#475569" VerticalAlignment="Center" IsChecked="True"/>
+                        <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Hyperlink Click="HyperlinkForgotPassword_Click" Foreground="#2563EB" TextDecorations="None">
+                                Quên mật khẩu?
+                            </Hyperlink>
+                        </TextBlock>
+                    </Grid>
+
+                    <!-- NÚT ĐĂNG NHẬP CHÍNH -->
+                    <Button x:Name="btnLogin" Style="{StaticResource PrimaryButtonStyle}" Height="46" Click="BtnLogin_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="txtLoginBtnText" Text="ĐĂNG NHẬP HỆ THỐNG" FontSize="14" FontWeight="Bold"/>
+                            <TextBlock Text=" →" FontSize="15" FontWeight="Bold" Margin="4,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- FOOTER -->
+                <Border Grid.Row="3" BorderBrush="#F1F5F9" BorderThickness="0,1,0,0" Padding="0,10,0,0">
+                    <Grid>
+                        <TextBlock Text="Tổng đài hỗ trợ vận hành kho: 1900 8888" FontSize="11" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                        <TextBlock Text="Logix Warehouse © 2026" FontSize="11" Foreground="#94A3B8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

@@ -1,0 +1,272 @@
+<UserControl x:Class="Quanlykhohanglogicts.UserManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Quanlykhohanglogicts"
+             mc:Ignorable="d" 
+             d:DesignHeight="750" d:DesignWidth="1050"
+             Loaded="UserControl_Loaded">
+
+    <UserControl.Resources>
+        <Style x:Key="UserKpiCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="16,14"/>
+            <Setter Property="Margin" Value="0,0,12,12"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="12" Direction="270" ShadowDepth="2" Color="#0F172A" Opacity="0.05"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FormInputBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Margin" Value="0,4,0,12"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <!-- 1. GIAO DIỆN CHÍNH -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,16">
+            <StackPanel>
+                <!-- HEADER -->
+                <Grid Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Quản Trị Tài Khoản &amp; Phân Quyền Hệ Thống" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
+                        <TextBlock Text="Cấp phát tài khoản, phân quyền vai trò (Admin / Manager / Staff) và quản lý bảo mật CSDL" FontSize="12.5" Foreground="#64748B" Margin="0,3,0,0"/>
+                    </StackPanel>
+
+                    <Button x:Name="btnOpenAddUser" Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Right" Height="40" Padding="16,0" Background="#2563EB" Click="BtnOpenAddUser_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="➕" Margin="0,0,6,0"/>
+                            <TextBlock Text="Thêm Tài Khoản Mới" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- THẺ KPI THỐNG KÊ TÀI KHOẢN -->
+                <WrapPanel Margin="0,0,-12,12">
+                    <!-- Tổng số tài khoản -->
+                    <Border Style="{StaticResource UserKpiCardStyle}" Width="230">
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="TỔNG SỐ TÀI KHOẢN" FontSize="11" FontWeight="Bold" Foreground="#64748B"/>
+                                <TextBlock x:Name="txtTotalUsers" Text="0" FontSize="26" FontWeight="ExtraBold" Foreground="#0F172A" Margin="0,4,0,0"/>
+                                <TextBlock Text="Lưu trong bảng _users CSDL" FontSize="11" Foreground="#10B981" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <Border Width="44" Height="44" CornerRadius="10" Background="#EFF6FF" HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <TextBlock Text="👥" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <!-- Quản trị viên (Admin) -->
+                    <Border Style="{StaticResource UserKpiCardStyle}" Width="230">
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="QUẢN TRỊ VIÊN (ADMIN)" FontSize="11" FontWeight="Bold" Foreground="#DC2626"/>
+                                <TextBlock x:Name="txtAdminCount" Text="0" FontSize="26" FontWeight="ExtraBold" Foreground="#DC2626" Margin="0,4,0,0"/>
+                                <TextBlock Text="Toàn quyền điều hành hệ thống" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <Border Width="44" Height="44" CornerRadius="10" Background="#FEF2F2" HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <TextBlock Text="👑" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <!-- Quản lý kho (Manager) -->
+                    <Border Style="{StaticResource UserKpiCardStyle}" Width="230">
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="TRƯỞNG KHO (MANAGER)" FontSize="11" FontWeight="Bold" Foreground="#2563EB"/>
+                                <TextBlock x:Name="txtManagerCount" Text="0" FontSize="26" FontWeight="ExtraBold" Foreground="#2563EB" Margin="0,4,0,0"/>
+                                <TextBlock Text="Duyệt xuất nhập &amp; kiểm kê" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <Border Width="44" Height="44" CornerRadius="10" Background="#EFF6FF" HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <TextBlock Text="👔" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <!-- Nhân viên kho (Staff) -->
+                    <Border Style="{StaticResource UserKpiCardStyle}" Width="230">
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="NHÂN VIÊN (STAFF)" FontSize="11" FontWeight="Bold" Foreground="#059669"/>
+                                <TextBlock x:Name="txtStaffCount" Text="0" FontSize="26" FontWeight="ExtraBold" Foreground="#059669" Margin="0,4,0,0"/>
+                                <TextBlock Text="Vận hành tạo đơn &amp; giao nhận" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <Border Width="44" Height="44" CornerRadius="10" Background="#ECFDF5" HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <TextBlock Text="👷" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </WrapPanel>
+
+                <!-- BẢNG DANH SÁCH TÀI KHOẢN -->
+                <Border Background="White" CornerRadius="12" Padding="16" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Danh Sách Tài Khoản Người Dùng:" FontSize="14" FontWeight="Bold" Foreground="#0F172A"/>
+                                <TextBlock x:Name="txtUserCount" Text=" Đang hiển thị 4 tài khoản" FontSize="13" Foreground="#64748B"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <DataGrid x:Name="dgUsers" AutoGenerateColumns="False" CanUserAddRows="False"
+                                  IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  BorderThickness="1" BorderBrush="#E2E8F0" RowHeight="46"
+                                  Background="White" RowHeaderWidth="0" MaxHeight="450"
+                                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                  ScrollViewer.CanContentScroll="False">
+                            <DataGrid.ColumnHeaderStyle>
+                                <Style TargetType="DataGridColumnHeader">
+                                    <Setter Property="Background" Value="#F8FAFC"/>
+                                    <Setter Property="Foreground" Value="#475569"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="Padding" Value="10,8"/>
+                                    <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                </Style>
+                            </DataGrid.ColumnHeaderStyle>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="ID" Binding="{Binding Id}" FontWeight="Bold" Width="60"/>
+                                <DataGridTextColumn Header="Tên Đăng Nhập" Binding="{Binding Username}" FontWeight="Bold" Width="140"/>
+                                <DataGridTextColumn Header="Họ Và Tên" Binding="{Binding FullName}" FontWeight="SemiBold" Width="200"/>
+                                <DataGridTemplateColumn Header="Vai Trò &amp; Phân Quyền" Width="180">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" Background="#F1F5F9">
+                                                <TextBlock Text="{Binding RoleDisplayName}" Foreground="{Binding RoleBadgeColor}" FontWeight="Bold" FontSize="11"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Trạng Thái" Width="130">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border CornerRadius="12" Padding="8,3" HorizontalAlignment="Left" Background="#F8FAFC">
+                                                <TextBlock Text="{Binding IsActive, Converter={x:Static local:UserManagementView.ActiveStatusConverter}}"
+                                                           Foreground="{Binding IsActive, Converter={x:Static local:UserManagementView.ActiveColorConverter}}"
+                                                           FontWeight="Bold" FontSize="11"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Ngày Tạo" Binding="{Binding CreatedAt, StringFormat='dd/MM/yyyy HH:mm'}" Width="150"/>
+                                <DataGridTemplateColumn Header="Thao Tác Quản Trị" Width="220">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Button Content="🔑 Đổi MK" Height="28" Padding="8,0" FontSize="11" Margin="0,0,6,0"
+                                                        Background="#EFF6FF" Foreground="#2563EB" BorderThickness="1" BorderBrush="#BFDBFE"
+                                                        Style="{StaticResource NutCongCuTintedStyle}" Click="BtnChangePassword_Click"/>
+                                                <Button Content="🔒 Khóa/Mở" Height="28" Padding="8,0" FontSize="11"
+                                                        Background="#FEF2F2" Foreground="#DC2626" BorderThickness="1" BorderBrush="#FECACA"
+                                                        Style="{StaticResource NutCongCuTintedStyle}" Click="BtnToggleActive_Click"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 2. MODAL THÊM TÀI KHOẢN MỚI (POPUP FORM) -->
+        <Grid x:Name="modalAddUser" Visibility="Collapsed" Background="#800F172A">
+            <Border Background="White" CornerRadius="16" Width="520" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="28">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="25" Direction="270" ShadowDepth="4" Color="Black" Opacity="0.3"/>
+                </Border.Effect>
+
+                <StackPanel>
+                    <!-- Header Modal -->
+                    <Grid Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="➕ Thêm Mới Tài Khoản Hệ Thống" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock Text="Tạo tài khoản và phân quyền truy cập CSDL" FontSize="12" Foreground="#64748B"/>
+                        </StackPanel>
+                        <Button Content="✕" Width="30" Height="30" FontSize="14" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnCloseAddUserModal_Click"/>
+                    </Grid>
+
+                    <TextBlock Text="Tên đăng nhập (Username) *" FontSize="11" FontWeight="Bold" Foreground="#475569"/>
+                    <Border Style="{StaticResource FormInputBorderStyle}">
+                        <TextBox x:Name="txtNewUsername" Margin="8,0" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" FontSize="12.5"/>
+                    </Border>
+
+                    <TextBlock Text="Mật khẩu khởi tạo *" FontSize="11" FontWeight="Bold" Foreground="#475569"/>
+                    <Border Style="{StaticResource FormInputBorderStyle}">
+                        <TextBox x:Name="txtNewPassword" Text="123456" Margin="8,0" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" FontSize="12.5"/>
+                    </Border>
+
+                    <TextBlock Text="Họ và tên đầy đủ *" FontSize="11" FontWeight="Bold" Foreground="#475569"/>
+                    <Border Style="{StaticResource FormInputBorderStyle}">
+                        <TextBox x:Name="txtNewFullName" Margin="8,0" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" FontSize="12.5"/>
+                    </Border>
+
+                    <TextBlock Text="Vai trò phân quyền *" FontSize="11" FontWeight="Bold" Foreground="#475569"/>
+                    <ComboBox x:Name="cbNewUserRole" Height="38" Margin="0,4,0,16" FontSize="12.5" VerticalContentAlignment="Center">
+                        <ComboBoxItem Content="👑 Quản Trị Viên (Admin) - Toàn quyền"/>
+                        <ComboBoxItem Content="👔 Quản Lý Kho (Manager) - Duyệt đơn &amp; báo cáo"/>
+                        <ComboBoxItem Content="👷 Nhân Viên Kho (Staff) - Vận hành nhập xuất" IsSelected="True"/>
+                    </ComboBox>
+
+                    <!-- Buttons Lưu / Hủy -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="Hủy Bỏ" Height="40" Margin="0,0,6,0" Style="{StaticResource NutCongCuTintedStyle}" Background="#F1F5F9" Foreground="#475569" BorderBrush="#CBD5E1" Click="BtnCloseAddUserModal_Click"/>
+                        <Button Grid.Column="1" Content="💾 Lưu Tài Khoản" Height="40" Margin="6,0,0,0" Style="{StaticResource PrimaryButtonStyle}" Background="#2563EB" Click="BtnSaveNewUser_Click"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- 3. MODAL ĐỔI MẬT KHẨU -->
+        <Grid x:Name="modalChangePassword" Visibility="Collapsed" Background="#800F172A">
+            <Border Background="White" CornerRadius="16" Width="440" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="28">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="25" Direction="270" ShadowDepth="4" Color="Black" Opacity="0.3"/>
+                </Border.Effect>
+
+                <StackPanel>
+                    <Grid Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="🔑 Đổi Mật Khẩu Tài Khoản" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock x:Name="txtChangePassTarget" Text="Cập nhật mật khẩu mới cho người dùng" FontSize="12" Foreground="#64748B"/>
+                        </StackPanel>
+                        <Button Content="✕" Width="30" Height="30" FontSize="14" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnCloseChangePassModal_Click"/>
+                    </Grid>
+
+                    <TextBlock Text="Mật khẩu mới *" FontSize="11" FontWeight="Bold" Foreground="#475569"/>
+                    <Border Style="{StaticResource FormInputBorderStyle}">
+                        <TextBox x:Name="txtNewPasswordInput" Margin="8,0" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" FontSize="12.5"/>
+                    </Border>
+
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="Hủy" Height="38" Margin="0,0,6,0" Style="{StaticResource NutCongCuTintedStyle}" Background="#F1F5F9" Foreground="#475569" BorderBrush="#CBD5E1" Click="BtnCloseChangePassModal_Click"/>
+                        <Button Grid.Column="1" Content="Xác Nhận Đổi" Height="38" Margin="6,0,0,0" Style="{StaticResource PrimaryButtonStyle}" Background="#2563EB" Click="BtnConfirmChangePassword_Click"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
