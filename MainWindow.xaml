@@ -89,7 +89,7 @@
                                   ItemContainerStyle="{StaticResource SidebarListViewItemStyle}"
                                   SelectionChanged="LvSidebarNavigation_SelectionChanged">
                             
-                            <!-- ITEM 1: TỔNG QUAN -->
+                            <!-- 1. BẢNG TỔNG QUAN -->
                             <ListViewItem x:Name="navItemOverview">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -97,23 +97,11 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="📊" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="Bảng Tổng Quan" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="1. Bảng Tổng Quan" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                 </Grid>
                             </ListViewItem>
 
-                            <!-- ITEM 2: TIẾP NHẬN & NHẬP KHO -->
-                            <ListViewItem x:Name="navItemImport">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="26"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="📥" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="Tiếp Nhận &amp; Nhập Kho" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                </Grid>
-                            </ListViewItem>
-
-                            <!-- ITEM 3: QUẢN LÝ ĐƠN HÀNG (CÓ BADGE ĐƠN CHỜ) -->
+                            <!-- 2. QUẢN LÝ ĐƠN HÀNG & VẬN ĐƠN -->
                             <ListViewItem x:Name="navItemOrders">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -122,7 +110,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="📋" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="Quản Lý Đơn Hàng" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="2. Quản Lý Đơn Hàng" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                     <!-- Badge Đơn Cần Xử Lý -->
                                     <Border Grid.Column="2" Background="#1E293B" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="10" Padding="7,1" VerticalAlignment="Center">
                                         <TextBlock x:Name="badgePendingOrders" Text="3" FontSize="10.5" FontWeight="Bold" Foreground="#FBBF24"/>
@@ -130,55 +118,7 @@
                                 </Grid>
                             </ListViewItem>
 
-                            <!-- ITEM 3: ĐIỀU PHỐI & PHÂN BỔ ƯU TIÊN NĂNG LỰC (HỎA TỐC & SLA) -->
-                            <ListViewItem x:Name="navItemPriorityDispatch">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="26"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="🎯" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="Điều Phối Ưu Tiên SLA" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="2" Background="#1E293B" BorderBrush="#F97316" BorderThickness="1" CornerRadius="8" Padding="6,1" VerticalAlignment="Center">
-                                        <TextBlock Text="Ưu Tiên" FontSize="9.5" FontWeight="Bold" Foreground="#FB923C"/>
-                                    </Border>
-                                </Grid>
-                            </ListViewItem>
-
-                            <!-- ITEM 3: GOM ĐƠN THEO TUYẾN & TỐI ƯU LỘ TRÌNH (TÍNH NĂNG 5) -->
-                            <ListViewItem x:Name="navItemRouteBatching">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="26"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="🗺️" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="Gom Tuyến &amp; Lộ Trình" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="2" Background="#1E293B" BorderBrush="#6366F1" BorderThickness="1" CornerRadius="8" Padding="6,1" VerticalAlignment="Center">
-                                        <TextBlock Text="TN5" FontSize="9.5" FontWeight="Bold" Foreground="#818CF8"/>
-                                    </Border>
-                                </Grid>
-                            </ListViewItem>
-
-                            <!-- ITEM 4: CỔNG TRA CỨU VẬN ĐƠN TRỰC TUYẾN (TÍNH NĂNG 7) -->
-                            <ListViewItem x:Name="navItemTracking">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="26"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="🔍" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="Tra Cứu Vận Đơn" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="2" Background="#1E293B" BorderBrush="#10B981" BorderThickness="1" CornerRadius="8" Padding="6,1" VerticalAlignment="Center">
-                                        <TextBlock Text="TN7" FontSize="9.5" FontWeight="Bold" Foreground="#34D399"/>
-                                    </Border>
-                                </Grid>
-                            </ListViewItem>
-
-                            <!-- ITEM 5: QUẢN LÝ KHO (7 PHÂN HỆ THEO YÊU CẦU: TỔNG QUAN, TIẾP NHẬN, LƯU KHO, PHÂN LOẠI, VỊ TRÍ, XUẤT HÀNG, LỊCH SỬ) -->
+                            <!-- 3. QUẢN LÝ KHO BÃI TOÀN DIỆN (WMS HUB) -->
                             <ListViewItem x:Name="navItemWarehouse">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -187,30 +127,14 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="🏢" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="Quản Lý Kho" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="3. Quản Lý Kho Bãi (WMS)" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                     <Border Grid.Column="2" Background="#1E293B" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="8" Padding="6,1" VerticalAlignment="Center">
-                                        <TextBlock Text="7 Nhánh" FontSize="9.5" FontWeight="Bold" Foreground="#60A5FA"/>
+                                        <TextBlock Text="6 Tabs" FontSize="9.5" FontWeight="Bold" Foreground="#60A5FA"/>
                                     </Border>
                                 </Grid>
                             </ListViewItem>
 
-                            <!-- ITEM: NGHIỆP VỤ XUẤT KHO (OUTBOUND DISPATCH & BÀN GIAO VẬN TẢI) -->
-                            <ListViewItem x:Name="navItemExport">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="26"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="📤" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="Nghiệp Vụ Xuất Kho" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="2" Background="#1E293B" BorderBrush="#F43F5E" BorderThickness="1" CornerRadius="8" Padding="6,1" VerticalAlignment="Center">
-                                        <TextBlock Text="Xuất Bến" FontSize="9.5" FontWeight="Bold" Foreground="#FB7185"/>
-                                    </Border>
-                                </Grid>
-                            </ListViewItem>
-
-                            <!-- ITEM 5: ĐIỀU PHỐI GIAO HÀNG (6 NHÁNH THEO YÊU CẦU: ĐƠN CHỜ, THEO NGÀY, PHÂN CÔNG, DỰ KIẾN, ĐÃ XÁC NHẬN, LỊCH SỬ) -->
+                            <!-- 4. TRUNG TÂM ĐIỀU PHỐI VẬN TẢI (TMS) -->
                             <ListViewItem x:Name="navItemDeliveryDispatch">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -219,14 +143,14 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="🚚" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="Điều Phối Giao Hàng" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="4. Điều Phối Vận Tải (TMS)" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                     <Border Grid.Column="2" Background="#1E293B" BorderBrush="#0EA5E9" BorderThickness="1" CornerRadius="8" Padding="6,1" VerticalAlignment="Center">
-                                        <TextBlock Text="6 Nhánh" FontSize="9.5" FontWeight="Bold" Foreground="#38BDF8"/>
+                                        <TextBlock Text="4 Tabs" FontSize="9.5" FontWeight="Bold" Foreground="#38BDF8"/>
                                     </Border>
                                 </Grid>
                             </ListViewItem>
 
-                            <!-- ITEM 6: QUẢN LÝ SHIPPER (7 NHÁNH THEO YÊU CẦU: DANH SÁCH, THÊM, KHU VỰC, PHƯƠNG TIỆN, NĂNG LỰC, LỊCH, LỊCH SỬ) -->
+                            <!-- 5. QUẢN LÝ ĐỘI XE & SHIPPER -->
                             <ListViewItem x:Name="navItemShipper">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -234,15 +158,15 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="👤" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="Quản Lý Shipper" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="🛵" FontSize="15" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="5. Đội Xe &amp; Shipper" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                     <Border Grid.Column="2" Background="#1E293B" BorderBrush="#A855F7" BorderThickness="1" CornerRadius="8" Padding="6,1" VerticalAlignment="Center">
                                         <TextBlock Text="7 Nhánh" FontSize="9.5" FontWeight="Bold" Foreground="#C084FC"/>
                                     </Border>
                                 </Grid>
                             </ListViewItem>
 
-                            <!-- ITEM 7: QUẢN LÝ HÀNG HOÀN & GIAO THẤT BẠI (REVERSE LOGISTICS & RTO - 6 NHÁNH) -->
+                            <!-- 6. QUẢN LÝ HÀNG HOÀN (REVERSE LOGISTICS & RTO) -->
                             <ListViewItem x:Name="navItemReturnManagement">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -251,26 +175,14 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="🔄" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="Quản Lý Hàng Hoàn" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="6. Quản Lý Hàng Hoàn" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                     <Border Grid.Column="2" Background="#1E293B" BorderBrush="#EF4444" BorderThickness="1" CornerRadius="8" Padding="6,1" VerticalAlignment="Center">
                                         <TextBlock Text="6 Nhánh" FontSize="9.5" FontWeight="Bold" Foreground="#F87171"/>
                                     </Border>
                                 </Grid>
                             </ListViewItem>
 
-                            <!-- ITEM 7: TỒN KHO & BÃI HÀNG (PHỤ TRỢ) -->
-                            <ListViewItem x:Name="navItemInventory" Visibility="Collapsed">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="26"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="📦" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="Tồn Kho &amp; Vị Trí Kệ" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                </Grid>
-                            </ListViewItem>
-
-                            <!-- ITEM 5: QUẢN LÝ NGƯỜI DÙNG & PHÂN QUYỀN (CHỈ ADMIN) -->
+                            <!-- 7. QUẢN TRỊ HỆ THỐNG & PHÂN QUYỀN (CHỈ ADMIN) -->
                             <ListViewItem x:Name="navItemUsers">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -279,7 +191,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="👥" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="Quản Trị Người Dùng" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="7. Quản Trị Hệ Thống" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                     <!-- Ổ khóa nếu không phải admin -->
                                     <TextBlock x:Name="badgeAdminLock" Grid.Column="2" Text="🔒" FontSize="11" Foreground="#EF4444" VerticalAlignment="Center" Visibility="Collapsed"/>
                                 </Grid>

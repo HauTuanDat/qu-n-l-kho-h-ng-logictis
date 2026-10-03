@@ -51,12 +51,26 @@
     </UserControl.Resources>
 
     <Grid>
-        <!-- ================= GIAO DIỆN CHÍNH QUẢN LÝ ĐƠN HÀNG ================= -->
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,16">
-            <StackPanel>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-                <!-- 1. HEADER: TIÊU ĐỀ & NÚT TẠO ĐƠN HÀNG -->
-                <Grid Margin="0,0,0,14">
+        <!-- THANH ĐIỀU HƯỚNG 2 CHỨC NĂNG CỐT LÕI: ĐƠN HÀNG & TRA CỨU HÀNH TRÌNH -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="20,10">
+            <StackPanel Orientation="Horizontal">
+                <RadioButton x:Name="tabDanhSachDonHang" Style="{StaticResource OrderStatusTabButtonStyle}" Content="📋 Danh Sách &amp; Vòng Đời Đơn Hàng" IsChecked="True" Checked="MainTab_Checked" Margin="0,0,8,0"/>
+                <RadioButton x:Name="tabTraCuuHanhTrinh" Style="{StaticResource OrderStatusTabButtonStyle}" Content="🔍 Cổng Tra Cứu Hành Trình Vận Đơn (Tracking)" Checked="MainTab_Checked"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ================= PANEL 1: GIAO DIỆN CHÍNH QUẢN LÝ ĐƠN HÀNG ================= -->
+        <Grid Grid.Row="1" x:Name="panelDanhSachDonHang">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,16">
+                <StackPanel>
+
+                    <!-- 1. HEADER: TIÊU ĐỀ & NÚT TẠO ĐƠN HÀNG -->
+                    <Grid Margin="0,0,0,14">
                     <StackPanel>
                         <TextBlock Text="Quản Lý Đơn Hàng Vận Chuyển Logistics" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
                         <TextBlock Text="Kiểm soát toàn bộ vòng đời đơn hàng: Tiếp nhận • Xử lý • Xuất giao • Thu COD • Hoàn trả" FontSize="12.5" Foreground="#64748B" Margin="0,3,0,0"/>
@@ -344,9 +358,15 @@
                 </Border>
             </StackPanel>
         </ScrollViewer>
+        </Grid>
+
+        <!-- ================= PANEL 2: CỔNG TRA CỨU HÀNH TRÌNH VẬN ĐƠN ================= -->
+        <Grid Grid.Row="1" x:Name="panelTraCuuVanDon" Visibility="Collapsed">
+            <local:TrackingPortalView x:Name="ucTrackingPortal"/>
+        </Grid>
 
         <!-- ================= MODAL TẠO ĐƠN HÀNG MỚI (POPUP FORM) ================= -->
-        <Grid x:Name="modalCreateOrder" Visibility="Collapsed" Background="#800F172A">
+        <Grid x:Name="modalCreateOrder" Grid.Row="0" Grid.RowSpan="2" Visibility="Collapsed" Background="#800F172A">
             <Border Background="White" CornerRadius="16" Width="680" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="28" MaxHeight="680">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="25" Direction="270" ShadowDepth="4" Color="Black" Opacity="0.3"/>
@@ -526,7 +546,7 @@
         </Grid>
 
         <!-- ================= MODAL ĐIỀU PHỐI SHIPPER ================= -->
-        <Grid x:Name="modalAssignShipper" Visibility="Collapsed" Background="#800F172A">
+        <Grid x:Name="modalAssignShipper" Grid.Row="0" Grid.RowSpan="2" Visibility="Collapsed" Background="#800F172A">
             <Border Background="White" CornerRadius="16" Width="480" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="28">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="25" Direction="270" ShadowDepth="4" Color="Black" Opacity="0.3"/>

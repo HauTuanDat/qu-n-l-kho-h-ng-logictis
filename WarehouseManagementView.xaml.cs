@@ -57,57 +57,19 @@ namespace Quanlykhohanglogicts
             txtTiepNhanHomNay.Text = $"{danhSachPhieuNhap.Count} lô ({tongKhoiLuongTiepNhanHomNay:N0} kg)";
             txtXuatKhoHomNay.Text = $"{soChuyenXuatHomNay} chuyến đã xuất";
 
-            // 2. DỮ LIỆU NHÁNH 2: TIẾP NHẬN HÀNG
-            txtDongHoTiepNhan.Text = $"Thời điểm ghi nhận: {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
-            dgDanhSachTiepNhan.ItemsSource = danhSachPhieuNhap;
+            // 2. DỮ LIỆU NHÁNH 2: TIẾP NHẬN & NHẬP KHO
+            ucImportManagement?.NapDuLieuNhapKho();
 
             // 3. DỮ LIỆU NHÁNH 3: HÀNG ĐANG LƯU KHO
             dgHangDangLuuKho.ItemsSource = danhSachTonKho;
 
-            // 4. DỮ LIỆU NHÁNH 4: PHÂN LOẠI HÀNG (CHẶNG CUỐI VS TRUNG CHUYỂN)
-            // Lấy các bưu kiện mới tiếp nhận đang chờ phân loại
-            var danhSachKienChoPhanLoai = tatCaDonHang
-                .Where(d => d.Status == ShippingOrderStatus.NewReceived || d.Status == ShippingOrderStatus.PendingProcessing)
-                .ToList();
-            dgPhanLoaiHang.ItemsSource = danhSachKienChoPhanLoai;
-
-            // 5. DỮ LIỆU NHÁNH 5: VỊ TRÍ LƯU TRỮ
+            // 4. DỮ LIỆU NHÁNH 4: VỊ TRÍ LƯU TRỮ
             icViTriLuuTru.ItemsSource = danhSachViTri;
 
-            // 6. DỮ LIỆU NHÁNH 6: XUẤT HÀNG
-            cbDonHangXuat.Items.Clear();
-            foreach (var donHang in tatCaDonHang.Take(10))
-            {
-                cbDonHangXuat.Items.Add(new ComboBoxItem
-                {
-                    Content = $"📦 [{donHang.OrderCode}] - {donHang.ProductSummary} ({donHang.Weight:N1} kg) -> {donHang.ReceiverName}",
-                    Tag = donHang
-                });
-            }
-            if (cbDonHangXuat.Items.Count > 0) cbDonHangXuat.SelectedIndex = 0;
+            // 5. DỮ LIỆU NHÁNH 5: NGHIỆP VỤ XUẤT KHO
+            ucExportManagement?.NapDuLieuXuatKho();
 
-            cbTaiXeTiepNhanXuat.Items.Clear();
-            foreach (var taiXe in danhSachTaiXe)
-            {
-                cbTaiXeTiepNhanXuat.Items.Add(new ComboBoxItem
-                {
-                    Content = $"🛵 Shipper: {taiXe.FullName} ({taiXe.VehiclePlate} - {taiXe.DeliveryArea})",
-                    Tag = taiXe
-                });
-            }
-            cbTaiXeTiepNhanXuat.Items.Add(new ComboBoxItem
-            {
-                Content = "🚛 Xe tải trung chuyển liên tỉnh (29C-889.12 - Tuyến Bắc Nam)",
-                Tag = null
-            });
-            if (cbTaiXeTiepNhanXuat.Items.Count > 0) cbTaiXeTiepNhanXuat.SelectedIndex = 0;
-
-            var danhSachLenhXuat = danhSachBienDong
-                .Where(m => m.MovementType == WarehouseMovementType.OutboundLastMile || m.MovementType == WarehouseMovementType.OutboundTransit)
-                .ToList();
-            dgDanhSachXuatKho.ItemsSource = danhSachLenhXuat;
-
-            // 7. DỮ LIỆU NHÁNH 7: LỊCH SỬ NHẬP / XUẤT
+            // 6. DỮ LIỆU NHÁNH 6: LỊCH SỬ NHẬP / XUẤT
             dgLichSuBienDongKho.ItemsSource = danhSachBienDong;
         }
 
@@ -115,7 +77,7 @@ namespace Quanlykhohanglogicts
         public void LoadData() => NapDuLieuKho();
 
         /// <summary>
-        /// SỰ KIỆN: Chuyển đổi giữa 7 nhánh chức năng kho bãi qua RadioButton
+        /// SỰ KIỆN: Chuyển đổi giữa 6 nhánh chức năng kho bãi qua RadioButton
         /// </summary>
         private void TabNghiepVu_Checked(object sender, RoutedEventArgs e)
         {
@@ -125,93 +87,72 @@ namespace Quanlykhohanglogicts
             panelTongQuanKho.Visibility = Visibility.Collapsed;
             panelTiepNhanHang.Visibility = Visibility.Collapsed;
             panelHangLuuKho.Visibility = Visibility.Collapsed;
-            panelPhanLoaiHang.Visibility = Visibility.Collapsed;
             panelViTriLuuTru.Visibility = Visibility.Collapsed;
             panelXuatHang.Visibility = Visibility.Collapsed;
             panelLichSuNhapXuat.Visibility = Visibility.Collapsed;
 
             // Hiện panel được chọn
-            if (tabTongQuanKho.IsChecked == true) panelTongQuanKho.Visibility = Visibility.Visible;
+            if (tabTongQuanKho.IsChecked == true)
+            {
+                panelTongQuanKho.Visibility = Visibility.Visible;
+            }
             else if (tabTiepNhanHang.IsChecked == true)
             {
                 panelTiepNhanHang.Visibility = Visibility.Visible;
-                txtDongHoTiepNhan.Text = $"Thời điểm ghi nhận: {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
+                ucImportManagement?.NapDuLieuNhapKho();
             }
-            else if (tabHangLuuKho.IsChecked == true) panelHangLuuKho.Visibility = Visibility.Visible;
-            else if (tabPhanLoaiHang.IsChecked == true) panelPhanLoaiHang.Visibility = Visibility.Visible;
-            else if (tabViTriLuuTru.IsChecked == true) panelViTriLuuTru.Visibility = Visibility.Visible;
-            else if (tabXuatHang.IsChecked == true) panelXuatHang.Visibility = Visibility.Visible;
-            else if (tabLichSuNhapXuat.IsChecked == true) panelLichSuNhapXuat.Visibility = Visibility.Visible;
+            else if (tabHangLuuKho.IsChecked == true)
+            {
+                panelHangLuuKho.Visibility = Visibility.Visible;
+            }
+            else if (tabViTriLuuTru.IsChecked == true)
+            {
+                panelViTriLuuTru.Visibility = Visibility.Visible;
+            }
+            else if (tabXuatHang.IsChecked == true)
+            {
+                panelXuatHang.Visibility = Visibility.Visible;
+                ucExportManagement?.NapDuLieuXuatKho();
+            }
+            else if (tabLichSuNhapXuat.IsChecked == true)
+            {
+                panelLichSuNhapXuat.Visibility = Visibility.Visible;
+            }
         }
 
-        #region Phím Tắt Chuyển Tab Nhanh Từ Màn Hình Tổng Quan
-        private void BtnChuyenSangTiepNhan_Click(object sender, RoutedEventArgs e) => tabTiepNhanHang.IsChecked = true;
-        private void BtnChuyenSangPhanLoai_Click(object sender, RoutedEventArgs e) => tabPhanLoaiHang.IsChecked = true;
-        private void BtnChuyenSangXuatHang_Click(object sender, RoutedEventArgs e) => tabXuatHang.IsChecked = true;
-        private void BtnChuyenSangLichSu_Click(object sender, RoutedEventArgs e) => tabLichSuNhapXuat.IsChecked = true;
-        private void BtnLamMoiKho_Click(object sender, RoutedEventArgs e) => NapDuLieuKho();
-        #endregion
-
-        #region Nghiệp Vụ Nhánh 2: Tiếp Nhận Hàng Vào Kho (Ghi Giờ)
-        /// <summary>
-        /// SỰ KIỆN: Xác nhận tiếp nhận đơn hàng vào kho
-        /// - Nhiệm vụ: Tự động lưu Timestamp giờ phút giây hàng vào kho,
-        ///             tạo phiếu nhập mới trong ImportOrders và ghi nhật ký WarehouseMovement.
-        /// </summary>
-        private void BtnXacNhanTiepNhan_Click(object sender, RoutedEventArgs e)
+        #region Phím Tắt & Điều Hướng Công Khai
+        public void ChuyenSangTabTiepNhan()
         {
-            string tenNguoiGui = txtTenNguoiGuiHang.Text.Trim();
-            string maVanDonGoc = txtMaVanDonGoc.Text.Trim();
-            string ghiChu = txtGhiChuTiepNhan.Text.Trim();
-            string viTri = (cbViTriTiepNhan.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "DOCK-INBOUND-01";
-            string loaiNguonStr = (cbNguonGuiHang.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Hub Trung Chuyển";
-
-            if (string.IsNullOrWhiteSpace(tenNguoiGui))
-            {
-                MessageBox.Show("Vui lòng nhập tên đơn vị hoặc người gửi hàng!", "Cảnh Báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (!double.TryParse(txtKhoiLuongTiepNhan.Text, out double khoiLuong) || khoiLuong <= 0)
-            {
-                MessageBox.Show("Khối lượng tiếp nhận phải là số dương!", "Cảnh Báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var thoiDiemVaoKho = DateTime.Now;
-            var phieuNhapMoi = new ImportOrder
-            {
-                ImportCode = $"NK-{DateTime.Now:yyMMdd}-{new Random().Next(100, 999)}",
-                SenderName = tenNguoiGui,
-                WaybillNumber = maVanDonGoc,
-                TotalWeight = khoiLuong,
-                Status = ImportOrderStatus.Approved,
-                CreatedDate = thoiDiemVaoKho,
-                CreatedByName = UserSession.Current.CurrentUser?.FullName ?? "Thủ Kho Hệ Thống",
-                Notes = ghiChu
-            };
-
-            WarehouseContext.Instance.AddImportOrder(phieuNhapMoi);
-            WarehouseContext.Instance.XacNhanTiepNhanDonVaoKho(
-                tenNguoiGui, 
-                phieuNhapMoi.ImportCode, 
-                khoiLuong, 
-                viTri, 
-                phieuNhapMoi.CreatedByName, 
-                $"Tiếp nhận nguồn {loaiNguonStr} lúc {thoiDiemVaoKho:HH:mm:ss}");
-
-            MessageBox.Show(
-                $"ĐÃ TIẾP NHẬN HÀNG VÀO KHO THÀNH CÔNG!\n\n" +
-                $"• Mã phiếu nhập: {phieuNhapMoi.ImportCode}\n" +
-                $"• Thời điểm hàng vào kho: {thoiDiemVaoKho:dd/MM/yyyy HH:mm:ss}\n" +
-                $"• Nguồn gửi: {tenNguoiGui}\n" +
-                $"• Khối lượng: {khoiLuong:N1} kg\n" +
-                $"• Vị trí đặt tiếp nhận: {viTri}\n\n" +
-                $"Dữ liệu đã được ghi nhận vào Sổ Kho và Nhật Ký Biến Động.",
-                "Tiếp Nhận Thành Công", MessageBoxButton.OK, MessageBoxImage.Information);
-
-            NapDuLieuKho();
+            if (tabTiepNhanHang != null) tabTiepNhanHang.IsChecked = true;
+            ucImportManagement?.NapDuLieuNhapKho();
         }
+
+        public void ChuyenSangTabXuatKho()
+        {
+            if (tabXuatHang != null) tabXuatHang.IsChecked = true;
+            ucExportManagement?.NapDuLieuXuatKho();
+        }
+
+        public void ChuyenSangTabTonKho()
+        {
+            if (tabHangLuuKho != null) tabHangLuuKho.IsChecked = true;
+        }
+
+        public void ChuyenSangTabViTri()
+        {
+            if (tabViTriLuuTru != null) tabViTriLuuTru.IsChecked = true;
+        }
+
+        public void ChuyenSangTabLichSu()
+        {
+            if (tabLichSuNhapXuat != null) tabLichSuNhapXuat.IsChecked = true;
+        }
+
+        private void BtnChuyenSangTiepNhan_Click(object sender, RoutedEventArgs e) => ChuyenSangTabTiepNhan();
+        private void BtnChuyenSangPhanLoai_Click(object sender, RoutedEventArgs e) => ChuyenSangTabTonKho();
+        private void BtnChuyenSangXuatHang_Click(object sender, RoutedEventArgs e) => ChuyenSangTabXuatKho();
+        private void BtnChuyenSangLichSu_Click(object sender, RoutedEventArgs e) => ChuyenSangTabLichSu();
+        private void BtnLamMoiKho_Click(object sender, RoutedEventArgs e) => NapDuLieuKho();
         #endregion
 
         #region Nghiệp Vụ Nhánh 3: Hàng Đang Lưu Kho
@@ -293,55 +234,7 @@ namespace Quanlykhohanglogicts
         }
         #endregion
 
-        #region Nghiệp Vụ Nhánh 6: Xuất Hàng Khỏi Kho
-        /// <summary>
-        /// SỰ KIỆN: Xác nhận xuất hàng khỏi kho
-        /// - Nhiệm vụ: Ghi nhận thời điểm xuất hàng, cập nhật biến động và chuyển trạng thái xuất kho.
-        /// </summary>
-        private void BtnXacNhanXuatKho_Click(object sender, RoutedEventArgs e)
-        {
-            if (cbDonHangXuat.SelectedItem is not ComboBoxItem mucDonHang || mucDonHang.Tag is not ShippingOrder donHang)
-            {
-                MessageBox.Show("Vui lòng chọn bưu kiện hoặc lô hàng cần xuất khỏi kho!", "Thông Báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            string hinhThucXuat = (cbHinhThucXuat.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Giao chặng cuối";
-            string taiXeTiepNhan = (cbTaiXeTiepNhanXuat.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Shipper Tiếp Nhận";
-            string ghiChu = txtGhiChuXuatKho.Text.Trim();
-
-            var loaiXuat = hinhThucXuat.Contains("chặng cuối") 
-                ? WarehouseMovementType.OutboundLastMile 
-                : WarehouseMovementType.OutboundTransit;
-
-            var thoiDiemXuat = DateTime.Now;
-
-            WarehouseContext.Instance.XacNhanXuatKho(
-                donHang.OrderCode,
-                taiXeTiepNhan,
-                loaiXuat,
-                donHang.Weight,
-                UserSession.Current.CurrentUser?.FullName ?? "Thủ Kho Hệ Thống",
-                $"{hinhThucXuat} - {ghiChu}");
-
-            // Cập nhật trạng thái đơn hàng sang Đang Giao
-            WarehouseContext.Instance.UpdateShippingOrderStatus(donHang.Id, ShippingOrderStatus.Delivering);
-
-            MessageBox.Show(
-                $"XÁC NHẬN XUẤT HÀNG KHỎI KHO THÀNH CÔNG!\n\n" +
-                $"• Mã bưu kiện: {donHang.OrderCode}\n" +
-                $"• Thời điểm xuất kho: {thoiDiemXuat:dd/MM/yyyy HH:mm:ss}\n" +
-                $"• Phương thức: {hinhThucXuat}\n" +
-                $"• Bên tiếp nhận: {taiXeTiepNhan}\n" +
-                $"• Khối lượng: {donHang.Weight:N1} kg\n\n" +
-                $"Kiện hàng đã rời khỏi kho và được ghi nhận vào Nhật Ký Xuất Kho.",
-                "Xuất Kho Thành Công", MessageBoxButton.OK, MessageBoxImage.Information);
-
-            NapDuLieuKho();
-        }
-        #endregion
-
-        #region Nghiệp Vụ Nhánh 7: Lịch Sử Nhập / Xuất (Xuất CSV)
+        #region Nghiệp Vụ Nhánh 6: Lịch Sử Nhập / Xuất (Xuất CSV)
         /// <summary>
         /// SỰ KIỆN: Xuất toàn bộ nhật ký biến động kho ra tệp CSV (UTF-8 BOM)
         /// </summary>

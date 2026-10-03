@@ -104,39 +104,111 @@ namespace Quanlykhohanglogicts
 
             // 7. NẠP DỮ LIỆU NHÁNH 6 (LỊCH SỬ ĐIỀU PHỐI)
             dgLichSuDieuPhoi.ItemsSource = khoDuLieu.GetAllDispatchRecords();
+
+            // 8. ĐỒNG BỘ DỮ LIỆU SANG CÁC PHÂN HỆ TMS CON
+            ucPriorityDispatch?.NapDuLieuKho();
+            ucRouteBatching?.NapDuLieuGomTuyen();
         }
 
         public void LoadData() => NapDuLieu();
 
         private void BtnLamMoiDuLieu_Click(object sender, RoutedEventArgs e) => NapDuLieu();
 
-        #region Xử lý chuyển đổi giữa 6 nhánh điều hướng phụ
+        #region Xử lý chuyển đổi giữa 4 Tab TMS & Phân nhánh con
         /// <summary>
-        /// SỰ KIỆN: Chuyển đổi giữa 6 nhánh thanh điều hướng qua RadioButton
+        /// SỰ KIỆN: Chuyển đổi giữa 4 Tab TMS qua RadioButton
         /// </summary>
         private void TabDieuHuong_Checked(object sender, RoutedEventArgs e)
         {
-            if (panelDonChoPhanCong == null) return;
+            if (panelPhanBoSla == null || panelGomTuyen == null || panelPhanCongShipperTab == null || panelLichSuDieuPhoiTab == null) return;
 
-            // Ẩn tất cả các panel
-            panelDonChoPhanCong.Visibility = Visibility.Collapsed;
-            panelDieuPhoiTheoNgay.Visibility = Visibility.Collapsed;
-            panelPhanCongShipper.Visibility = Visibility.Collapsed;
-            panelDanhSachGiaoDuKien.Visibility = Visibility.Collapsed;
-            panelPhanCongDaXacNhan.Visibility = Visibility.Collapsed;
-            panelLichSuDieuPhoi.Visibility = Visibility.Collapsed;
+            // Ẩn tất cả các panel chính
+            panelPhanBoSla.Visibility = Visibility.Collapsed;
+            panelGomTuyen.Visibility = Visibility.Collapsed;
+            panelPhanCongShipperTab.Visibility = Visibility.Collapsed;
+            panelLichSuDieuPhoiTab.Visibility = Visibility.Collapsed;
 
             // Hiển thị panel được chọn
-            if (tabDonChoPhanCong.IsChecked == true) panelDonChoPhanCong.Visibility = Visibility.Visible;
-            else if (tabDieuPhoiTheoNgay.IsChecked == true) panelDieuPhoiTheoNgay.Visibility = Visibility.Visible;
-            else if (tabPhanCongShipper.IsChecked == true) panelPhanCongShipper.Visibility = Visibility.Visible;
-            else if (tabDanhSachGiaoDuKien.IsChecked == true) panelDanhSachGiaoDuKien.Visibility = Visibility.Visible;
-            else if (tabPhanCongDaXacNhan.IsChecked == true) panelPhanCongDaXacNhan.Visibility = Visibility.Visible;
-            else if (tabLichSuDieuPhoi.IsChecked == true) panelLichSuDieuPhoi.Visibility = Visibility.Visible;
+            if (tabPhanBoSla.IsChecked == true)
+            {
+                panelPhanBoSla.Visibility = Visibility.Visible;
+                ucPriorityDispatch?.NapDuLieuKho();
+            }
+            else if (tabGomTuyen.IsChecked == true)
+            {
+                panelGomTuyen.Visibility = Visibility.Visible;
+                ucRouteBatching?.NapDuLieuGomTuyen();
+            }
+            else if (tabPhanCongShipper.IsChecked == true)
+            {
+                panelPhanCongShipperTab.Visibility = Visibility.Visible;
+                ApDungBoLocPhanCong();
+            }
+            else if (tabLichSuDieuPhoi.IsChecked == true)
+            {
+                panelLichSuDieuPhoiTab.Visibility = Visibility.Visible;
+                CapNhatKeHoachGiaoDuKien();
+            }
+        }
+
+        /// <summary>
+        /// SỰ KIỆN: Chuyển đổi giữa các phân nhánh con bên trong Tab 3 (Phân Công Shipper)
+        /// </summary>
+        private void TabSubPhanCong_Checked(object sender, RoutedEventArgs e)
+        {
+            if (panelPhanCongShipper == null || panelDonChoPhanCong == null || panelPhanCongDaXacNhan == null) return;
+
+            panelPhanCongShipper.Visibility = Visibility.Collapsed;
+            panelDonChoPhanCong.Visibility = Visibility.Collapsed;
+            panelPhanCongDaXacNhan.Visibility = Visibility.Collapsed;
+
+            if (tabSubPhanCong7Buoc.IsChecked == true)
+            {
+                panelPhanCongShipper.Visibility = Visibility.Visible;
+                ApDungBoLocPhanCong();
+            }
+            else if (tabSubDonChoGiao.IsChecked == true)
+            {
+                panelDonChoPhanCong.Visibility = Visibility.Visible;
+                ApDungBoLocDonCho();
+            }
+            else if (tabSubDonDangGiao.IsChecked == true)
+            {
+                panelPhanCongDaXacNhan.Visibility = Visibility.Visible;
+            }
+        }
+
+        #region Phím Tắt & Điều Hướng Công Khai
+        public void ChuyenSangTabPhanBoSla()
+        {
+            if (tabPhanBoSla != null) tabPhanBoSla.IsChecked = true;
+            ucPriorityDispatch?.NapDuLieuKho();
+        }
+
+        public void ChuyenSangTabGomTuyen(string? khuVuc = null)
+        {
+            if (tabGomTuyen != null) tabGomTuyen.IsChecked = true;
+            ucRouteBatching?.NapDuLieuGomTuyen();
+            if (!string.IsNullOrEmpty(khuVuc))
+            {
+                ucRouteBatching?.ChonTuyenTheoKhuVuc(khuVuc);
+            }
+        }
+
+        public void ChuyenSangTabPhanCong()
+        {
+            if (tabPhanCongShipper != null) tabPhanCongShipper.IsChecked = true;
+            if (tabSubPhanCong7Buoc != null) tabSubPhanCong7Buoc.IsChecked = true;
+        }
+
+        public void ChuyenSangTabLichSu()
+        {
+            if (tabLichSuDieuPhoi != null) tabLichSuDieuPhoi.IsChecked = true;
         }
         #endregion
+        #endregion
 
-        #region Nhánh 1: Đơn Chờ Phân Công
+        #region Nhánh Bể Đơn Chờ Phân Công
         private void TxtTimKiemDonCho_TextChanged(object sender, TextChangedEventArgs e) => ApDungBoLocDonCho();
         private void CbLocDonCho_SelectionChanged(object sender, SelectionChangedEventArgs e) => ApDungBoLocDonCho();
 
@@ -171,7 +243,8 @@ namespace Quanlykhohanglogicts
 
         private void BtnChuyenSangPhanCong_Click(object sender, RoutedEventArgs e)
         {
-            tabPhanCongShipper.IsChecked = true;
+            if (tabSubPhanCong7Buoc != null) tabSubPhanCong7Buoc.IsChecked = true;
+            else if (tabPhanCongShipper != null) tabPhanCongShipper.IsChecked = true;
         }
         #endregion
 

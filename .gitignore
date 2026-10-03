@@ -1,0 +1,21 @@
+# Build and Output Directories
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio files
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+# User-specific files
+*.rsuser
+*.suo
+*.userprefs
+
+# Temporary files
+*.tmp
+*.log

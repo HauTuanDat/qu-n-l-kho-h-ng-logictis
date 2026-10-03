@@ -569,18 +569,53 @@ namespace Quanlykhohanglogicts
             }
         }
 
+        #region Điều Hướng Tab Chính: Đơn Hàng vs Tra Cứu Hành Trình
+        private void MainTab_Checked(object sender, RoutedEventArgs e)
+        {
+            if (panelDanhSachDonHang == null || panelTraCuuVanDon == null) return;
+
+            if (tabDanhSachDonHang.IsChecked == true)
+            {
+                panelDanhSachDonHang.Visibility = Visibility.Visible;
+                panelTraCuuVanDon.Visibility = Visibility.Collapsed;
+            }
+            else if (tabTraCuuHanhTrinh.IsChecked == true)
+            {
+                panelDanhSachDonHang.Visibility = Visibility.Collapsed;
+                panelTraCuuVanDon.Visibility = Visibility.Visible;
+            }
+        }
+
+        public void ChuyenSangTabTraCuu(string? maVanDon = null)
+        {
+            if (tabTraCuuHanhTrinh != null)
+            {
+                tabTraCuuHanhTrinh.IsChecked = true;
+            }
+            if (!string.IsNullOrEmpty(maVanDon) && ucTrackingPortal != null)
+            {
+                ucTrackingPortal.ThucHienTraCuu(maVanDon);
+            }
+        }
+
+        public void ChuyenSangTabDanhSach()
+        {
+            if (tabDanhSachDonHang != null)
+            {
+                tabDanhSachDonHang.IsChecked = true;
+            }
+        }
+        #endregion
+
         /// <summary>
         /// SỰ KIỆN: Bấm nút "🔍 Tra Cứu" trên từng dòng đơn hàng
-        /// - Nhiệm vụ: Chuyển hướng trực tiếp sang Cổng Tra Cứu Vận Đơn (Tính năng 7) và mở chi tiết hành trình của đơn này.
+        /// - Nhiệm vụ: Chuyển hướng trực tiếp sang Tab Cổng Tra Cứu Vận Đơn và mở chi tiết hành trình của đơn này.
         /// </summary>
         private void BtnQuickTrackOrder_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button nutBam && nutBam.DataContext is ShippingOrder donHang)
             {
-                if (Application.Current.MainWindow is MainWindow cuaSoChinh)
-                {
-                    cuaSoChinh.ChuyenSangTrangTraCuu(donHang.OrderCode);
-                }
+                ChuyenSangTabTraCuu(donHang.OrderCode);
             }
         }
         #endregion
