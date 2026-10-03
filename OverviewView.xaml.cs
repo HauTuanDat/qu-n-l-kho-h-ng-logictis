@@ -62,7 +62,7 @@ namespace Quanlykhohanglogicts
                 .Where(donHang => donHang.IsExpress || donHang.IsOverdue)
                 .OrderBy(donHang => donHang.EstimatedDeliveryDate)
                 .Take(6)
-                .ToList();
+                .ToList();  
             dgUrgentOrders.ItemsSource = danhSachDonUuTien;
 
             // 3. NẠP DANH SÁCH HOẠT ĐỘNG GẦN ĐÂY (AUDIT LOG / TIMELINE)

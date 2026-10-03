@@ -17,11 +17,12 @@
         <Style x:Key="SidebarListViewItemStyle" TargetType="ListViewItem">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#94A3B8"/>
-            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Height" Value="44"/>
-            <Setter Property="Margin" Value="0,3"/>
-            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Template">
@@ -49,13 +50,13 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="270"/> <!-- Cột Sidebar Navigation -->
+            <ColumnDefinition Width="285"/> <!-- Cột Sidebar Navigation (rộng rãi, không tràn chữ) -->
             <ColumnDefinition Width="*"/>   <!-- Vùng ContentControl Chính -->
         </Grid.ColumnDefinitions>
 
         <!-- ================= CỘT TRÁI: SIDEBAR DÙNG LISTVIEW ================= -->
         <Border Grid.Column="0" Background="#0F172A">
-            <Grid Margin="16,18,16,16">
+            <Grid Margin="12,18,12,16">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/> <!-- Header Logo -->
                     <RowDefinition Height="*"/>    <!-- ListView Điều hướng -->
@@ -79,13 +80,14 @@
                 </StackPanel>
 
                 <!-- 2. THANH ĐIỀU HƯỚNG SỬ DỤNG LISTVIEW THEO YÊU CẦU -->
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel>
                         <TextBlock Text="PHÂN HỆ NGHIỆP VỤ" FontSize="10.5" FontWeight="Bold" Foreground="#64748B" Margin="10,6,0,8"/>
 
                         <ListView x:Name="lvSidebarNavigation"
                                   Background="Transparent"
                                   BorderThickness="0"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                   ItemContainerStyle="{StaticResource SidebarListViewItemStyle}"
                                   SelectionChanged="LvSidebarNavigation_SelectionChanged">
                             
@@ -93,11 +95,11 @@
                             <ListViewItem x:Name="navItemOverview">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="26"/>
+                                        <ColumnDefinition Width="24"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="📊" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="1. Bảng Tổng Quan" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="1. Bảng Tổng Quan" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </ListViewItem>
 
@@ -105,15 +107,15 @@
                             <ListViewItem x:Name="navItemOrders">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="26"/>
+                                        <ColumnDefinition Width="24"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="📋" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="2. Quản Lý Đơn Hàng" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="2. Quản Lý Đơn Hàng" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                     <!-- Badge Đơn Cần Xử Lý -->
-                                    <Border Grid.Column="2" Background="#1E293B" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="10" Padding="7,1" VerticalAlignment="Center">
-                                        <TextBlock x:Name="badgePendingOrders" Text="3" FontSize="10.5" FontWeight="Bold" Foreground="#FBBF24"/>
+                                    <Border Grid.Column="2" Background="#1E293B" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="10" Padding="7,1" VerticalAlignment="Center" Margin="6,0,0,0">
+                                        <TextBlock x:Name="badgePendingOrders" Text="3" FontSize="10" FontWeight="Bold" Foreground="#FBBF24"/>
                                     </Border>
                                 </Grid>
                             </ListViewItem>
@@ -122,15 +124,11 @@
                             <ListViewItem x:Name="navItemWarehouse">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="26"/>
+                                        <ColumnDefinition Width="24"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="🏢" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="3. Quản Lý Kho Bãi (WMS)" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="2" Background="#1E293B" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="8" Padding="6,1" VerticalAlignment="Center">
-                                        <TextBlock Text="6 Tabs" FontSize="9.5" FontWeight="Bold" Foreground="#60A5FA"/>
-                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="3. Quản Lý Kho Bãi (WMS)" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </ListViewItem>
 
@@ -138,15 +136,11 @@
                             <ListViewItem x:Name="navItemDeliveryDispatch">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="26"/>
+                                        <ColumnDefinition Width="24"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="🚚" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="4. Điều Phối Vận Tải (TMS)" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="2" Background="#1E293B" BorderBrush="#0EA5E9" BorderThickness="1" CornerRadius="8" Padding="6,1" VerticalAlignment="Center">
-                                        <TextBlock Text="4 Tabs" FontSize="9.5" FontWeight="Bold" Foreground="#38BDF8"/>
-                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="4. Điều Phối Vận Tải (TMS)" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </ListViewItem>
 
@@ -154,15 +148,11 @@
                             <ListViewItem x:Name="navItemShipper">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="26"/>
+                                        <ColumnDefinition Width="24"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="🛵" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="5. Đội Xe &amp; Shipper" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="2" Background="#1E293B" BorderBrush="#A855F7" BorderThickness="1" CornerRadius="8" Padding="6,1" VerticalAlignment="Center">
-                                        <TextBlock Text="7 Nhánh" FontSize="9.5" FontWeight="Bold" Foreground="#C084FC"/>
-                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="5. Đội Xe &amp; Shipper" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </ListViewItem>
 
@@ -170,15 +160,11 @@
                             <ListViewItem x:Name="navItemReturnManagement">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="26"/>
+                                        <ColumnDefinition Width="24"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="🔄" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="6. Quản Lý Hàng Hoàn" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="2" Background="#1E293B" BorderBrush="#EF4444" BorderThickness="1" CornerRadius="8" Padding="6,1" VerticalAlignment="Center">
-                                        <TextBlock Text="6 Nhánh" FontSize="9.5" FontWeight="Bold" Foreground="#F87171"/>
-                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="6. Quản Lý Hàng Hoàn" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </ListViewItem>
 
@@ -186,14 +172,14 @@
                             <ListViewItem x:Name="navItemUsers">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="26"/>
+                                        <ColumnDefinition Width="24"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="👥" FontSize="15" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="7. Quản Trị Hệ Thống" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="7. Quản Trị Hệ Thống" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                     <!-- Ổ khóa nếu không phải admin -->
-                                    <TextBlock x:Name="badgeAdminLock" Grid.Column="2" Text="🔒" FontSize="11" Foreground="#EF4444" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="badgeAdminLock" Grid.Column="2" Text="🔒" FontSize="11" Foreground="#EF4444" VerticalAlignment="Center" Margin="6,0,0,0" Visibility="Collapsed"/>
                                 </Grid>
                             </ListViewItem>
                         </ListView>

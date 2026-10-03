@@ -39,7 +39,9 @@
         </Style>
     </UserControl.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,16">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                  HorizontalScrollBarVisibility="Disabled" 
+                  Padding="20,16" Background="White">
         <StackPanel>
 
             <!-- ================= TIÊU ĐỀ TRANG TỔNG QUAN & NÚT LÀM MỚI ================= -->
