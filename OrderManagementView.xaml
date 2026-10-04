@@ -71,19 +71,36 @@
 
                     <!-- 1. HEADER: TIÊU ĐỀ & NÚT TẠO ĐƠN HÀNG -->
                     <Grid Margin="0,0,0,14">
-                    <StackPanel>
-                        <TextBlock Text="Quản Lý Đơn Hàng Vận Chuyển Logistics" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
-                        <TextBlock Text="Kiểm soát toàn bộ vòng đời đơn hàng: Tiếp nhận • Xử lý • Xuất giao • Thu COD • Hoàn trả" FontSize="12.5" Foreground="#64748B" Margin="0,3,0,0"/>
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <!-- NÚT ĐIỀU PHỐI & PHÂN BỔ ƯU TIÊN SLA (KHI QUÁ TẢI) -->
-                        <Button x:Name="btnOpenPriorityDispatch" Style="{StaticResource NutCongCuTintedStyle}" Height="38" Padding="14,0" Margin="0,0,10,0" Background="#FFF7ED" BorderBrush="#FED7AA" Foreground="#C2410C" Click="BtnOpenPriorityDispatch_Click" ToolTip="Phân bổ ưu tiên khi đơn vượt quá năng lực vận chuyển ngày (Hỏa tốc &amp; SLA)">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🎯" Margin="0,0,6,0" FontSize="13"/>
-                                <TextBlock Text="Phân Bổ SLA" FontWeight="SemiBold" FontSize="12.5"/>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Quản Lý Đơn Hàng Vận Chuyển Logistics" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
+                                <!-- Huy hiệu Kho Vận Hành Hiện Tại -->
+                                <Border Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="12" Padding="10,3" Margin="12,0,0,0" VerticalAlignment="Center" ToolTip="Kho vận hành thực tế tại trạm. Đơn hàng có người nhận tại địa bàn này sẽ được tự động gắn nhãn GIAO NGAY">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🏢 Kho Trạm: " FontSize="11.5" Foreground="#166534" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Hub Thái Nguyên" FontSize="11.5" Foreground="#15803D" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
-                        </Button>
+                            <TextBlock Text="Kiểm soát toàn bộ vòng đời đơn hàng: Tiếp nhận • Phân luồng giao ngay nội vùng • Xuất giao • Thu COD • Hoàn trả" FontSize="12.5" Foreground="#64748B" Margin="0,3,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <!-- NÚT XUẤT GIAO NHANH HÀNG LOẠT ĐƠN NỘI VÙNG (THÁI NGUYÊN) -->
+                            <Button x:Name="btnBatchDispatchLocalOrders" Style="{StaticResource NutCongCuTintedStyle}" Height="38" Padding="13,0" Margin="0,0,10,0" Background="#ECFDF5" BorderBrush="#6EE7B7" Foreground="#047857" Click="BtnBatchDispatchLocalOrders_Click" ToolTip="Tự động gom và xuất toàn bộ các đơn mới tiếp nhận tại Thái Nguyên cho đội ngũ Shipper đi phát ngay!">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="⚡" Margin="0,0,5,0" FontSize="13"/>
+                                    <TextBlock Text="Xuất Giao Đơn Nội Vùng" FontWeight="Bold" FontSize="12.5"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- NÚT ĐIỀU PHỐI & PHÂN BỔ ƯU TIÊN SLA (KHI QUÁ TẢI) -->
+                            <Button x:Name="btnOpenPriorityDispatch" Style="{StaticResource NutCongCuTintedStyle}" Height="38" Padding="14,0" Margin="0,0,10,0" Background="#FFF7ED" BorderBrush="#FED7AA" Foreground="#C2410C" Click="BtnOpenPriorityDispatch_Click" ToolTip="Phân bổ ưu tiên khi đơn vượt quá năng lực vận chuyển ngày (Hỏa tốc &amp; SLA)">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🎯" Margin="0,0,6,0" FontSize="13"/>
+                                    <TextBlock Text="Phân Bổ SLA" FontWeight="SemiBold" FontSize="12.5"/>
+                                </StackPanel>
+                            </Button>
 
                         <!-- NÚT GOM TUYẾN ĐƯỜNG & ĐIỀU PHỐI (TÍNH NĂNG 5) -->
                         <Button x:Name="btnOpenRouteBatching" Style="{StaticResource NutCongCuTintedStyle}" Height="38" Padding="14,0" Margin="0,0,10,0" Background="#EEF2FF" BorderBrush="#C7D2FE" Foreground="#4338CA" Click="BtnOpenRouteBatching_Click" ToolTip="Gom đơn theo tuyến đường &amp; điều phối chuyến giao hàng tập trung">
@@ -176,6 +193,7 @@
                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                         <StackPanel Orientation="Horizontal">
                             <RadioButton x:Name="tabAll" Style="{StaticResource OrderStatusTabButtonStyle}" Content="📋 Tất Cả Đơn Hàng" IsChecked="True" Checked="TabFilter_Checked"/>
+                            <RadioButton x:Name="tabLocalDispatch" Style="{StaticResource OrderStatusTabButtonStyle}" Content="🛵 Giao Ngay (Thái Nguyên)" Checked="TabFilter_Checked" ToolTip="Lọc các đơn người nhận ở Thái Nguyên (cùng tuyến kho) cần lấy ra đi gửi luôn trong ca"/>
                             <RadioButton x:Name="tabNew" Style="{StaticResource OrderStatusTabButtonStyle}" Content="📥 Mới Tiếp Nhận" Checked="TabFilter_Checked"/>
                             <RadioButton x:Name="tabPending" Style="{StaticResource OrderStatusTabButtonStyle}" Content="⏳ Chờ Xử Lý" Checked="TabFilter_Checked"/>
                             <RadioButton x:Name="tabExpress" Style="{StaticResource OrderStatusTabButtonStyle}" Content="⚡ Đơn Express" Checked="TabFilter_Checked"/>
@@ -314,10 +332,27 @@
                                 </DataGridTemplateColumn>
 
                                 <!-- Tiền COD -->
-                                <DataGridTextColumn Header="Thu Hộ COD" Binding="{Binding CodAmount, StringFormat='{}{0:N0} đ'}" FontWeight="Bold" Foreground="#059669" Width="110"/>
+                                <DataGridTextColumn Header="Thu Hộ COD" Binding="{Binding CodAmount, StringFormat='{}{0:N0} đ'}" FontWeight="Bold" Foreground="#059669" Width="105"/>
+
+                                <!-- Phân Luồng Tuyến: Giao Ngay Nội Vùng vs Trung Chuyển -->
+                                <DataGridTemplateColumn Header="Phân Luồng Tuyến" Width="135">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border CornerRadius="12" Padding="7,3" HorizontalAlignment="Left"
+                                                    Background="{Binding RoutingCategoryBadgeBackground}"
+                                                    BorderBrush="{Binding RoutingCategoryBorderColor}"
+                                                    BorderThickness="1"
+                                                    ToolTip="{Binding RoutingActionRecommendation}">
+                                                <TextBlock Text="{Binding RoutingCategoryTag}" 
+                                                           Foreground="{Binding RoutingCategoryTextColor}" 
+                                                           FontWeight="Bold" FontSize="10.5"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
 
                                 <!-- Trạng Thái -->
-                                <DataGridTemplateColumn Header="Trạng Thái" Width="130">
+                                <DataGridTemplateColumn Header="Trạng Thái" Width="120">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Border CornerRadius="12" Padding="8,3" HorizontalAlignment="Left" Background="#F1F5F9">
@@ -328,13 +363,25 @@
                                 </DataGridTemplateColumn>
 
                                 <!-- Shipper Phụ Trách -->
-                                <DataGridTextColumn Header="Shipper Giao" Binding="{Binding AssignedShipperName}" Width="130"/>
+                                <DataGridTextColumn Header="Shipper Giao" Binding="{Binding AssignedShipperName}" Width="120"/>
 
                                 <!-- Thao tác nhanh -->
-                                <DataGridTemplateColumn Header="Thao Tác" Width="270">
+                                <DataGridTemplateColumn Header="Thao Tác" Width="330">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <!-- Nút Xuất Giao Ngay Cho Đơn Nội Hạt Thái Nguyên (Last-Mile Fast Dispatch) -->
+                                                <Button Style="{StaticResource NutCongCuTintedStyle}" Height="28" Padding="7,0" FontSize="11" Margin="0,0,5,0"
+                                                        Background="#ECFDF5" Foreground="#047857" BorderBrush="#6EE7B7"
+                                                        Click="BtnQuickLocalDeliver_Click" 
+                                                        ToolTip="Người nhận ở Thái Nguyên (cùng tuyến kho): Xuất kho bàn giao Shipper đi giao ngay trong ca!"
+                                                        Visibility="{Binding CanQuickDeliverLocal, Converter={x:Static local:OverviewView.BoolToVisibilityConverter}}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="⚡" Margin="0,0,3,0"/>
+                                                        <TextBlock Text="Giao Luôn"/>
+                                                    </StackPanel>
+                                                </Button>
+
                                                 <Button Content="🛵 Phân Xe" Height="28" Padding="8,0" FontSize="11" Margin="0,0,5,0"
                                                         Background="#FEF3C7" Foreground="#B45309" BorderBrush="#FDE68A"
                                                         Style="{StaticResource NutCongCuTintedStyle}" Click="BtnOpenAssignShipper_Click" ToolTip="Phân công Shipper giao đơn này"/>
@@ -344,8 +391,8 @@
                                                     <TextBlock Text="Tiến Độ ➔"/>
                                                 </Button>
                                                 <Button Style="{StaticResource NutCongCuTintedStyle}" Height="28" Padding="8,0" FontSize="11"
-                                                        Background="#ECFDF5" Foreground="#059669" BorderBrush="#A7F3D0"
-                                                        Click="BtnQuickTrackOrder_Click" ToolTip="Xem dòng thời gian hành trình chi tiết (Tính năng 7)">
+                                                        Background="#F8FAFC" Foreground="#475569" BorderBrush="#CBD5E1"
+                                                        Click="BtnQuickTrackOrder_Click" ToolTip="Xem dòng thời gian hành trình chi tiết">
                                                     <TextBlock Text="🔍 Tra Cứu"/>
                                                 </Button>
                                             </StackPanel>

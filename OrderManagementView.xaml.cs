@@ -114,7 +114,12 @@ namespace Quanlykhohanglogicts
             IEnumerable<ShippingOrder> truyVan = _danhSachTatCaDonHang;
 
             // 1. Lọc theo Tab trạng thái vòng đời đơn hàng
-            if (tabNew?.IsChecked == true)
+            if (tabLocalDispatch?.IsChecked == true)
+            {
+                // Lọc các đơn nội vùng cùng tuyến kho Thái Nguyên cần lấy ra đi gửi luôn trong ca
+                truyVan = truyVan.Where(d => d.IsLocalHubDelivery && (d.Status == ShippingOrderStatus.NewReceived || d.Status == ShippingOrderStatus.PendingProcessing || d.Status == ShippingOrderStatus.Delivering));
+            }
+            else if (tabNew?.IsChecked == true)
             {
                 truyVan = truyVan.Where(d => d.Status == ShippingOrderStatus.NewReceived);
             }
@@ -617,6 +622,152 @@ namespace Quanlykhohanglogicts
             {
                 ChuyenSangTabTraCuu(donHang.OrderCode);
             }
+        }
+        #endregion
+
+        #region Nghiệp Vụ Giao Ngay Nội Vùng (Last-Mile Fast Dispatch)
+        /// <summary>
+        /// SỰ KIỆN: Bấm nút "⚡ Giao Luôn" trên từng đơn hàng nội vùng (Thái Nguyên)
+        /// - Nghiệp vụ: Đơn có địa chỉ nhận cùng tuyến kho Thái Nguyên -> Xuất kho bàn giao ngay cho Shipper đi phát trong ca.
+        /// </summary>
+        private void BtnQuickLocalDeliver_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button nutBam && nutBam.DataContext is ShippingOrder donHang)
+            {
+                // 1. Tìm kiếm Shipper phụ trách địa bàn Thái Nguyên
+                var danhSachShipper = WarehouseContext.Instance.GetAllShippers().ToList();
+                var shipperPhuTrach = danhSachShipper.FirstOrDefault(s => (s.DeliveryArea.Contains("Thái Nguyên") || s.CurrentArea.Contains("Thái Nguyên")) && s.Status == ShipperStatus.Available)
+                                   ?? danhSachShipper.FirstOrDefault(s => s.DeliveryArea.Contains("Thái Nguyên") || s.CurrentArea.Contains("Thái Nguyên"))
+                                   ?? danhSachShipper.FirstOrDefault(s => s.Status == ShipperStatus.Active || s.Status == ShipperStatus.Available)
+                                   ?? new Shipper { Id = 5, FullName = "Bùi Văn Đạt", Phone = "0985 667 889" };
+
+                // 2. Cập nhật trạng thái đơn sang Đang Giao
+                donHang.Status = ShippingOrderStatus.Delivering;
+                donHang.AssignedShipperId = shipperPhuTrach.Id;
+                donHang.AssignedShipperName = shipperPhuTrach.FullName;
+                donHang.ShipperPhone = shipperPhuTrach.Phone;
+                donHang.Notes = (donHang.Notes ?? "") + $" | [GIAO NGAY NỘI VÙNG] Bàn giao Shipper {shipperPhuTrach.FullName} xuất bến {DateTime.Now:HH:mm dd/MM}";
+
+                // 3. Cập nhật CSDL
+                WarehouseContext.Instance.UpdateShippingOrder(donHang);
+
+                // 4. Ghi nhận biến động xuất kho chặng cuối (OutboundLastMile)
+                WarehouseContext.Instance.AddWarehouseMovement(new WarehouseMovement
+                {
+                    TransactionCode = $"GD-XK-LM-{DateTime.Now:yyMMddHHmmss}",
+                    Timestamp = DateTime.Now,
+                    MovementType = WarehouseMovementType.OutboundLastMile,
+                    ItemName = $"{donHang.ProductSummary} ({donHang.Weight:N1} kg)",
+                    ReferenceCode = donHang.OrderCode,
+                    Quantity = 1,
+                    Weight = donHang.Weight,
+                    SourceOrDestination = $"Hub Thái Nguyên ➔ Shipper: {shipperPhuTrach.FullName} (Giao: {donHang.ReceiverName})",
+                    LocationCode = "DOCK-LAST-MILE-01",
+                    OperatorName = UserSession.Current.CurrentUser?.FullName ?? "Điều phối viên",
+                    Notes = $"Xuất kho giao ngay chặng cuối (Nội vùng Thái Nguyên). Địa chỉ: {donHang.ReceiverAddress}"
+                });
+
+                // 5. Ghi nhận RecentActivity
+                WarehouseContext.Instance.AddRecentActivity(new RecentActivity
+                {
+                    Title = $"Xuất giao ngay đơn nội vùng {donHang.OrderCode}",
+                    Description = $"Bàn giao cho Shipper {shipperPhuTrach.FullName} đi giao tại {donHang.ReceiverAddress}",
+                    Timestamp = DateTime.Now,
+                    Type = ActivityType.OrderSuccess
+                });
+
+                // 6. Thông báo trực quan và nạp lại dữ liệu
+                MessageBox.Show(
+                    $"⚡ XUẤT KHO VÀ ĐI GIAO NGAY THÀNH CÔNG!\n\n" +
+                    $"• Mã vận đơn: {donHang.OrderCode}\n" +
+                    $"• Người nhận: {donHang.ReceiverName}\n" +
+                    $"• Địa chỉ giao: {donHang.ReceiverAddress}\n" +
+                    $"• Shipper bàn giao: {shipperPhuTrach.FullName} ({shipperPhuTrach.Phone})\n\n" +
+                    $"Hàng đã được xuất khỏi kho và bàn giao cho tài xế đi phát luôn cho khách trong ca!",
+                    "Xuất Giao Ngay Đơn Nội Vùng",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                NapDuLieuDonHang();
+            }
+        }
+
+        /// <summary>
+        /// SỰ KIỆN: Bấm nút "⚡ Xuất Giao Đơn Nội Vùng" (Hàng loạt)
+        /// - Nghiệp vụ: Gom toàn bộ đơn nội vùng Thái Nguyên mới tiếp nhận / chờ xử lý để xuất bến giao luôn trong 1 click.
+        /// </summary>
+        private void BtnBatchDispatchLocalOrders_Click(object sender, RoutedEventArgs e)
+        {
+            var donNoiVungChoGiao = _danhSachTatCaDonHang
+                .Where(d => d.IsLocalHubDelivery && (d.Status == ShippingOrderStatus.NewReceived || d.Status == ShippingOrderStatus.PendingProcessing))
+                .ToList();
+
+            if (donNoiVungChoGiao.Count == 0)
+            {
+                MessageBox.Show(
+                    "Hiện tại không có đơn hàng nội vùng Thái Nguyên nào đang ở trạng thái 'Mới tiếp nhận' hoặc 'Chờ xử lý' cần xuất giao!",
+                    "Thông Báo Phân Phối",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            var hoiXacNhan = MessageBox.Show(
+                $"Hệ thống phát hiện {donNoiVungChoGiao.Count} đơn hàng có người nhận tại Thái Nguyên (cùng tuyến kho) đang chờ xuất bến.\n\n" +
+                $"Bạn có muốn XUẤT KHO HÀNG LOẠT và BÀN GIAO NGAY cho đội ngũ Shipper Thái Nguyên đi phát luôn trong ca không?",
+                "Xác Nhận Xuất Giao Toàn Bộ Đơn Nội Vùng",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (hoiXacNhan != MessageBoxResult.Yes) return;
+
+            var danhSachShipper = WarehouseContext.Instance.GetAllShippers()
+                .Where(s => s.DeliveryArea.Contains("Thái Nguyên") || s.CurrentArea.Contains("Thái Nguyên"))
+                .ToList();
+
+            if (danhSachShipper.Count == 0)
+            {
+                danhSachShipper = WarehouseContext.Instance.GetAllShippers().ToList();
+            }
+
+            int indexShipper = 0;
+            foreach (var don in donNoiVungChoGiao)
+            {
+                var shipper = danhSachShipper[indexShipper % danhSachShipper.Count];
+                indexShipper++;
+
+                don.Status = ShippingOrderStatus.Delivering;
+                don.AssignedShipperId = shipper.Id;
+                don.AssignedShipperName = shipper.FullName;
+                don.ShipperPhone = shipper.Phone;
+                don.Notes = (don.Notes ?? "") + $" | [XUẤT HÀNG LOẠT] Bàn giao {shipper.FullName} lúc {DateTime.Now:HH:mm dd/MM}";
+
+                WarehouseContext.Instance.UpdateShippingOrder(don);
+
+                WarehouseContext.Instance.AddWarehouseMovement(new WarehouseMovement
+                {
+                    TransactionCode = $"GD-XK-LM-{DateTime.Now:yyMMddHHmmss}-{don.Id}",
+                    Timestamp = DateTime.Now,
+                    MovementType = WarehouseMovementType.OutboundLastMile,
+                    ItemName = $"{don.ProductSummary}",
+                    ReferenceCode = don.OrderCode,
+                    Quantity = 1,
+                    Weight = don.Weight,
+                    SourceOrDestination = $"Hub Thái Nguyên ➔ Shipper: {shipper.FullName}",
+                    LocationCode = "DOCK-LAST-MILE-01",
+                    OperatorName = UserSession.Current.CurrentUser?.FullName ?? "Điều phối viên",
+                    Notes = $"Gom xuất giao nhanh đơn nội vùng {don.OrderCode}"
+                });
+            }
+
+            MessageBox.Show(
+                $"✅ ĐÃ XUẤT KHO VÀ ĐI GIAO THÀNH CÔNG {donNoiVungChoGiao.Count} ĐƠN HÀNG NỘI VÙNG!\n\n" +
+                $"Tất cả các đơn đã được phân bổ đều cho đội ngũ Shipper Thái Nguyên và chuyển sang trạng thái 'Đang Giao'.",
+                "Hoàn Tất Xuất Giao Hàng Loạt",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+
+            NapDuLieuDonHang();
         }
         #endregion
     }

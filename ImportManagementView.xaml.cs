@@ -540,10 +540,10 @@ namespace Quanlykhohanglogicts
 
             double trongLuongTrungBinhKien = tongTrongLuong / soKien;
 
-            if (loaiPhanLuong == 0) // Cross-docking
+            if (loaiPhanLuong == 0 || loaiPhanLuong == 2) // Cross-docking hoặc Giao chặng cuối (Nội vùng)
             {
                 txtTruckPutAwayIcon.Text = "⚡";
-                txtTruckPutAwaySuggestion.Text = "Khuyên đặt: Khu Cross-Docking Cửa Xuất (Hàng chuyển tiếp trong ngày, xuất bến ngay không cần cất vào kệ sâu)";
+                txtTruckPutAwaySuggestion.Text = "Khuyên đặt: Khu Soạn Phát Giao Ngay / Cross-Docking (Hàng nội vùng Thái Nguyên, xuất bến phát luôn không cất vào kệ sâu)";
                 borderTruckPutAway.Background = new SolidColorBrush(Color.FromRgb(240, 253, 244));
                 borderTruckPutAway.BorderBrush = new SolidColorBrush(Color.FromRgb(134, 239, 172));
                 cbTruckLocationCode.SelectedIndex = 0;
@@ -899,11 +899,18 @@ namespace Quanlykhohanglogicts
             // Thuật toán gợi ý vị trí lưu kệ thông minh cho khách lẻ (Smart Put-away)
             if (txtRetailPutAwaySuggestion != null && borderRetailPutAway != null)
             {
-                if (laHoaToc)
+                bool laDonNoiVung = cbRetailDestinationArea?.SelectedIndex == 1 || // Thái Nguyên
+                                   (txtRetailReceiverAddress?.Text ?? "").ToLower().Contains("thái nguyên") ||
+                                   (txtRetailReceiverAddress?.Text ?? "").ToLower().Contains("thịnh đán") ||
+                                   (txtRetailReceiverAddress?.Text ?? "").ToLower().Contains("phan đình phùng") ||
+                                   (txtRetailReceiverAddress?.Text ?? "").ToLower().Contains("sông công") ||
+                                   (txtRetailReceiverAddress?.Text ?? "").ToLower().Contains("phổ yên");
+
+                if (laHoaToc || laDonNoiVung)
                 {
-                    txtRetailPutAwaySuggestion.Text = "Khuyên đặt: Khu Cross-Docking Cửa Xuất (Giao hỏa tốc ngay trong 2-4h)";
-                    borderRetailPutAway.Background = new SolidColorBrush(Color.FromRgb(245, 243, 255));
-                    borderRetailPutAway.BorderBrush = new SolidColorBrush(Color.FromRgb(221, 214, 254));
+                    txtRetailPutAwaySuggestion.Text = "⚡ ĐƠN NỘI VÙNG (THÁI NGUYÊN) - Khuyên đặt: Bàn Soạn Xuất Phát (Cross-Docking Giao Ngay trong ca, KHÔNG cất vào kệ sâu)";
+                    borderRetailPutAway.Background = new SolidColorBrush(Color.FromRgb(240, 253, 244));
+                    borderRetailPutAway.BorderBrush = new SolidColorBrush(Color.FromRgb(134, 239, 172));
                 }
                 else if (trongLuongTinhCuoc > 15.0)
                 {

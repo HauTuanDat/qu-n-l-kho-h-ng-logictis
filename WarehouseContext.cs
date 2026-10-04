@@ -767,7 +767,9 @@ namespace Quanlykhohanglogicts
                 new Shipper { Id = 1, FullName = "Nguyễn Văn Tuấn", PhoneNumber = "0981 111 222", VehicleType = "Xe máy Honda Wave", LicensePlate = "29H1-892.11", CurrentArea = "Đống Đa - Ba Đình", Status = ShipperStatus.Active, CompletedOrdersToday = 8, Rating = 4.9 },
                 new Shipper { Id = 2, FullName = "Trần Đình Trọng", PhoneNumber = "0982 222 333", VehicleType = "Xe máy Yamaha Sirius", LicensePlate = "29F2-445.89", CurrentArea = "Cầu Giấy - Nam Từ Liêm", Status = ShipperStatus.Active, CompletedOrdersToday = 6, Rating = 4.8 },
                 new Shipper { Id = 3, FullName = "Lê Hoàng Long", PhoneNumber = "0983 333 444", VehicleType = "Xe tải 1.25 tấn", LicensePlate = "29C-778.90", CurrentArea = "Hà Đông - Thanh Xuân", Status = ShipperStatus.Active, CompletedOrdersToday = 12, Rating = 5.0 },
-                new Shipper { Id = 4, FullName = "Vũ Đình Duy", PhoneNumber = "0984 444 555", VehicleType = "Xe máy Honda AirBlade", LicensePlate = "29B1-234.56", CurrentArea = "Hoàn Kiếm - Hai Bà Trưng", Status = ShipperStatus.OffDuty, CompletedOrdersToday = 0, Rating = 4.7 }
+                new Shipper { Id = 4, FullName = "Vũ Đình Duy", PhoneNumber = "0984 444 555", VehicleType = "Xe máy Honda AirBlade", LicensePlate = "29B1-234.56", CurrentArea = "Hoàn Kiếm - Hai Bà Trưng", Status = ShipperStatus.OffDuty, CompletedOrdersToday = 0, Rating = 4.7 },
+                new Shipper { Id = 5, FullName = "Bùi Văn Đạt", PhoneNumber = "0985 667 889", VehicleType = "Xe máy Honda Wave Alpha", LicensePlate = "20B1-567.89", CurrentArea = "Thái Nguyên (Thịnh Đán - Phan Đình Phùng)", Status = ShipperStatus.Available, CompletedOrdersToday = 15, Rating = 4.9 },
+                new Shipper { Id = 6, FullName = "Hoàng Thái Bảo", PhoneNumber = "0986 778 990", VehicleType = "Xe máy Yamaha Sirius", LicensePlate = "20B2-123.45", CurrentArea = "Thái Nguyên (Sông Công - Phổ Yên)", Status = ShipperStatus.Available, CompletedOrdersToday = 11, Rating = 4.8 }
             });
 
             // 6. Đơn hàng giao nhận mẫu
@@ -1323,6 +1325,73 @@ namespace Quanlykhohanglogicts
                 {
                     System.Diagnostics.Debug.WriteLine($"[UpdateShippingOrderStatus SQL Error] {ngoaiLe.Message}");
                 }
+            }
+        }
+
+        /// <summary>
+        /// HÀM NGHIỆP VỤ: Cập nhật toàn diện thông tin đơn hàng (Shipper, trạng thái, ghi chú)
+        /// </summary>
+        public void UpdateShippingOrder(ShippingOrder donHang)
+        {
+            if (donHang == null) return;
+
+            lock (_lock)
+            {
+                var target = _shippingOrders.FirstOrDefault(o => o.Id == donHang.Id || (!string.IsNullOrEmpty(donHang.OrderCode) && o.OrderCode == donHang.OrderCode));
+                if (target != null)
+                {
+                    target.Status = donHang.Status;
+                    target.AssignedShipperId = donHang.AssignedShipperId;
+                    target.AssignedShipperName = donHang.AssignedShipperName;
+                    target.ShipperPhone = donHang.ShipperPhone;
+                    target.Notes = donHang.Notes;
+                    target.DeliveredDate = donHang.DeliveredDate;
+                }
+            }
+
+            if (IsDatabaseConnected)
+            {
+                try
+                {
+                    using var ketNoi = new SqlConnection(ConnectionString);
+                    ketNoi.Open();
+                    const string sql = @"
+                        UPDATE ShippingOrders 
+                        SET Status = @Status, 
+                            AssignedShipperId = @AssignedShipperId, 
+                            AssignedShipperName = @AssignedShipperName, 
+                            ShipperPhone = @ShipperPhone, 
+                            Notes = @Notes, 
+                            DeliveredDate = @DeliveredDate 
+                        WHERE Id = @Id OR OrderCode = @OrderCode";
+                    using var cauLenh = new SqlCommand(sql, ketNoi);
+                    cauLenh.Parameters.AddWithValue("@Status", (int)donHang.Status);
+                    cauLenh.Parameters.AddWithValue("@AssignedShipperId", (object?)donHang.AssignedShipperId ?? DBNull.Value);
+                    cauLenh.Parameters.AddWithValue("@AssignedShipperName", (object?)donHang.AssignedShipperName ?? DBNull.Value);
+                    cauLenh.Parameters.AddWithValue("@ShipperPhone", (object?)donHang.ShipperPhone ?? DBNull.Value);
+                    cauLenh.Parameters.AddWithValue("@Notes", (object?)donHang.Notes ?? DBNull.Value);
+                    cauLenh.Parameters.AddWithValue("@DeliveredDate", (object?)donHang.DeliveredDate ?? DBNull.Value);
+                    cauLenh.Parameters.AddWithValue("@Id", donHang.Id);
+                    cauLenh.Parameters.AddWithValue("@OrderCode", donHang.OrderCode ?? "");
+                    cauLenh.ExecuteNonQuery();
+                }
+                catch (Exception ngoaiLe)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[UpdateShippingOrder SQL Error] {ngoaiLe.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// HÀM NGHIỆP VỤ: Ghi nhận hoạt động hệ thống mới vào RecentActivities
+        /// </summary>
+        public void AddRecentActivity(RecentActivity hoatDong)
+        {
+            if (hoatDong == null) return;
+            lock (_lock)
+            {
+                hoatDong.Id = _recentActivities.Count + 1;
+                _recentActivities.Insert(0, hoatDong);
             }
         }
 

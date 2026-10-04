@@ -210,5 +210,112 @@ namespace Quanlykhohanglogicts
             get => IsExpress ? "⚡ EXPRESS" : "📦 TIÊU CHUẨN";
             set { }
         }
+
+        // =========================================================================
+        // TÍNH NĂNG THÔNG MINH: TỰ ĐỘNG PHÂN LUỒNG TUYẾN KHO (LOCAL HUB ROUTING)
+        // - Nghiệp vụ: So khớp vị trí người nhận với vị trí Kho hiện tại (Hub Thái Nguyên).
+        // - Nếu trùng tuyến kho: Hàng giao chặng cuối (Last-Mile) -> Lấy hàng giao luôn trong ca.
+        // - Nếu khác tỉnh: Hàng trung chuyển (Linehaul Transit) -> Chờ xe tải chuyển tiếp.
+        // =========================================================================
+
+        /// <summary>
+        /// Tên kho / bưu cục vận hành hiện tại của trạm (Mặc định: Thái Nguyên)
+        /// </summary>
+        public static string CurrentOperatingHub { get; set; } = "Thái Nguyên";
+
+        /// <summary>
+        /// KIỂM TRA TỰ ĐỘNG: Đơn hàng có địa chỉ người nhận thuộc cùng tuyến/địa bàn với Kho hiện tại hay không
+        /// </summary>
+        public bool IsLocalHubDelivery
+        {
+            get
+            {
+                string diaChi = ((DestinationArea ?? "") + " " + (ReceiverAddress ?? "")).ToLower();
+                string khoHienTai = (CurrentOperatingHub ?? "thái nguyên").ToLower();
+
+                if (khoHienTai.Contains("thái nguyên") || khoHienTai.Contains("thai nguyen"))
+                {
+                    return diaChi.Contains("thái nguyên") || diaChi.Contains("thai nguyen") ||
+                           diaChi.Contains("thịnh đán") || diaChi.Contains("thinh dan") ||
+                           diaChi.Contains("phan đình phùng") || diaChi.Contains("phan dinh phung") ||
+                           diaChi.Contains("sông công") || diaChi.Contains("song cong") ||
+                           diaChi.Contains("phổ yên") || diaChi.Contains("pho yen") ||
+                           diaChi.Contains("lương ngọc quyến") || diaChi.Contains("luong ngoc quyen") ||
+                           diaChi.Contains("hoàng văn thụ") || diaChi.Contains("hoang van thu") ||
+                           diaChi.Contains("quang trung") || diaChi.Contains("tân cương") ||
+                           diaChi.Contains("đồng hỷ") || diaChi.Contains("đại từ") ||
+                           diaChi.Contains("phú bình") || diaChi.Contains("định hóa") ||
+                           diaChi.Contains("võ nhai");
+                }
+
+                return diaChi.Contains(khoHienTai);
+            }
+            set { }
+        }
+
+        /// <summary>
+        /// Tên phân luồng tuyến vận chuyển
+        /// </summary>
+        public string RoutingCategoryName
+        {
+            get => IsLocalHubDelivery ? "Giao Ngay (Nội Vùng)" : "Trung Chuyển (Liên Tỉnh)";
+            set { }
+        }
+
+        /// <summary>
+        /// Huy hiệu ngắn gọn hiển thị trên bảng vận đơn
+        /// </summary>
+        public string RoutingCategoryTag
+        {
+            get => IsLocalHubDelivery ? "🛵 GIAO NGAY" : "🚛 TRUNG CHUYỂN";
+            set { }
+        }
+
+        /// <summary>
+        /// Màu nền của Badge phân luồng
+        /// </summary>
+        public string RoutingCategoryBadgeBackground
+        {
+            get => IsLocalHubDelivery ? "#ECFDF5" : "#F1F5F9"; // Xanh ngọc nhạt vs Xám nhạt
+            set { }
+        }
+
+        /// <summary>
+        /// Màu viền của Badge phân luồng
+        /// </summary>
+        public string RoutingCategoryBorderColor
+        {
+            get => IsLocalHubDelivery ? "#10B981" : "#CBD5E1"; // Xanh lá vs Viền xám
+            set { }
+        }
+
+        /// <summary>
+        /// Màu chữ của Badge phân luồng
+        /// </summary>
+        public string RoutingCategoryTextColor
+        {
+            get => IsLocalHubDelivery ? "#047857" : "#475569"; // Xanh đậm nổi bật vs Xám đậm
+            set { }
+        }
+
+        /// <summary>
+        /// Hướng dẫn khuyến nghị thao tác nghiệp vụ cho thủ kho & điều phối viên
+        /// </summary>
+        public string RoutingActionRecommendation
+        {
+            get => IsLocalHubDelivery
+                ? "⚡ Đơn nội vùng Thái Nguyên: Cùng tuyến kho, lấy hàng giao ngay cho Shipper phát trong ca, KHÔNG lưu kho!"
+                : "📦 Đơn ngoại tỉnh: Chờ gom chuyến xe tải trung chuyển (Linehaul Transit) về kho đích";
+            set { }
+        }
+
+        /// <summary>
+        /// Điều kiện để hiển thị nút thao tác nhanh "⚡ Giao Luôn" (chỉ hiện khi là đơn nội vùng và chưa phân giao)
+        /// </summary>
+        public bool CanQuickDeliverLocal
+        {
+            get => IsLocalHubDelivery && (Status == ShippingOrderStatus.NewReceived || Status == ShippingOrderStatus.PendingProcessing);
+            set { }
+        }
     }
 }
