@@ -69,72 +69,102 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,16">
                 <StackPanel>
 
-                    <!-- 1. HEADER: TIÊU ĐỀ & NÚT TẠO ĐƠN HÀNG -->
-                    <Grid Margin="0,0,0,14">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="Quản Lý Đơn Hàng Vận Chuyển Logistics" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
-                                <!-- Huy hiệu Kho Vận Hành Hiện Tại -->
-                                <Border Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="12" Padding="10,3" Margin="12,0,0,0" VerticalAlignment="Center" ToolTip="Kho vận hành thực tế tại trạm. Đơn hàng có người nhận tại địa bàn này sẽ được tự động gắn nhãn GIAO NGAY">
+                    <!-- 1. HEADER: TIÊU ĐỀ & NÚT CHỨC NĂNG (BỐ CỤC 2 HÀNG RÕ RÀNG, CHỐNG ĐÈ CHỮ) -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- HÀNG 1: TIÊU ĐỀ TRANG & 2 NÚT HÀNH ĐỘNG CỐT LÕI -->
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- CỘT TRÁI: TIÊU ĐỀ & KHO TRẠM VẬN HÀNH -->
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Quản Lý Đơn Hàng Vận Chuyển Logistics" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <!-- Huy hiệu Kho Vận Hành Hiện Tại -->
+                                    <Border Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="12" Padding="10,3" Margin="12,0,0,0" VerticalAlignment="Center" ToolTip="Kho vận hành thực tế tại trạm. Đơn hàng có người nhận tại địa bàn này sẽ được tự động gắn nhãn GIAO NGAY">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="🏢 Kho Trạm: " FontSize="11.5" Foreground="#166534" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Hub Thái Nguyên" FontSize="11.5" Foreground="#15803D" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Kiểm soát toàn bộ vòng đời đơn hàng: Tiếp nhận • Phân luồng giao ngay nội vùng • Xuất giao • Thu COD • Hoàn trả" 
+                                           FontSize="12" Foreground="#64748B" Margin="0,3,10,0" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+
+                            <!-- CỘT PHẢI: 2 NÚT HÀNH ĐỘNG TRỌNG TÂM TRANG ĐƠN HÀNG -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <!-- NÚT XUẤT GIAO NHANH HÀNG LOẠT ĐƠN NỘI VÙNG (THÁI NGUYÊN) -->
+                                <Button x:Name="btnBatchDispatchLocalOrders" Style="{StaticResource NutCongCuTintedStyle}" Height="36" Padding="12,0" Margin="0,0,8,0" Background="#ECFDF5" BorderBrush="#6EE7B7" Foreground="#047857" Click="BtnBatchDispatchLocalOrders_Click" ToolTip="Tự động gom và xuất toàn bộ các đơn mới tiếp nhận tại Thái Nguyên cho đội ngũ Shipper đi phát ngay!">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="🏢 Kho Trạm: " FontSize="11.5" Foreground="#166534" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Hub Thái Nguyên" FontSize="11.5" Foreground="#15803D" FontWeight="Bold"/>
+                                        <TextBlock Text="⚡" Margin="0,0,5,0" FontSize="12.5"/>
+                                        <TextBlock Text="Xuất Giao Đơn Nội Vùng" FontWeight="Bold" FontSize="12"/>
                                     </StackPanel>
-                                </Border>
-                            </StackPanel>
-                            <TextBlock Text="Kiểm soát toàn bộ vòng đời đơn hàng: Tiếp nhận • Phân luồng giao ngay nội vùng • Xuất giao • Thu COD • Hoàn trả" FontSize="12.5" Foreground="#64748B" Margin="0,3,0,0"/>
-                        </StackPanel>
+                                </Button>
 
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <!-- NÚT XUẤT GIAO NHANH HÀNG LOẠT ĐƠN NỘI VÙNG (THÁI NGUYÊN) -->
-                            <Button x:Name="btnBatchDispatchLocalOrders" Style="{StaticResource NutCongCuTintedStyle}" Height="38" Padding="13,0" Margin="0,0,10,0" Background="#ECFDF5" BorderBrush="#6EE7B7" Foreground="#047857" Click="BtnBatchDispatchLocalOrders_Click" ToolTip="Tự động gom và xuất toàn bộ các đơn mới tiếp nhận tại Thái Nguyên cho đội ngũ Shipper đi phát ngay!">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="⚡" Margin="0,0,5,0" FontSize="13"/>
-                                    <TextBlock Text="Xuất Giao Đơn Nội Vùng" FontWeight="Bold" FontSize="12.5"/>
+                                <!-- NÚT TẠO ĐƠN HÀNG MỚI THEO YÊU CẦU -->
+                                <Button x:Name="btnOpenCreateOrder" Style="{StaticResource PrimaryButtonStyle}" Height="36" Padding="14,0" Click="BtnOpenCreateOrder_Click" Background="#2563EB">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="➕" Margin="0,0,5,0" FontSize="12.5"/>
+                                        <TextBlock Text="Tạo Đơn Hàng Mới" FontWeight="Bold" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- HÀNG 2: THANH PHÍM TẮT ĐIỀU PHỐI LIÊN PHÂN HỆ & BÁO CÁO -->
+                        <Border Grid.Row="1" Margin="0,10,0,0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="10,6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="⚡ Phím tắt nghiệp vụ:" FontSize="11.5" FontWeight="SemiBold" Foreground="#64748B" VerticalAlignment="Center" Margin="4,0,12,0"/>
+
+                                    <!-- NÚT SANG PHÂN HỆ TIẾP NHẬN & NHẬP KHO (2 KIỂU) -->
+                                    <Button x:Name="btnOpenInboundReceiving" Style="{StaticResource NutCongCuTintedStyle}" Height="30" Padding="10,0" Margin="0,0,8,0" Background="White" BorderBrush="#CBD5E1" Foreground="#15803D" Click="BtnOpenInboundReceiving_Click" ToolTip="Tiếp nhận hàng: Nhập xe tải trung chuyển hoặc bưu kiện khách lẻ tại quầy">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="📥" Margin="0,0,5,0" FontSize="11.5"/>
+                                            <TextBlock Text="Bến Nhập Kho (2 Kiểu)" FontWeight="SemiBold" FontSize="11.5"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!-- NÚT GOM TUYẾN ĐƯỜNG & ĐIỀU PHỐI (TÍNH NĂNG 5) -->
+                                    <Button x:Name="btnOpenRouteBatching" Style="{StaticResource NutCongCuTintedStyle}" Height="30" Padding="10,0" Margin="0,0,8,0" Background="White" BorderBrush="#CBD5E1" Foreground="#4338CA" Click="BtnOpenRouteBatching_Click" ToolTip="Gom đơn theo tuyến đường &amp; điều phối chuyến giao hàng tập trung">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="🗺️" Margin="0,0,5,0" FontSize="11.5"/>
+                                            <TextBlock Text="Gom Tuyến Đường (TMS)" FontWeight="SemiBold" FontSize="11.5"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!-- NÚT ĐIỀU PHỐI & PHÂN BỔ ƯU TIÊN SLA (KHI QUÁ TẢI) -->
+                                    <Button x:Name="btnOpenPriorityDispatch" Style="{StaticResource NutCongCuTintedStyle}" Height="30" Padding="10,0" Margin="0,0,8,0" Background="White" BorderBrush="#CBD5E1" Foreground="#C2410C" Click="BtnOpenPriorityDispatch_Click" ToolTip="Phân bổ ưu tiên khi đơn vượt quá năng lực vận chuyển ngày (Hỏa tốc &amp; SLA)">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="🎯" Margin="0,0,5,0" FontSize="11.5"/>
+                                            <TextBlock Text="Phân Bổ SLA" FontWeight="SemiBold" FontSize="11.5"/>
+                                        </StackPanel>
+                                    </Button>
                                 </StackPanel>
-                            </Button>
 
-                            <!-- NÚT ĐIỀU PHỐI & PHÂN BỔ ƯU TIÊN SLA (KHI QUÁ TẢI) -->
-                            <Button x:Name="btnOpenPriorityDispatch" Style="{StaticResource NutCongCuTintedStyle}" Height="38" Padding="14,0" Margin="0,0,10,0" Background="#FFF7ED" BorderBrush="#FED7AA" Foreground="#C2410C" Click="BtnOpenPriorityDispatch_Click" ToolTip="Phân bổ ưu tiên khi đơn vượt quá năng lực vận chuyển ngày (Hỏa tốc &amp; SLA)">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🎯" Margin="0,0,6,0" FontSize="13"/>
-                                    <TextBlock Text="Phân Bổ SLA" FontWeight="SemiBold" FontSize="12.5"/>
-                                </StackPanel>
-                            </Button>
-
-                        <!-- NÚT GOM TUYẾN ĐƯỜNG & ĐIỀU PHỐI (TÍNH NĂNG 5) -->
-                        <Button x:Name="btnOpenRouteBatching" Style="{StaticResource NutCongCuTintedStyle}" Height="38" Padding="14,0" Margin="0,0,10,0" Background="#EEF2FF" BorderBrush="#C7D2FE" Foreground="#4338CA" Click="BtnOpenRouteBatching_Click" ToolTip="Gom đơn theo tuyến đường &amp; điều phối chuyến giao hàng tập trung">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🗺️" Margin="0,0,6,0" FontSize="13"/>
-                                <TextBlock Text="Gom Tuyến (TN5)" FontWeight="SemiBold" FontSize="12.5"/>
-                            </StackPanel>
-                        </Button>
-
-                        <!-- NÚT XUẤT EXCEL / CSV ĐỐI SOÁT COD -->
-                        <Button x:Name="btnExportCsv" Style="{StaticResource NutCongCuTintedStyle}" Height="38" Padding="14,0" Margin="0,0,10,0" Background="#ECFDF5" BorderBrush="#A7F3D0" Foreground="#047857" Click="BtnExportCsv_Click" ToolTip="Xuất toàn bộ đơn hàng và đối soát thu hộ COD ra Excel">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📊" Margin="0,0,6,0" FontSize="13"/>
-                                <TextBlock Text="Xuất Báo Cáo Excel" FontWeight="SemiBold" FontSize="12.5"/>
-                            </StackPanel>
-                        </Button>
-
-                        <!-- NÚT SANG PHÂN HỆ TIẾP NHẬN & NHẬP KHO (2 KIỂU) -->
-                        <Button x:Name="btnOpenInboundReceiving" Style="{StaticResource NutCongCuTintedStyle}" Height="38" Padding="14,0" Margin="0,0,10,0" Background="#F0FDF4" BorderBrush="#86EFAC" Foreground="#15803D" Click="BtnOpenInboundReceiving_Click" ToolTip="Tiếp nhận hàng: Nhập xe tải trung chuyển hoặc bưu kiện khách lẻ tại quầy">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📥" Margin="0,0,6,0" FontSize="13"/>
-                                <TextBlock Text="Bến Nhập Kho (2 Kiểu)" FontWeight="SemiBold" FontSize="12.5"/>
-                            </StackPanel>
-                        </Button>
-
-                        <!-- NÚT TẠO ĐƠN HÀNG MỚI THEO YÊU CẦU -->
-                        <Button x:Name="btnOpenCreateOrder" Style="{StaticResource PrimaryButtonStyle}" Height="38" Padding="16,0" Click="BtnOpenCreateOrder_Click" Background="#2563EB">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="➕" Margin="0,0,6,0" FontSize="13"/>
-                                <TextBlock Text="Tạo Đơn Hàng Mới" FontWeight="Bold" FontSize="12.5"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </Grid>
+                                <!-- NÚT XUẤT EXCEL / CSV ĐỐI SOÁT COD -->
+                                <Button x:Name="btnExportCsv" Grid.Column="1" Style="{StaticResource NutCongCuTintedStyle}" Height="30" Padding="12,0" Background="White" BorderBrush="#CBD5E1" Foreground="#047857" Click="BtnExportCsv_Click" ToolTip="Xuất toàn bộ đơn hàng và đối soát thu hộ COD ra Excel">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📊" Margin="0,0,5,0" FontSize="11.5"/>
+                                        <TextBlock Text="Xuất Báo Cáo Excel" FontWeight="SemiBold" FontSize="11.5"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </Grid>
 
                 <!-- 2. THANH TÌM KIẾM & BỘ LỌC DỊCH VỤ -->
                 <Border Background="White" CornerRadius="10" Padding="14,10" Margin="0,0,0,12" BorderBrush="#E2E8F0" BorderThickness="1">
