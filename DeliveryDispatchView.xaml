@@ -565,7 +565,7 @@
                             <Grid Margin="0,0,0,10">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="📑" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Kế Hoạch Bàn Giao Hàng Hóa Hôm Nay Theo Từng Shipper" FontWeight="Bold" FontSize="14" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Kế Hoạch Bàn Giao Bưu Kiện Hôm Nay Theo Từng Shipper" FontWeight="Bold" FontSize="14" Foreground="#0F172A" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Grid>
 
@@ -603,7 +603,7 @@
                             <Grid Margin="0,0,0,10">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="🕒" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Nhật Ký Các Chuyến Điều Động Bàn Giao Hàng Hóa Cho Shipper" FontWeight="Bold" FontSize="14" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Nhật Ký Các Chuyến Điều Động Bàn Giao Bưu Kiện Cho Shipper" FontWeight="Bold" FontSize="14" Foreground="#0F172A" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Grid>
 

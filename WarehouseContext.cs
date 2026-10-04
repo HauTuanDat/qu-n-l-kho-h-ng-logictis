@@ -31,9 +31,7 @@ namespace Quanlykhohanglogicts
         public string ConnectionStatusMessage { get; private set; } = string.Empty;
 
         private readonly List<User> _users = new();
-        private readonly List<Product> _products = new();
         private readonly List<WarehouseLocation> _locations = new();
-        private readonly List<Inventory> _inventories = new();
         private readonly List<ImportOrder> _importOrders = new();
         private readonly List<ShippingOrder> _shippingOrders = new();
         private readonly List<Shipper> _shippers = new();
@@ -84,9 +82,6 @@ namespace Quanlykhohanglogicts
 
                 // 6. Đồng bộ nhật ký hoạt động từ bảng RecentActivities
                 SyncActivitiesFromDatabase(conn);
-
-                // 7. Đồng bộ danh mục sản phẩm từ bảng product
-                SyncProductsFromDatabase(conn);
             }
             catch (Exception ex)
             {
@@ -471,69 +466,6 @@ namespace Quanlykhohanglogicts
             }
         }
 
-        private void SyncProductsFromDatabase(SqlConnection conn)
-        {
-            try
-            {
-                using var cmd = new SqlCommand("SELECT ProductID, ProductName, SKU, SellingPrice, Stock, Unit, Category FROM product", conn);
-                using var reader = cmd.ExecuteReader();
-
-                var dbProducts = new List<Product>();
-                var dbInventories = new List<Inventory>();
-                int invId = 1;
-
-                while (reader.Read())
-                {
-                    int prodId = Convert.ToInt32(reader["ProductID"]);
-                    string prodName = reader["ProductName"]?.ToString() ?? "";
-                    string sku = reader["SKU"]?.ToString() ?? $"SKU-{prodId}";
-                    decimal price = reader["SellingPrice"] != DBNull.Value ? Convert.ToDecimal(reader["SellingPrice"]) : 0;
-                    int stock = reader["Stock"] != DBNull.Value ? Convert.ToInt32(reader["Stock"]) : 0;
-                    string unit = reader["Unit"]?.ToString() ?? "Cái";
-                    string cat = reader["Category"]?.ToString() ?? "Linh kiện điện tử";
-
-                    dbProducts.Add(new Product
-                    {
-                        Id = prodId,
-                        ProductCode = sku,
-                        ProductName = prodName,
-                        Price = price,
-                        Unit = unit,
-                        Category = cat,
-                        Weight = 0.5
-                    });
-
-                    dbInventories.Add(new Inventory
-                    {
-                        Id = invId++,
-                        ProductId = prodId,
-                        ProductCode = sku,
-                        ProductName = prodName,
-                        LocationCode = $"KỆ-A{prodId % 5 + 1}-0{prodId % 3 + 1}",
-                        Quantity = stock,
-                        ReservedQuantity = 0,
-                        BatchNumber = $"LOT-2026-{prodId:D3}",
-                        LastImportDate = DateTime.Now
-                    });
-                }
-
-                if (dbProducts.Count > 0)
-                {
-                    lock (_lock)
-                    {
-                        _products.Clear();
-                        _products.AddRange(dbProducts);
-
-                        _inventories.Clear();
-                        _inventories.AddRange(dbInventories);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[SyncProducts Error] {ex.Message}");
-            }
-        }
 
         private static int InsertShippingOrderToDb(ShippingOrder o, SqlConnection conn)
         {
@@ -656,32 +588,13 @@ namespace Quanlykhohanglogicts
 
         private void SeedLogisticsData()
         {
-            // 1. Sản phẩm hàng hóa
-            _products.AddRange(new[]
-            {
-                new Product { Id = 1, ProductCode = "SP-DIENTU-01", ProductName = "Điện thoại thông minh Xiaomi Note 13", Unit = "Hộp", Category = "Điện Tử", Price = 4890000, Weight = 0.5, Length = 18, Width = 10, Height = 6, RequiresSpecialHandling = true, SpecialInstructions = "Hàng giá trị cao, tránh va đập", Barcode = "893850123001" },
-                new Product { Id = 2, ProductCode = "SP-THUCPHAM-02", ProductName = "Thùng Sữa Tươi Vinamilk 100% 48 hộp", Unit = "Thùng", Category = "Tiêu Dùng Nhanh", Price = 385000, Weight = 9.2, Length = 40, Width = 25, Height = 20, RequiresSpecialHandling = false, Barcode = "893850123002" },
-                new Product { Id = 3, ProductCode = "SP-MAYMAC-03", ProductName = "Kiện Áo Thun Polo Cotton Nam", Unit = "Kiện", Category = "Thời Trang", Price = 2500000, Weight = 4.5, Length = 50, Width = 35, Height = 15, RequiresSpecialHandling = false, Barcode = "893850123003" },
-                new Product { Id = 4, ProductCode = "SP-MYPHAM-04", ProductName = "Bộ Mỹ Phẩm Skincare Dưỡng Trắng Serum", Unit = "Hộp", Category = "Mỹ Phẩm", Price = 1250000, Weight = 0.8, Length = 22, Width = 16, Height = 10, RequiresSpecialHandling = true, SpecialInstructions = "Hàng dễ vỡ chai thủy tinh", Barcode = "893850123004" },
-                new Product { Id = 5, ProductCode = "SP-CONGKENH-05", ProductName = "Nồi Chiên Không Dầu Philips 6.2L", Unit = "Thùng", Category = "Gia Dụng", Price = 1890000, Weight = 6.8, Length = 42, Width = 38, Height = 36, RequiresSpecialHandling = false, Barcode = "893850123005" }
-            });
-
-            // 2. Vị trí kho bãi
+            // 1. Vị trí kho bãi & Máng phân loại bưu kiện
             _locations.AddRange(new[]
             {
-                new WarehouseLocation { Id = 1, LocationCode = "KHO-A-D01-K01", Zone = "Khu Lưu Kho Tiêu Chuẩn", Aisle = "A", Rack = "01", Shelf = "1", Bin = "01", CurrentWeight = 450, MaxWeightCapacity = 1000, Status = LocationStatus.PartiallyFull },
-                new WarehouseLocation { Id = 2, LocationCode = "KHO-A-D01-K02", Zone = "Khu Lưu Kho Tiêu Chuẩn", Aisle = "A", Rack = "01", Shelf = "2", Bin = "01", CurrentWeight = 800, MaxWeightCapacity = 1000, Status = LocationStatus.PartiallyFull },
-                new WarehouseLocation { Id = 3, LocationCode = "KHO-EXP-01", Zone = "Khu Hàng Hỏa Tốc (Express)", Aisle = "EXP", Rack = "01", Shelf = "1", Bin = "01", CurrentWeight = 120, MaxWeightCapacity = 500, Status = LocationStatus.PartiallyFull },
+                new WarehouseLocation { Id = 1, LocationCode = "KHO-A-D01-K01", Zone = "Khu Lưu Bưu Kiện Tiêu Chuẩn", Aisle = "A", Rack = "01", Shelf = "1", Bin = "01", CurrentWeight = 450, MaxWeightCapacity = 1000, Status = LocationStatus.PartiallyFull },
+                new WarehouseLocation { Id = 2, LocationCode = "KHO-A-D01-K02", Zone = "Khu Lưu Bưu Kiện Tiêu Chuẩn", Aisle = "A", Rack = "01", Shelf = "2", Bin = "01", CurrentWeight = 800, MaxWeightCapacity = 1000, Status = LocationStatus.PartiallyFull },
+                new WarehouseLocation { Id = 3, LocationCode = "KHO-EXP-01", Zone = "Khu Bưu Kiện Hỏa Tốc (Express)", Aisle = "EXP", Rack = "01", Shelf = "1", Bin = "01", CurrentWeight = 120, MaxWeightCapacity = 500, Status = LocationStatus.PartiallyFull },
                 new WarehouseLocation { Id = 4, LocationCode = "DOCK-INBOUND-01", Zone = "Khu Nhận Hàng Tiếp Nhận", Aisle = "IN", Rack = "01", Shelf = "1", Bin = "01", CurrentWeight = 950, MaxWeightCapacity = 2000, Status = LocationStatus.PartiallyFull }
-            });
-
-            // 3. Tồn kho
-            _inventories.AddRange(new[]
-            {
-                new Inventory { Id = 1, ProductId = 1, ProductCode = "SP-DIENTU-01", ProductName = "Điện thoại thông minh Xiaomi Note 13", Unit = "Hộp", WarehouseLocationId = 3, LocationCode = "KHO-EXP-01", Quantity = 45, ReservedQuantity = 12, MinStockLevel = 10, MaxStockLevel = 100, BatchNumber = "LOT-XM-202609" },
-                new Inventory { Id = 2, ProductId = 2, ProductCode = "SP-THUCPHAM-02", ProductName = "Thùng Sữa Tươi Vinamilk 100% 48 hộp", Unit = "Thùng", WarehouseLocationId = 1, LocationCode = "KHO-A-D01-K01", Quantity = 120, ReservedQuantity = 35, MinStockLevel = 30, MaxStockLevel = 300, BatchNumber = "LOT-VNM-202609" },
-                new Inventory { Id = 3, ProductId = 3, ProductCode = "SP-MAYMAC-03", ProductName = "Kiện Áo Thun Polo Cotton Nam", Unit = "Kiện", WarehouseLocationId = 2, LocationCode = "KHO-A-D01-K02", Quantity = 8, ReservedQuantity = 2, MinStockLevel = 15, MaxStockLevel = 150, BatchNumber = "LOT-POLO-202608" },
-                new Inventory { Id = 4, ProductId = 4, ProductCode = "SP-MYPHAM-04", ProductName = "Bộ Mỹ Phẩm Skincare Dưỡng Trắng Serum", Unit = "Hộp", WarehouseLocationId = 3, LocationCode = "KHO-EXP-01", Quantity = 78, ReservedQuantity = 20, MinStockLevel = 20, MaxStockLevel = 200, BatchNumber = "LOT-SERUM-202609" }
             });
 
             // 4. Phiếu nhập kho ban đầu
@@ -1140,28 +1053,13 @@ namespace Quanlykhohanglogicts
         }
 
         // =========================================================================
-        // PHÂN HỆ SẢN PHẨM & TỒN KHO (PRODUCTS & INVENTORY)
+        // PHÂN HỆ VỊ TRÍ KHO BÃI & MÁNG PHÂN LOẠI (WAREHOUSE LOCATIONS)
         // =========================================================================
 
         /// <summary>
-        /// Lấy toàn bộ danh mục sản phẩm đã đồng bộ từ bảng product trong CSDL
-        /// </summary>
-        public IReadOnlyList<Product> GetAllProducts() { lock (_lock) return _products.ToList().AsReadOnly(); }
-
-        /// <summary>
-        /// Tìm kiếm sản phẩm theo ID
-        /// </summary>
-        public Product? FindProductById(int maId) { lock (_lock) return _products.FirstOrDefault(p => p.Id == maId); }
-
-        /// <summary>
-        /// Lấy danh sách vị trí lưu trữ kệ kho (Khu A / Khu B / Khu C)
+        /// Lấy danh sách vị trí lưu trữ kệ kho & máng phân loại bưu kiện (Khu A / Khu B / Khu C / Express)
         /// </summary>
         public IReadOnlyList<WarehouseLocation> GetAllLocations() { lock (_lock) return _locations.ToList().AsReadOnly(); }
-
-        /// <summary>
-        /// Lấy toàn bộ số lượng tồn kho theo từng vị trí kệ
-        /// </summary>
-        public IReadOnlyList<Inventory> GetAllInventories() { lock (_lock) return _inventories.ToList().AsReadOnly(); }
 
         // =========================================================================
         // PHÂN HỆ NGHIỆP VỤ NHẬP KHO (IMPORT ORDERS)
@@ -1853,51 +1751,6 @@ namespace Quanlykhohanglogicts
             AddWarehouseMovement(bienDong);
         }
 
-        /// <summary>
-        /// HÀM NGHIỆP VỤ: Kiểm kê & Cân bằng tồn kho (Stock Adjustment)
-        /// - Nhiệm vụ: Cập nhật số lượng kiểm đếm thực tế và hàng hỏng, tự động ghi nhật ký kiểm toán.
-        /// </summary>
-        public bool DieuChinhTonKho(int inventoryId, int soLuongThucTe, int soLuongHong, string lyDo, string nguoiThucHien, string ghiChu)
-        {
-            lock (_lock)
-            {
-                var tonKho = _inventories.FirstOrDefault(i => i.Id == inventoryId);
-                if (tonKho == null) return false;
-
-                int soLuongCu = tonKho.Quantity;
-                int chenhLech = soLuongThucTe - soLuongCu;
-
-                tonKho.Quantity = soLuongThucTe;
-                tonKho.DamagedQuantity = soLuongHong;
-
-                var maGD = $"GD-KK-{DateTime.Now:yyMMdd}-{new Random().Next(100, 999)}";
-                var bienDong = new WarehouseMovement
-                {
-                    TransactionCode = maGD,
-                    Timestamp = DateTime.Now,
-                    MovementType = WarehouseMovementType.InventoryAdjustment,
-                    ItemName = tonKho.ProductName,
-                    ReferenceCode = tonKho.ProductCode,
-                    Quantity = Math.Abs(chenhLech),
-                    LocationCode = tonKho.LocationCode,
-                    OperatorName = string.IsNullOrWhiteSpace(nguoiThucHien) ? "Thủ Kho Hệ Thống" : nguoiThucHien,
-                    Notes = $"Cân bằng tồn: {soLuongCu} -> {soLuongThucTe} (Lệch {(chenhLech >= 0 ? "+" : "")}{chenhLech}, Hỏng {soLuongHong}). Lý do: {lyDo}. {ghiChu}"
-                };
-
-                AddWarehouseMovement(bienDong);
-
-                _recentActivities.Insert(0, new RecentActivity
-                {
-                    Id = _recentActivities.Count + 1,
-                    Title = $"Kiểm kê điều chỉnh tồn {tonKho.ProductCode}",
-                    Description = $"Thực tế {soLuongThucTe} ({tonKho.LocationCode}). Lý do: {lyDo}",
-                    Timestamp = DateTime.Now,
-                    Type = ActivityType.System
-                });
-
-                return true;
-            }
-        }
 
         /// <summary>
         /// HÀM NGHIỆP VỤ: Điều chuyển hàng hóa giữa các vị trí ô kệ (Put-away / Internal Relocation)

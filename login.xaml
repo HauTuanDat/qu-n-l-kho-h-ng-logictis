@@ -84,7 +84,7 @@
 
                     <!-- GIỚI THIỆU TÍNH NĂNG VÀ PHÂN QUYỀN -->
                     <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="0,15,0,15">
-                        <TextBlock Text="Nền tảng kiểm soát luồng hàng hóa và phân quyền nghiệp vụ chuyên sâu:"
+                        <TextBlock Text="Nền tảng kiểm soát luồng bưu kiện logistics và phân quyền nghiệp vụ chuyên sâu:"
                                    FontSize="13" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,0,0,18" LineHeight="20"/>
 
                         <!-- Item 1 -->

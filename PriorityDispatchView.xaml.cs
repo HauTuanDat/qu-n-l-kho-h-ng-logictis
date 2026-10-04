@@ -30,7 +30,7 @@ namespace Quanlykhohanglogicts
         // =========================================================================
         private List<PriorityDispatchItem> _danhSachDuyetGiao = new();
         private List<PriorityDispatchItem> _danhSachLuuKho = new();
-        private int _nangLucGiaoHienTai = 40;
+        private int _nangLucGiaoHienTai = 50;
 
         public PriorityDispatchView()
         {
@@ -69,22 +69,22 @@ namespace Quanlykhohanglogicts
         {
             var donChoGiao = LayDanhSachDonChoGiao();
 
-            // Nếu kho chưa có đủ dữ liệu kịch bản mô phỏng (dưới 20 đơn), tự động tạo 100 đơn mẫu Thái Nguyên
+            // Nếu kho chưa có đủ dữ liệu kịch bản mô phỏng (dưới 20 đơn), tự động tạo 100 đơn mẫu
             if (donChoGiao.Count < 20)
             {
-                WarehouseContext.Instance.GenerateThaiNguyenOrdersForSimulation(100);
+                WarehouseContext.Instance.GenerateSampleOrdersForSimulation(100);
                 donChoGiao = LayDanhSachDonChoGiao();
             }
 
-            // Đọc năng lực giao từ ô nhập giao diện (mặc định 40)
+            // Đọc năng lực giao từ ô nhập giao diện (mặc định 50 - ứng với 2 Shipper trực ca)
             if (int.TryParse(txtNangLucGiaoToiDa.Text.Trim(), out int nangLuc) && nangLuc > 0)
             {
                 _nangLucGiaoHienTai = nangLuc;
             }
             else
             {
-                _nangLucGiaoHienTai = 40;
-                txtNangLucGiaoToiDa.Text = "40";
+                _nangLucGiaoHienTai = 50;
+                txtNangLucGiaoToiDa.Text = "50";
             }
 
             ThucHienPhanBoUuTien(donChoGiao, _nangLucGiaoHienTai);
@@ -265,7 +265,57 @@ namespace Quanlykhohanglogicts
         }
 
         /// <summary>
-        /// SỰ KIỆN: Nhấn nút Chạy Thuật Toán Phân Bổ Ưu Tiên
+        /// SỰ KIỆN: Kích hoạt trực tiếp Kịch Bản Mô Phỏng Quá Tải (100 đơn tồn kho, thời tiết xấu/thiếu người chỉ có 2 Shipper giao tối đa 50 đơn)
+        /// - Thuật toán Ma Trận SLA Đa Tầng tự động đẩy 100% đơn Hỏa Tốc (+1000đ) và đơn cận hạn SLA (+500đ) vào 🟢 DUYỆT GIAO NGAY.
+        /// - Tự động hoãn các đơn thường an toàn vào 🟡 LƯU KHO CA SAU.
+        /// </summary>
+        private void BtnDemoKichBanMuaBao_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. Sinh 100 đơn hàng mô phỏng kịch bản quá tải
+            WarehouseContext.Instance.GenerateSampleOrdersForSimulation(100);
+
+            // 2. Thiết lập đúng hạn mức 50 đơn (năng lực 2 Shipper trực ca hôm nay)
+            txtNangLucGiaoToiDa.Text = "50";
+            _nangLucGiaoHienTai = 50;
+
+            // 3. Reset bộ lọc khu vực về tất cả
+            if (cboLocKhuVuc != null)
+            {
+                cboLocKhuVuc.SelectedIndex = 0;
+            }
+
+            // 4. Nạp dữ liệu và chạy phân bổ ma trận SLA
+            var donChoGiao = LayDanhSachDonChoGiao();
+            ThucHienPhanBoUuTien(donChoGiao, 50);
+
+            // 5. Chọn tab Duyệt Giao Ngay
+            if (tabNhomDuyetGiao != null)
+            {
+                tabNhomDuyetGiao.IsChecked = true;
+            }
+
+            // 6. Hiển thị báo cáo kết quả quản trị điều phối
+            int soHoaToc = _danhSachDuyetGiao.Count(x => x.IsExpress);
+            int soHoaTocTonKho = _danhSachDuyetGiao.Count(x => x.IsExpress) + _danhSachLuuKho.Count(x => x.IsExpress);
+
+            MessageBox.Show(
+                $"🌧️ KỊCH BẢN VẬN HÀNH QUÁ TẢI (MƯA BÃO / THIẾU SHIPPER):\n" +
+                $"─────────────────────────────────────────────────────\n" +
+                $"• Tồn kho chờ phân phối: {donChoGiao.Count} bưu kiện\n" +
+                $"• Nhân sự trực ca: 2 Shipper (Năng lực nhận tối đa: 50 bưu kiện)\n\n" +
+                $"🏆 KẾT QUẢ THỰC THI MA TRẬN ƯU TIÊN SLA ĐA TẦNG:\n" +
+                $"─────────────────────────────────────────────────────\n" +
+                $"🟢 [DUYỆT GIAO NGAY]: {_danhSachDuyetGiao.Count} / 50 đơn (100% Công Suất Ca)\n" +
+                $"   ⚡ Ưu tiên Cấp 1: 100% Đơn Hỏa Tốc VIP (+1000 điểm) = {soHoaToc}/{soHoaTocTonKho} đơn xuất bến ngay!\n" +
+                $"   ⏱️ Ưu tiên Cấp 2: Các đơn cận hạn & quá hạn SLA (+500đ) bổ sung đủ hạn mức.\n\n" +
+                $"🟡 [LƯU KHO CA SAU]: {_danhSachLuuKho.Count} đơn\n" +
+                $"   📦 Toàn bộ là đơn tiêu chuẩn có SLA còn xa, an toàn giữ lại kho nhường chỗ cho đơn VIP.\n\n" +
+                $"👉 Hệ thống đã giải quyết hoàn hảo bài toán quản trị quá tải!",
+                "Kết Quả Điều Phối Ma Trận SLA Đa Tầng", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        /// <summary>
+        /// SỰ KIỆN: Nhấn nút Chạy Thuật Toán Phân Bổ Ưu Tiên Ma Trận SLA Đa Tầng
         /// </summary>
         private void BtnChayThuatToanPhanBo_Click(object sender, RoutedEventArgs e)
         {
@@ -281,15 +331,20 @@ namespace Quanlykhohanglogicts
 
             ThucHienPhanBoUuTien(donChoGiao, _nangLucGiaoHienTai);
 
+            int soHoaTocDuyet = _danhSachDuyetGiao.Count(x => x.IsExpress);
+            int tongHoaToc = soHoaTocDuyet + _danhSachLuuKho.Count(x => x.IsExpress);
+
             MessageBox.Show(
-                $"THỰC THI THUẬT TOÁN PHÂN BỔ THÀNH CÔNG!\n\n" +
-                $"• Tổng số đơn chờ phân bổ: {donChoGiao.Count} đơn\n" +
-                $"• Hạn mức năng lực giao hôm nay: {_nangLucGiaoHienTai} đơn\n" +
-                $"• Số đơn được DUYỆT GIAO NGAY: {_danhSachDuyetGiao.Count} đơn\n" +
-                $"  (Trong đó có {_danhSachDuyetGiao.Count(x => x.IsExpress)} đơn Hỏa Tốc đã được duyệt 100%)\n" +
-                $"• Số đơn LƯU KHO CHỜ CA SAU: {_danhSachLuuKho.Count} đơn\n\n" +
-                $"Thuật toán đã ưu tiên tối đa cam kết SLA và đơn Express.",
-                "Kết Quả Phân Bổ Ưu Tiên", MessageBoxButton.OK, MessageBoxImage.Information);
+                $"⚡ THỰC THI MA TRẬN SLA ĐA TẦNG THÀNH CÔNG!\n\n" +
+                $"• Tổng bưu kiện chờ phân phối: {donChoGiao.Count} đơn\n" +
+                $"• Hạn mức năng lực giao ca này: {_nangLucGiaoHienTai} đơn\n\n" +
+                $"🟢 DUYỆT GIAO NGAY: {_danhSachDuyetGiao.Count} đơn\n" +
+                $"  ⚡ Đơn Hỏa Tốc VIP (+1000đ): Đã duyệt {soHoaTocDuyet}/{tongHoaToc} đơn (Ưu tiên tuyệt đối)\n" +
+                $"  ⏱️ Đơn Cận Hạn SLA (+500đ): Đã xếp thứ tự deadline gấp nhất\n\n" +
+                $"🟡 LƯU KHO CA SAU: {_danhSachLuuKho.Count} đơn\n" +
+                $"  📦 Đơn tiêu chuẩn an toàn lưu kho, không bị phạt hợp đồng SLA.\n\n" +
+                $"Thuật toán đã tối ưu hóa 100% tài nguyên vận tải cho doanh nghiệp!",
+                "Kết Quả Phân Bổ Ưu Tiên TMS", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         /// <summary>

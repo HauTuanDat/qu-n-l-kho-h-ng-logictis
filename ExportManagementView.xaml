@@ -311,8 +311,8 @@
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
 
-                                <!-- Cột 5: Mặt hàng xuất -->
-                                <DataGridTemplateColumn Header="Mặt Hàng Xuất" Width="170">
+                                <!-- Cột 5: Bưu kiện xuất -->
+                                <DataGridTemplateColumn Header="Bưu Kiện Xuất Kho" Width="170">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding ItemName}" FontSize="12" Foreground="#1E293B" 
@@ -523,7 +523,7 @@
 
                             <!-- Tiêu đề phiếu -->
                             <TextBlock Text="PHIẾU XUẤT KHO KIÊM BIÊN BẢN BÀN GIAO" FontSize="16" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
-                            <TextBlock Text="(Bàn giao hàng hóa &amp; Trách nhiệm vận chuyển cho bên tiếp nhận)" FontSize="10.5" Foreground="#64748B" HorizontalAlignment="Center" Margin="0,2,0,14"/>
+                            <TextBlock Text="(Bàn giao bưu kiện &amp; Trách nhiệm vận chuyển cho bên tiếp nhận)" FontSize="10.5" Foreground="#64748B" HorizontalAlignment="Center" Margin="0,2,0,14"/>
 
                             <!-- Thông tin các bên -->
                             <Grid Margin="0,0,0,12">
@@ -556,7 +556,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="STT" Grid.Column="0" FontWeight="Bold" FontSize="10.5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <TextBlock Text="Mã Bưu Kiện" Grid.Column="1" FontWeight="Bold" FontSize="10.5" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                        <TextBlock Text="Tên Hàng Hóa" Grid.Column="2" FontWeight="Bold" FontSize="10.5" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                        <TextBlock Text="Tên Bưu Kiện / Gói Hàng" Grid.Column="2" FontWeight="Bold" FontSize="10.5" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                         <TextBlock Text="Cân Nặng" Grid.Column="3" FontWeight="Bold" FontSize="10.5" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                         <TextBlock Text="Tiền Thu COD" Grid.Column="4" FontWeight="Bold" FontSize="10.5" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                     </Grid>

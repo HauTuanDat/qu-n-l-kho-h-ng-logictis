@@ -469,7 +469,7 @@
                             <DataGridTextColumn Header="Ngày Duyệt Hoàn" Binding="{Binding RtoApprovedDate, StringFormat='dd/MM/yyyy HH:mm'}" Width="140"/>
                             <DataGridTextColumn Header="Bên Gửi (Shop)" Binding="{Binding SenderName}" FontWeight="SemiBold" Width="180"/>
                             <DataGridTextColumn Header="Cước Phí Hoàn" Binding="{Binding ReturnShippingFee, StringFormat={}{0:N0} đ}" FontWeight="Bold" Foreground="#DC2626" Width="110"/>
-                            <DataGridTextColumn Header="Hàng Hóa" Binding="{Binding ProductSummary}" Width="180"/>
+                            <DataGridTextColumn Header="Bưu Kiện Hoàn" Binding="{Binding ProductSummary}" Width="180"/>
                             <DataGridTextColumn Header="Biên Bản Trả" Binding="{Binding ReturnHandoverBatchCode}" Width="130"/>
                         </DataGrid.Columns>
                     </DataGrid>
@@ -658,7 +658,7 @@
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Mã RTO" Binding="{Binding RtoTrackingCode}" FontWeight="Bold" Width="130"/>
                                         <DataGridTextColumn Header="Mã Đơn Gốc" Binding="{Binding OrderCode}" Width="120"/>
-                                        <DataGridTextColumn Header="Hàng Hóa" Binding="{Binding ProductSummary}" Width="160"/>
+                                        <DataGridTextColumn Header="Bưu Kiện Hoàn" Binding="{Binding ProductSummary}" Width="160"/>
                                         <DataGridTextColumn Header="Người Mua Từ Chối" Binding="{Binding ReceiverName}" Width="130"/>
                                         <DataGridTextColumn Header="Cước Hoàn Phải Thu" Binding="{Binding ReturnShippingFee, StringFormat={}{0:N0} đ}" FontWeight="Bold" Foreground="#DC2626" Width="130"/>
                                     </DataGrid.Columns>

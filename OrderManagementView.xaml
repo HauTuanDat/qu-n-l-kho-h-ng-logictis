@@ -349,8 +349,8 @@
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
 
-                                <!-- Hàng Hóa & Trọng lượng -->
-                                <DataGridTemplateColumn Header="Hàng Hóa / KL" Width="130">
+                                <!-- Bưu Kiện & Trọng lượng -->
+                                <DataGridTemplateColumn Header="Bưu Kiện / KL" Width="130">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel VerticalAlignment="Center">
@@ -455,7 +455,7 @@
                         <Grid Margin="0,0,0,16">
                             <StackPanel>
                                 <TextBlock Text="➕ Tạo Mới Đơn Hàng Vận Chuyển" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
-                                <TextBlock Text="Nhập đầy đủ thông tin gửi, nhận và quy cách bưu kiện hàng hóa" FontSize="12" Foreground="#64748B"/>
+                                <TextBlock Text="Nhập đầy đủ thông tin gửi, nhận và quy cách bưu kiện vận chuyển" FontSize="12" Foreground="#64748B"/>
                             </StackPanel>
                             <Button x:Name="btnCloseCreateModalIcon" Content="✕" Width="30" Height="30" FontSize="14" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnCloseCreateModal_Click"/>
                         </Grid>
@@ -516,7 +516,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Margin="0,0,6,0">
-                                <TextBlock Text="Mô tả hàng hóa *" FontSize="11" Foreground="#475569"/>
+                                <TextBlock Text="Mô tả bưu kiện / gói hàng *" FontSize="11" Foreground="#475569"/>
                                 <Border Style="{StaticResource FormInputBorderStyle}">
                                     <TextBox x:Name="txtNewProductSummary" Margin="8,0" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" FontSize="12.5"/>
                                 </Border>

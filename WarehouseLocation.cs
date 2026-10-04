@@ -20,7 +20,7 @@ namespace Quanlykhohanglogicts
     /// - Cách hoạt động: 
     ///   + OccupancyPercentage = (CurrentWeight / MaxWeightCapacity) * 100%.
     ///   + Tự động gắn nhãn trạng thái và màu sắc tương ứng.
-    /// - Tương tác dữ liệu: Inventory.cs, InventoryManagementView.xaml.cs.
+    /// - Tương tác dữ liệu: WarehouseManagementView.xaml.cs, WarehouseContext.cs.
     /// </summary>
     public class WarehouseLocation
     {

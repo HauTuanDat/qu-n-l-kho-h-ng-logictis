@@ -391,7 +391,7 @@
                                 </Grid>
 
                                 <StackPanel Margin="0,0,0,10">
-                                    <TextBlock Text="Phân Luồng Hàng Hóa Sau Dỡ Xe *" Style="{StaticResource FormLabelStyle}"/>
+                                    <TextBlock Text="Phân Luồng Bưu Kiện Sau Dỡ Xe *" Style="{StaticResource FormLabelStyle}"/>
                                     <ComboBox x:Name="cbTruckFlowType" Style="{StaticResource ModernComboBoxStyle}" SelectedIndex="0" SelectionChanged="CbTruckFlowType_SelectionChanged">
                                         <ComboBoxItem Content="1. Hàng Cross-Docking (Chuyển sang xe tiếp theo ngay trong ngày)"/>
                                         <ComboBoxItem Content="2. Hàng Lưu Kho (Xếp lên pallet đưa vào ô kệ lưu trữ)"/>
@@ -559,10 +559,10 @@
                             <StackPanel>
                                 <TextBlock Text="2. QUY CÁCH BƯU KIỆN &amp; THỂ TÍCH" FontSize="13" FontWeight="Bold" Foreground="#1E293B" Margin="0,0,0,12"/>
 
-                                <TextBlock Text="Tên Mặt Hàng / Tóm Tắt Bưu Kiện *" Style="{StaticResource FormLabelStyle}"/>
+                                <TextBlock Text="Mô Tả Bưu Kiện / Gói Hàng Gửi *" Style="{StaticResource FormLabelStyle}"/>
                                 <TextBox x:Name="txtRetailProductName" Style="{StaticResource ModernTextBoxStyle}" Text="" Margin="0,0,0,8" TextChanged="ControlValue_ClearedError"/>
 
-                                <TextBlock Text="Loại Hàng Hóa *" Style="{StaticResource FormLabelStyle}"/>
+                                <TextBlock Text="Phân Loại Bưu Kiện *" Style="{StaticResource FormLabelStyle}"/>
                                 <ComboBox x:Name="cbRetailProductType" Style="{StaticResource ModernComboBoxStyle}" SelectedIndex="0" Margin="0,0,0,8" SelectionChanged="RetailInputs_Changed">
                                     <ComboBoxItem Content="📦 Hàng Tiêu Chuẩn Thông Thường"/>
                                     <ComboBoxItem Content="🍷 Hàng Dễ Vỡ (Cần Bọc Xốp Cẩn Thận)"/>

@@ -357,7 +357,7 @@
                                 </DataGrid.Resources>
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Mã Bưu Kiện" Binding="{Binding OrderCode}" FontWeight="Bold" Width="130"/>
-                                    <DataGridTextColumn Header="Mô Tả Hàng Hóa" Binding="{Binding ProductSummary}" Width="180"/>
+                                    <DataGridTextColumn Header="Mô Tả Bưu Kiện" Binding="{Binding ProductSummary}" Width="180"/>
                                     <DataGridTextColumn Header="Khối Lượng" Binding="{Binding Weight, StringFormat='{}{0:N1} kg'}" Width="95"/>
                                     <DataGridTextColumn Header="Bên Nhận / Địa Chỉ" Binding="{Binding ReceiverAddress}" Width="*"/>
                                     <DataGridTextColumn Header="Khu Vực Đích" Binding="{Binding DestinationArea}" Width="140"/>
@@ -552,13 +552,13 @@
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
 
-                                    <DataGridTextColumn Header="Bưu Kiện / Hàng Hóa" Binding="{Binding ItemName}" Width="200"/>
+                                    <DataGridTextColumn Header="Bưu Kiện / Kiện Hàng" Binding="{Binding ItemName}" Width="200"/>
                                     <DataGridTextColumn Header="Khối Lượng" Binding="{Binding Weight, StringFormat='{}{0:N1} kg'}" Width="95"/>
                                     <DataGridTextColumn Header="Luồng Di Chuyển" Binding="{Binding SourceOrDestination}" Width="*"/>
                                     <DataGridTextColumn Header="Vị Trí Máng/Kệ" Binding="{Binding LocationCode}" Width="130"/>
                                     <DataGridTextColumn Header="Người Thực Hiện" Binding="{Binding OperatorName}" Width="140"/>
                                     <DataGridTextColumn Header="Ghi Chú" Binding="{Binding Notes}" Width="200"/>
-                                </DataGrid.Columns>
+                                 </DataGrid.Columns>
                             </DataGrid>
                         </StackPanel>
                     </Border>
@@ -580,9 +580,9 @@
                         <StackPanel>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="🔄" FontSize="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Lệnh Điều Chuyển Hàng Giữa Máng Tuyến &amp; Ô Kệ" FontSize="16" FontWeight="Bold" Foreground="#0F172A"/>
+                                <TextBlock Text="Lệnh Điều Chuyển Bưu Kiện Giữa Máng Tuyến &amp; Ô Kệ" FontSize="16" FontWeight="Bold" Foreground="#0F172A"/>
                             </StackPanel>
-                            <TextBlock Text="Di dời bưu kiện/hàng hóa từ vị trí máng nguồn sang vị trí máng đích (Relocation)" FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
+                            <TextBlock Text="Di dời bưu kiện từ vị trí máng nguồn sang vị trí máng đích (Relocation)" FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
                         </StackPanel>
                         <Button Style="{StaticResource NutThaoTacKhoStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" 
                                 Width="30" Height="30" Background="#F1F5F9" Foreground="#64748B" Content="✕" FontWeight="Bold" FontSize="13" Click="BtnDongDieuChuyen_Click"/>

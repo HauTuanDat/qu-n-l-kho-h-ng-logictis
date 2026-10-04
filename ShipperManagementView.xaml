@@ -669,7 +669,7 @@
                                     <DataGridTextColumn Header="Bên Nhận" Binding="{Binding ReceiverName}" FontWeight="SemiBold" Width="150"/>
                                     <DataGridTextColumn Header="Số Điện Thoại" Binding="{Binding ReceiverPhone}" Width="120"/>
                                     <DataGridTextColumn Header="Địa Chỉ Giao Hàng" Binding="{Binding ReceiverAddress}" Width="*"/>
-                                    <DataGridTextColumn Header="Hàng Hóa" Binding="{Binding ProductSummary}" Width="150"/>
+                                    <DataGridTextColumn Header="Bưu Kiện / Hàng Gửi" Binding="{Binding ProductSummary}" Width="150"/>
                                     <DataGridTextColumn Header="Thu Hộ COD" Binding="{Binding CodAmount, StringFormat='{}{0:N0} đ'}" FontWeight="Bold" Foreground="#059669" Width="110"/>
                                     <DataGridTextColumn Header="Trạng Thái Giao" Binding="{Binding StatusDisplayName}" FontWeight="SemiBold" Width="130"/>
                                     <DataGridTextColumn Header="Hạn SLA" Binding="{Binding EstimatedDeliveryDate, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" Width="140"/>
