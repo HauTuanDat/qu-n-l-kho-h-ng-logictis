@@ -11,21 +11,19 @@ using Microsoft.Win32;
 namespace Quanlykhohanglogicts
 {
     /// <summary>
-    /// PHÂN HỆ QUẢN LÝ KHO BÃI TOÀN DIỆN (WAREHOUSE MANAGEMENT HUB - WMS)
-    /// - Quản lý 7 phân hệ cốt lõi:
-    ///   1. Tổng quan kho & Sức chứa thời gian thực
-    ///   2. Tiếp nhận & Nhập kho (Xe tải Linehaul / Khách lẻ bưu cục)
-    ///   3. Phân luồng bưu kiện tại Dock (Giao chặng cuối vs Trung chuyển)
-    ///   4. Tồn kho & Phiếu kiểm kê cân bằng tồn (Stock Count & Adjustment)
-    ///   5. Bản đồ ô kệ & Lệnh điều chuyển vị trí kệ (Put-away / Relocation)
-    ///   6. Nghiệp vụ xuất kho & Bàn giao vận tải
-    ///   7. Sổ nhật ký biến động kho & Thẻ kho (Audit Trail Log)
+    /// PHÂN HỆ QUẢN LÝ KHAI THÁC & TRUNG CHUYỂN BƯU KIỆN (HUB WMS)
+    /// - Quản lý 6 phân hệ cốt lõi thuần Logistics:
+    ///   1. Tổng quan Hub & Sức chứa sàn/máng thời gian thực
+    ///   2. Tiếp nhận hàng vào Hub (Xe tải Linehaul / Quầy giao dịch bưu cục)
+    ///   3. Phân luồng bưu kiện tại sàn Dock (Giao chặng cuối vs Trung chuyển xe tải)
+    ///   4. Bản đồ máng tuyến Shipper & Ô kệ trung chuyển (Put-away / Relocation)
+    ///   5. Nghiệp vụ xuất kho bàn giao Shipper & Xe tải liên tỉnh
+    ///   6. Nhật ký kiểm toán bưu kiện tại Hub (Audit Trail Log)
     /// </summary>
     public partial class WarehouseManagementView : UserControl
     {
         private string _currentZoneFilter = "ALL";
         private List<ShippingOrder> _danhSachDonChoPhanLoai = new();
-        private List<Inventory> _danhSachTonKhoGoc = new();
         private List<WarehouseMovement> _danhSachBienDongGoc = new();
 
         public WarehouseManagementView()
@@ -35,33 +33,33 @@ namespace Quanlykhohanglogicts
         }
 
         /// <summary>
-        /// HÀM LOGIC CHÍNH: Nạp toàn bộ dữ liệu cho 7 phân nhánh quản lý kho
+        /// HÀM LOGIC CHÍNH: Nạp toàn bộ dữ liệu cho 6 phân nhánh điều hành Hub
         /// </summary>
         public void NapDuLieuKho()
         {
             var khoDuLieu = WarehouseContext.Instance;
             var danhSachViTri = khoDuLieu.GetAllLocations();
-            _danhSachTonKhoGoc = khoDuLieu.GetAllInventories().ToList();
             var danhSachPhieuNhap = khoDuLieu.GetAllImportOrders();
             _danhSachBienDongGoc = khoDuLieu.GetAllWarehouseMovements().ToList();
             var tatCaDonHang = khoDuLieu.GetAllShippingOrders();
 
             // =========================================================================
-            // 1. DỮ LIỆU NHÁNH 1: TỔNG QUAN KHO & SỨC CHỨA ĐỘNG
+            // 1. DỮ LIỆU NHÁNH 1: TỔNG QUAN HUB & SỨC CHỨA ĐỘNG
             // =========================================================================
             double tongTaiTrongToiDa = danhSachViTri.Sum(v => v.MaxWeightCapacity);
             double tongTaiTrongHienTai = danhSachViTri.Sum(v => v.CurrentWeight);
             double tyLeLapDay = tongTaiTrongToiDa > 0 ? (tongTaiTrongHienTai / tongTaiTrongToiDa) * 100.0 : 0;
-            int tongSoSku = _danhSachTonKhoGoc.Count;
-            int tongSoLuongKien = _danhSachTonKhoGoc.Sum(t => t.Quantity);
+            
+            // Đếm số lượng bưu kiện đang lưu tại Hub chờ bưu tá đi phát hoặc chờ xe tải đi bến
+            int tongBuuKienLuuHub = tatCaDonHang.Count(d => d.Status == ShippingOrderStatus.PendingProcessing || d.Status == ShippingOrderStatus.NewReceived);
             double tongKhoiLuongTiepNhanHomNay = danhSachPhieuNhap.Sum(p => p.TotalWeight);
             int soChuyenXuatHomNay = _danhSachBienDongGoc.Count(m => m.MovementType == WarehouseMovementType.OutboundLastMile || m.MovementType == WarehouseMovementType.OutboundTransit);
 
             txtTyLeLapDayKho.Text = $"{tyLeLapDay:N1}%";
-            txtTrangThaiTongThe.Text = tyLeLapDay > 85 ? "⚠️ Tải trọng kho đang ở mức cao!" : "Đang ở mức tải trọng an toàn";
+            txtTrangThaiTongThe.Text = tyLeLapDay > 85 ? "⚠️ Tải trọng Hub đang ở mức cao!" : "Đang ở mức tải trọng an toàn";
             txtTrangThaiTongThe.Foreground = tyLeLapDay > 85 ? new SolidColorBrush(Color.FromRgb(220, 38, 38)) : new SolidColorBrush(Color.FromRgb(5, 150, 105));
 
-            txtTongMatHangLuuKho.Text = $"{tongSoSku} SKU ({tongSoLuongKien} kiện)";
+            txtTongBuuKienLuuHub.Text = $"{tongBuuKienLuuHub} bưu kiện";
             txtTiepNhanHomNay.Text = $"{danhSachPhieuNhap.Count} lô ({tongKhoiLuongTiepNhanHomNay:N0} kg)";
             txtXuatKhoHomNay.Text = $"{soChuyenXuatHomNay} chuyến đã xuất";
 
@@ -98,7 +96,7 @@ namespace Quanlykhohanglogicts
                 if (pctKhuA >= 80) dsCanhBao.Add($"Khu A ({pctKhuA}%)");
                 if (pctKhuEXP >= 80) dsCanhBao.Add($"Khu EXP ({pctKhuEXP}%)");
                 if (pctKhuDock >= 80) dsCanhBao.Add($"Dock Inbound ({pctKhuDock}%)");
-                txtCanhBaoSucChua.Text = $"Cảnh báo tải trọng cao tại: {string.Join(", ", dsCanhBao)}! Khuyến nghị di dời hoặc tạm dừng xếp hàng thêm.";
+                txtCanhBaoSucChua.Text = $"Cảnh báo tải trọng cao tại: {string.Join(", ", dsCanhBao)}! Khuyến nghị di dời bưu kiện giải phóng sàn bốc dỡ.";
             }
             else
             {
@@ -106,7 +104,7 @@ namespace Quanlykhohanglogicts
             }
 
             // =========================================================================
-            // 2. DỮ LIỆU NHÁNH 2: TIẾP NHẬN & NHẬP KHO
+            // 2. DỮ LIỆU NHÁNH 2: TIẾP NHẬN & VÀO HUB
             // =========================================================================
             ucImportManagement?.NapDuLieuNhapKho();
 
@@ -119,24 +117,18 @@ namespace Quanlykhohanglogicts
             ApDungLocPhanLoai();
 
             // =========================================================================
-            // 4. DỮ LIỆU NHÁNH 4: HÀNG ĐANG LƯU KHO & KIỂM KÊ
-            // =========================================================================
-            ApDungLocTonKho();
-            NapDanhSachSanPhamKiemKe();
-
-            // =========================================================================
-            // 5. DỮ LIỆU NHÁNH 5: VỊ TRÍ LƯU TRỮ & Ô KỆ
+            // 4. DỮ LIỆU NHÁNH 4: VỊ TRÍ MÁNG TUYẾN & Ô KỆ
             // =========================================================================
             ApDungLocZone();
             NapDanhSachViTriDieuChuyen();
 
             // =========================================================================
-            // 6. DỮ LIỆU NHÁNH 6: NGHIỆP VỤ XUẤT KHO
+            // 5. DỮ LIỆU NHÁNH 5: NGHIỆP VỤ XUẤT KHO & BÀN GIAO VẬN TẢI
             // =========================================================================
             ucExportManagement?.NapDuLieuXuatKho();
 
             // =========================================================================
-            // 7. DỮ LIỆU NHÁNH 7: LỊCH SỬ NHẬP / XUẤT & AUDIT LOG
+            // 6. DỮ LIỆU NHÁNH 6: LỊCH SỬ BIẾN ĐỘNG & AUDIT TRAIL LOG
             // =========================================================================
             ApDungLocLichSu();
         }
@@ -145,7 +137,7 @@ namespace Quanlykhohanglogicts
         public void LoadData() => NapDuLieuKho();
 
         /// <summary>
-        /// SỰ KIỆN: Chuyển đổi giữa 7 nhánh chức năng kho bãi qua RadioButton
+        /// SỰ KIỆN: Chuyển đổi giữa 6 nhánh chức năng Hub qua RadioButton
         /// </summary>
         private void TabNghiepVu_Checked(object sender, RoutedEventArgs e)
         {
@@ -155,7 +147,6 @@ namespace Quanlykhohanglogicts
             panelTongQuanKho.Visibility = Visibility.Collapsed;
             panelTiepNhanHang.Visibility = Visibility.Collapsed;
             panelPhanLoaiHang.Visibility = Visibility.Collapsed;
-            panelHangLuuKho.Visibility = Visibility.Collapsed;
             panelViTriLuuTru.Visibility = Visibility.Collapsed;
             panelXuatHang.Visibility = Visibility.Collapsed;
             panelLichSuNhapXuat.Visibility = Visibility.Collapsed;
@@ -174,11 +165,6 @@ namespace Quanlykhohanglogicts
             {
                 panelPhanLoaiHang.Visibility = Visibility.Visible;
                 ApDungLocPhanLoai();
-            }
-            else if (tabHangLuuKho.IsChecked == true)
-            {
-                panelHangLuuKho.Visibility = Visibility.Visible;
-                ApDungLocTonKho();
             }
             else if (tabViTriLuuTru.IsChecked == true)
             {
@@ -210,22 +196,16 @@ namespace Quanlykhohanglogicts
             ApDungLocPhanLoai();
         }
 
-        public void ChuyenSangTabXuatKho()
-        {
-            if (tabXuatHang != null) tabXuatHang.IsChecked = true;
-            ucExportManagement?.NapDuLieuXuatKho();
-        }
-
-        public void ChuyenSangTabTonKho()
-        {
-            if (tabHangLuuKho != null) tabHangLuuKho.IsChecked = true;
-            ApDungLocTonKho();
-        }
-
         public void ChuyenSangTabViTri()
         {
             if (tabViTriLuuTru != null) tabViTriLuuTru.IsChecked = true;
             ApDungLocZone();
+        }
+
+        public void ChuyenSangTabXuatKho()
+        {
+            if (tabXuatHang != null) tabXuatHang.IsChecked = true;
+            ucExportManagement?.NapDuLieuXuatKho();
         }
 
         public void ChuyenSangTabLichSu()
@@ -236,6 +216,7 @@ namespace Quanlykhohanglogicts
 
         private void BtnChuyenSangTiepNhan_Click(object sender, RoutedEventArgs e) => ChuyenSangTabTiepNhan();
         private void BtnChuyenSangPhanLoai_Click(object sender, RoutedEventArgs e) => ChuyenSangTabPhanLoai();
+        private void BtnChuyenSangViTri_Click(object sender, RoutedEventArgs e) => ChuyenSangTabViTri();
         private void BtnChuyenSangXuatHang_Click(object sender, RoutedEventArgs e) => ChuyenSangTabXuatKho();
         private void BtnChuyenSangLichSu_Click(object sender, RoutedEventArgs e) => ChuyenSangTabLichSu();
         private void BtnLamMoiKho_Click(object sender, RoutedEventArgs e) => NapDuLieuKho();
@@ -263,7 +244,7 @@ namespace Quanlykhohanglogicts
 
             if (txtDemKienChoPhanLoai != null)
             {
-                txtDemKienChoPhanLoai.Text = $"{danhSach.Count} bưu kiện đang chờ phân luồng tại Dock tiếp nhận";
+                txtDemKienChoPhanLoai.Text = $"{danhSach.Count} bưu kiện đang chờ phân luồng tại sàn Dock tiếp nhận";
             }
         }
 
@@ -291,7 +272,7 @@ namespace Quanlykhohanglogicts
                     $"ĐÃ PHÂN LOẠI THÀNH CÔNG HÀNG CHẶNG CUỐI!\n\n" +
                     $"• Mã bưu kiện: {donHang.OrderCode}\n" +
                     $"• Hàng hóa: {donHang.ProductSummary}\n" +
-                    $"• Phân luồng: 🛵 Giao Chặng Cuối Cho Shipper Nội Thành\n" +
+                    $"• Phân luồng: 🛵 Giao Chặng Cuối Cho Shipper Nội Tỉnh\n" +
                     $"• Vị trí xếp kiện: Máng Tuyến Bưu Tá ({donHang.DestinationArea})",
                     "Phân Loại Chặng Cuối", MessageBoxButton.OK, MessageBoxImage.Information);
 
@@ -327,129 +308,7 @@ namespace Quanlykhohanglogicts
         }
         #endregion
 
-        #region Nghiệp Vụ Nhánh 4: Tồn Kho & Kiểm Kê (Stock Count & Adjustment)
-        private void ApDungLocTonKho()
-        {
-            string tuKhoa = txtTimKiemTonKho?.Text.Trim().ToLower() ?? "";
-            bool chiLocTonThap = chkChiHienTonThap?.IsChecked == true;
-
-            var danhSach = _danhSachTonKhoGoc.AsEnumerable();
-
-            if (chiLocTonThap)
-            {
-                danhSach = danhSach.Where(t => t.IsLowStock);
-            }
-
-            if (!string.IsNullOrEmpty(tuKhoa))
-            {
-                danhSach = danhSach.Where(t =>
-                    t.ProductName.ToLower().Contains(tuKhoa) ||
-                    t.ProductCode.ToLower().Contains(tuKhoa) ||
-                    t.LocationCode.ToLower().Contains(tuKhoa) ||
-                    t.BatchNumber.ToLower().Contains(tuKhoa));
-            }
-
-            if (dgHangDangLuuKho != null)
-            {
-                dgHangDangLuuKho.ItemsSource = danhSach.ToList();
-            }
-        }
-
-        private void TxtTimKiemTonKho_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            ApDungLocTonKho();
-        }
-
-        private void ChkChiHienTonThap_Changed(object sender, RoutedEventArgs e)
-        {
-            ApDungLocTonKho();
-        }
-
-        private void NapDanhSachSanPhamKiemKe()
-        {
-            if (cboChonSanPhamKiemKe == null) return;
-
-            cboChonSanPhamKiemKe.ItemsSource = _danhSachTonKhoGoc.Select(t => new
-            {
-                t.Id,
-                DisplayText = $"[{t.ProductCode}] {t.ProductName} (Kệ: {t.LocationCode})",
-                Item = t
-            }).ToList();
-            cboChonSanPhamKiemKe.DisplayMemberPath = "DisplayText";
-            cboChonSanPhamKiemKe.SelectedValuePath = "Id";
-
-            if (cboChonSanPhamKiemKe.Items.Count > 0 && cboChonSanPhamKiemKe.SelectedIndex < 0)
-            {
-                cboChonSanPhamKiemKe.SelectedIndex = 0;
-            }
-        }
-
-        private void CboChonSanPhamKiemKe_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (cboChonSanPhamKiemKe?.SelectedItem is { } selectedObj)
-            {
-                dynamic obj = selectedObj;
-                Inventory t = obj.Item;
-                txtThongTinTonHienTai.Text = $"Tồn hệ thống: {t.Quantity} kiện | Đang giữ chỗ: {t.ReservedQuantity} | Khả dụng: {t.AvailableQuantity} | Kệ: {t.LocationCode}";
-                txtSoLuongThucTe.Text = t.Quantity.ToString();
-                txtSoLuongHuHong.Text = t.DamagedQuantity.ToString();
-            }
-        }
-
-        private void BtnMoKiemKeKho_Click(object sender, RoutedEventArgs e)
-        {
-            NapDanhSachSanPhamKiemKe();
-            modalKiemKeTonKho.Visibility = Visibility.Visible;
-        }
-
-        private void BtnDongKiemKe_Click(object sender, RoutedEventArgs e)
-        {
-            modalKiemKeTonKho.Visibility = Visibility.Collapsed;
-        }
-
-        private void BtnXacNhanKiemKe_Click(object sender, RoutedEventArgs e)
-        {
-            if (cboChonSanPhamKiemKe.SelectedValue == null)
-            {
-                MessageBox.Show("Vui lòng chọn sản phẩm cần kiểm kê!", "Thiếu Dữ Liệu", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (!int.TryParse(txtSoLuongThucTe.Text.Trim(), out int soLuongThucTe) || soLuongThucTe < 0)
-            {
-                MessageBox.Show("Vui lòng nhập số lượng kiểm đếm thực tế hợp lệ (số nguyên >= 0)!", "Sai Định Dạng", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (!int.TryParse(txtSoLuongHuHong.Text.Trim(), out int soLuongHuHong) || soLuongHuHong < 0)
-            {
-                soLuongHuHong = 0;
-            }
-
-            int inventoryId = (int)cboChonSanPhamKiemKe.SelectedValue;
-            string lyDo = (cboLyDoDieuChinh.SelectedItem as ComboBoxItem)?.Content.ToString() ?? "Cân bằng tồn kho";
-            string ghiChu = txtGhiChuKiemKe.Text.Trim();
-            string nguoiThucHien = UserSession.Current.CurrentUser?.FullName ?? "Thủ Kho Hệ Thống";
-
-            bool thanhCong = WarehouseContext.Instance.DieuChinhTonKho(inventoryId, soLuongThucTe, soLuongHuHong, lyDo, nguoiThucHien, ghiChu);
-
-            if (thanhCong)
-            {
-                MessageBox.Show(
-                    "ĐÃ CẬP NHẬT PHIẾU KIỂM KÊ & CÂN BẰNG TỒN THÀNH CÔNG!\n\n" +
-                    $"• Số lượng thực tế mới: {soLuongThucTe} kiện\n" +
-                    $"• Hàng hỏng ghi nhận: {soLuongHuHong} kiện\n" +
-                    $"• Lý do: {lyDo}\n" +
-                    $"• Đã tự động ghi nhật ký kiểm toán kho bãi.",
-                    "Kiểm Kê Kho", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                modalKiemKeTonKho.Visibility = Visibility.Collapsed;
-                NapDuLieuKho();
-            }
-        }
-        #endregion
-
-        #region Nghiệp Vụ Nhánh 5: Vị Trí Ô Kệ & Điều Chuyển (Put-away / Relocation)
+        #region Nghiệp Vụ Nhánh 4: Vị Trí Máng Tuyến & Ô Kệ (Relocation)
         private void ApDungLocZone()
         {
             var tatCaViTri = WarehouseContext.Instance.GetAllLocations();
@@ -479,18 +338,8 @@ namespace Quanlykhohanglogicts
             if (sender is Button btn && btn.Tag is string tag)
             {
                 _currentZoneFilter = tag;
-
-                // Cập nhật giao diện nút bấm phân khu
-                CapNhatGiaoDienNutLocZone(tag);
                 ApDungLocZone();
             }
-        }
-
-        private void CapNhatGiaoDienNutLocZone(string activeTag)
-        {
-            // Reset tất cả các nút về dạng nhạt
-            var nutList = new[] { "ALL", "A", "EXP", "IN" };
-            // Có thể duyệt tìm các nút trong giao diện
         }
 
         private void NapDanhSachViTriDieuChuyen()
@@ -573,11 +422,11 @@ namespace Quanlykhohanglogicts
             if (thanhCong)
             {
                 MessageBox.Show(
-                    "ĐÃ THỰC HIỆN LỆNH ĐIỀU CHUYỂN Ô KỆ THÀNH CÔNG!\n\n" +
+                    "ĐÃ THỰC HIỆN LỆNH ĐIỀU CHUYỂN MÁNG/KỆ THÀNH CÔNG!\n\n" +
                     $"• Khối lượng di dời: {khoiLuong:N1} kg\n" +
-                    $"• Mặt hàng: {moTaHang}\n" +
-                    $"• Tải trọng của 2 ô kệ đã được tự động cân bằng lại.",
-                    "Điều Chuyển Ô Kệ", MessageBoxButton.OK, MessageBoxImage.Information);
+                    $"• Bưu kiện: {moTaHang}\n" +
+                    $"• Tải trọng của 2 vị trí đã được tự động cân bằng lại.",
+                    "Điều Chuyển Máng/Kệ", MessageBoxButton.OK, MessageBoxImage.Information);
 
                 modalDieuChuyenKe.Visibility = Visibility.Collapsed;
                 NapDuLieuKho();
@@ -589,7 +438,7 @@ namespace Quanlykhohanglogicts
         }
         #endregion
 
-        #region Nghiệp Vụ Nhánh 7: Lịch Sử Nhập / Xuất & Nhật Ký Biến Động
+        #region Nghiệp Vụ Nhánh 6: Lịch Sử Biến Động Hub (Audit Log)
         private void ApDungLocLichSu()
         {
             string tuKhoa = txtTimKiemLichSu?.Text.Trim().ToLower() ?? "";
@@ -597,7 +446,7 @@ namespace Quanlykhohanglogicts
 
             var danhSach = _danhSachBienDongGoc.AsEnumerable();
 
-            // Lọc theo loại biến động
+            // Lọc theo loại biến động Hub
             if (loaiIndex > 0)
             {
                 danhSach = loaiIndex switch
@@ -608,7 +457,6 @@ namespace Quanlykhohanglogicts
                     4 => danhSach.Where(m => m.MovementType == WarehouseMovementType.OutboundLastMile),
                     5 => danhSach.Where(m => m.MovementType == WarehouseMovementType.OutboundTransit),
                     6 => danhSach.Where(m => m.MovementType == WarehouseMovementType.StockRelocation),
-                    7 => danhSach.Where(m => m.MovementType == WarehouseMovementType.InventoryAdjustment),
                     _ => danhSach
                 };
             }
@@ -641,7 +489,7 @@ namespace Quanlykhohanglogicts
         }
 
         /// <summary>
-        /// SỰ KIỆN: Xuất toàn bộ nhật ký biến động kho ra tệp CSV (UTF-8 BOM)
+        /// SỰ KIỆN: Xuất toàn bộ nhật ký biến động bưu kiện ra tệp CSV (UTF-8 BOM)
         /// </summary>
         private void BtnXuatLichSuCsv_Click(object sender, RoutedEventArgs e)
         {
@@ -655,8 +503,8 @@ namespace Quanlykhohanglogicts
             var hopThoaiLuu = new SaveFileDialog
             {
                 Filter = "Tệp CSV Báo Cáo (*.csv)|*.csv",
-                FileName = $"NhatKyKho_Logistics_{DateTime.Now:yyyyMMdd_HHmm}.csv",
-                Title = "Lưu Nhật Ký Nhập / Xuất Kho"
+                FileName = $"NhatKyHub_Logistics_{DateTime.Now:yyyyMMdd_HHmm}.csv",
+                Title = "Lưu Nhật Ký Biến Động Hub"
             };
 
             if (hopThoaiLuu.ShowDialog() == true)
@@ -664,7 +512,7 @@ namespace Quanlykhohanglogicts
                 try
                 {
                     var noiDungCsv = new StringBuilder();
-                    noiDungCsv.AppendLine("Mã Giao Dịch;Thời Gian;Loại Nghiệp Vụ;Tên Hàng / Kiện;Mã Tham Chiếu;Khối Lượng (kg);Luồng Di Chuyển;Vị Trí Kệ;Người Thực Hiện;Ghi Chú");
+                    noiDungCsv.AppendLine("Mã Giao Dịch;Thời Gian;Loại Nghiệp Vụ;Bưu Kiện / Hàng;Mã Vận Đơn;Khối Lượng (kg);Luồng Di Chuyển;Vị Trí Máng/Kệ;Người Thực Hiện;Ghi Chú");
 
                     foreach (var m in danhSachBienDong)
                     {

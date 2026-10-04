@@ -196,7 +196,7 @@ namespace Quanlykhohanglogicts
             {
                 // 3. PHÂN HỆ QUẢN LÝ KHO BÃI TOÀN DIỆN (WMS HUB - 6 TABS ĐIỀU HÀNH)
                 // Nhiệm vụ: Tổng quan sức chứa, Tiếp nhận Inbound (Xe tải/Khách lẻ), Tồn kho & Safe stock, Vị trí ô kệ, Xuất kho Outbound, Sổ nhật ký kho
-                txtCurrentPageTitle.Text = "QUẢN LÝ KHO BÃI TOÀN DIỆN (WMS HUB - 7 TABS ĐIỀU HÀNH)";
+                txtCurrentPageTitle.Text = "TRUNG TÂM PHÂN LOẠI & TRUNG CHUYỂN BƯU KIỆN (HUB WMS)";
                 _trangQuanLyKho ??= new WarehouseManagementView();
                 _trangQuanLyKho.NapDuLieuKho();
                 MainContentArea.Content = _trangQuanLyKho;
@@ -324,7 +324,7 @@ namespace Quanlykhohanglogicts
         {
             if (lvSidebarNavigation != null && navItemWarehouse != null)
             {
-                txtCurrentPageTitle.Text = "QUẢN LÝ KHO BÃI TOÀN DIỆN (WMS HUB - 7 TABS ĐIỀU HÀNH)";
+                txtCurrentPageTitle.Text = "TRUNG TÂM PHÂN LOẠI & TRUNG CHUYỂN BƯU KIỆN (HUB WMS)";
                 _trangQuanLyKho ??= new WarehouseManagementView();
                 _trangQuanLyKho.NapDuLieuKho();
                 MainContentArea.Content = _trangQuanLyKho;
@@ -340,7 +340,7 @@ namespace Quanlykhohanglogicts
         {
             if (lvSidebarNavigation != null && navItemWarehouse != null)
             {
-                txtCurrentPageTitle.Text = "QUẢN LÝ KHO BÃI TOÀN DIỆN (WMS HUB - 7 TABS ĐIỀU HÀNH)";
+                txtCurrentPageTitle.Text = "TRUNG TÂM PHÂN LOẠI & TRUNG CHUYỂN BƯU KIỆN (HUB WMS)";
                 _trangQuanLyKho ??= new WarehouseManagementView();
                 _trangQuanLyKho.NapDuLieuKho();
                 MainContentArea.Content = _trangQuanLyKho;

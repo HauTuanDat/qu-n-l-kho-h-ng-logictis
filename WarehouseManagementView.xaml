@@ -15,8 +15,8 @@
             <Setter Property="Foreground" Value="#64748B"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="12.5"/>
-            <Setter Property="Padding" Value="14,8"/>
-            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -81,54 +81,51 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20,16">
             <StackPanel>
 
-                <!-- ================= 1. HEADER: TIÊU ĐỀ & ĐỐI TƯỢNG SỬ DỤNG ================= -->
+                <!-- ================= 1. HEADER TINH GỌN: HUB TRUNG CHUYỂN BƯU KIỆN ================= -->
                 <Grid Margin="0,0,0,14">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="🏢" FontSize="24" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock Text="Phân Hệ Quản Lý Kho Bãi Toàn Diện (WMS Hub)" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
-                            <Border Background="#F0FDF4" CornerRadius="6" Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="DÀNH CHO: NHÂN VIÊN KHO &amp; QUẢN LÝ KHO" FontSize="11" FontWeight="Bold" Foreground="#166534"/>
+                            <TextBlock Text="🏢" FontSize="22" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="Trung Tâm Khai Thác &amp; Trung Chuyển Bưu Kiện (Hub Logistics)" FontSize="19" FontWeight="Bold" Foreground="#0F172A"/>
+                            <Border Background="#F0FDF4" CornerRadius="6" Padding="8,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="BƯU CỤC &amp; HUB TRUNG CHUYỂN" FontSize="11" FontWeight="Bold" Foreground="#166534"/>
                             </Border>
                         </StackPanel>
-                        <TextBlock Text="Tiếp nhận nguồn gửi • Phân luồng Dock • Tồn kho &amp; Kiểm kê • Sơ đồ ô kệ • Điều chuyển • Xuất kho &amp; Nhật ký" 
-                                   FontSize="12.5" Foreground="#64748B" Margin="0,3,0,0"/>
+                        <TextBlock Text="Tiếp nhận hàng về Hub • Phân luồng bưu kiện • Máng tuyến giao phát &amp; Xe tải trung chuyển liên tỉnh" 
+                                   FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
                     </StackPanel>
 
                     <!-- Nút làm mới dữ liệu -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button x:Name="btnLamMoiKho" Style="{StaticResource NutThaoTacKhoStyle}" Height="38" Padding="14,0" 
+                        <Button x:Name="btnLamMoiKho" Style="{StaticResource NutThaoTacKhoStyle}" Height="36" Padding="14,0" 
                                 Background="#F1F5F9" Foreground="#334155" BorderBrush="#CBD5E1" BorderThickness="1" Click="BtnLamMoiKho_Click">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="🔄" Margin="0,0,6,0" FontSize="12"/>
-                                <TextBlock Text="Làm Mới Dữ Liệu" FontSize="12.5"/>
+                                <TextBlock Text="Làm Mới Dữ Liệu" FontSize="12"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
                 </Grid>
 
-                <!-- ================= 2. THANH ĐIỀU HƯỚNG 7 NHÁNH CHỨC NĂNG ================= -->
+                <!-- ================= 2. THANH ĐIỀU HƯỚNG 6 NHÁNH LOGISTICS (KHÔNG BỊ TRÀN CUỘN) ================= -->
                 <Border Background="White" CornerRadius="10" Padding="8,6" Margin="0,0,0,16" BorderBrush="#E2E8F0" BorderThickness="1">
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                        <StackPanel Orientation="Horizontal">
-                            <RadioButton x:Name="tabTongQuanKho" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📊 1. Tổng Quan &amp; Sức Chứa" IsChecked="True" Checked="TabNghiepVu_Checked"/>
-                            <RadioButton x:Name="tabTiepNhanHang" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📥 2. Tiếp Nhận &amp; Nhập Kho (Xe Tải / Khách Lẻ)" Checked="TabNghiepVu_Checked"/>
-                            <RadioButton x:Name="tabPhanLoaiHang" Style="{StaticResource TabNghiepVuKhoStyle}" Content="🏷️ 3. Phân Luồng Bưu Kiện Tại Dock" Checked="TabNghiepVu_Checked"/>
-                            <RadioButton x:Name="tabHangLuuKho" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📦 4. Tồn Kho &amp; Kiểm Kê" Checked="TabNghiepVu_Checked"/>
-                            <RadioButton x:Name="tabViTriLuuTru" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📍 5. Vị Trí Lưu Trữ &amp; Bản Đồ Ô Kệ" Checked="TabNghiepVu_Checked"/>
-                            <RadioButton x:Name="tabXuatHang" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📤 6. Xuất Kho (Chặng Cuối / Xe Tải)" Checked="TabNghiepVu_Checked"/>
-                            <RadioButton x:Name="tabLichSuNhapXuat" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📜 7. Lịch Sử Biến Động &amp; Sổ Nhật Ký Kho" Checked="TabNghiepVu_Checked"/>
-                        </StackPanel>
-                    </ScrollViewer>
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="tabTongQuanKho" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📊 1. Tổng Quan Sức Chứa" IsChecked="True" Checked="TabNghiepVu_Checked"/>
+                        <RadioButton x:Name="tabTiepNhanHang" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📥 2. Tiếp Nhận Vào Hub" Checked="TabNghiepVu_Checked"/>
+                        <RadioButton x:Name="tabPhanLoaiHang" Style="{StaticResource TabNghiepVuKhoStyle}" Content="🏷️ 3. Phân Luồng Bưu Kiện" Checked="TabNghiepVu_Checked"/>
+                        <RadioButton x:Name="tabViTriLuuTru" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📍 4. Máng Tuyến &amp; Ô Kệ" Checked="TabNghiepVu_Checked"/>
+                        <RadioButton x:Name="tabXuatHang" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📤 5. Xuất Kho &amp; Bàn Giao" Checked="TabNghiepVu_Checked"/>
+                        <RadioButton x:Name="tabLichSuNhapXuat" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📜 6. Nhật Ký Biến Động Hub" Checked="TabNghiepVu_Checked"/>
+                    </StackPanel>
                 </Border>
 
                 <!-- ================= 3. NỘI DUNG TỪNG NHÁNH CHỨC NĂNG ================= -->
 
                 <!-- ========================================================================= -->
-                <!-- NHÁNH 1: TỔNG QUAN KHO (WAREHOUSE OVERVIEW) -->
+                <!-- NHÁNH 1: TỔNG QUAN HUB (OVERVIEW & CAPACITY) -->
                 <!-- ========================================================================= -->
                 <StackPanel x:Name="panelTongQuanKho" Visibility="Visible">
-                    <!-- Banner Cảnh Báo Quá Tải (Hiện khi có phân khu > 85%) -->
+                    <!-- Banner Cảnh Báo Quá Tải -->
                     <Border x:Name="brdCanhBaoSucChua" Background="#FEF2F2" BorderBrush="#FCA5A5" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,14" Visibility="Collapsed">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="⚠️" FontSize="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
@@ -136,7 +133,7 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Thẻ KPI Thống Kê Tổng Quan -->
+                    <!-- Thẻ KPI Thống Kê Vận Hành Hub -->
                     <Grid Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -145,21 +142,21 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- KPI 1: Tỷ lệ lấp đầy kho -->
+                        <!-- KPI 1: Tỷ lệ lấp đầy sàn kho -->
                         <Border Grid.Column="0" Style="{StaticResource TheKpiKhoStyle}">
                             <StackPanel>
-                                <TextBlock Text="TỶ LỆ LẤP ĐẦY KHO BÃI" FontSize="11" FontWeight="SemiBold" Foreground="#64748B"/>
+                                <TextBlock Text="TỶ LỆ LẤP ĐẦY SÀN &amp; Ô KỆ" FontSize="11" FontWeight="SemiBold" Foreground="#64748B"/>
                                 <TextBlock x:Name="txtTyLeLapDayKho" Text="46.5%" FontSize="24" FontWeight="Bold" Foreground="#2563EB" Margin="0,4,0,0"/>
                                 <TextBlock x:Name="txtTrangThaiTongThe" Text="Đang ở mức tải trọng an toàn" FontSize="11" Foreground="#059669"/>
                             </StackPanel>
                         </Border>
 
-                        <!-- KPI 2: Mặt hàng lưu kho -->
+                        <!-- KPI 2: Bưu kiện đang lưu Hub chờ phân luồng/xuất phát -->
                         <Border Grid.Column="1" Style="{StaticResource TheKpiKhoStyle}">
                             <StackPanel>
-                                <TextBlock Text="MẶT HÀNG ĐANG LƯU KHO" FontSize="11" FontWeight="SemiBold" Foreground="#64748B"/>
-                                <TextBlock x:Name="txtTongMatHangLuuKho" Text="4 SKU (251 kiện)" FontSize="22" FontWeight="Bold" Foreground="#7C3AED" Margin="0,4,0,0"/>
-                                <TextBlock Text="Sản phẩm đã phân loại vị trí" FontSize="11" Foreground="#94A3B8"/>
+                                <TextBlock Text="BƯU KIỆN ĐANG LƯU TẠI HUB" FontSize="11" FontWeight="SemiBold" Foreground="#64748B"/>
+                                <TextBlock x:Name="txtTongBuuKienLuuHub" Text="102 bưu kiện" FontSize="22" FontWeight="Bold" Foreground="#7C3AED" Margin="0,4,0,0"/>
+                                <TextBlock Text="Chờ phân luồng &amp; xuất phát" FontSize="11" Foreground="#94A3B8"/>
                             </StackPanel>
                         </Border>
 
@@ -168,16 +165,16 @@
                             <StackPanel>
                                 <TextBlock Text="TIẾP NHẬN HÔM NAY" FontSize="11" FontWeight="SemiBold" Foreground="#64748B"/>
                                 <TextBlock x:Name="txtTiepNhanHomNay" Text="4 lô hàng (766 kg)" FontSize="22" FontWeight="Bold" Foreground="#059669" Margin="0,4,0,0"/>
-                                <TextBlock Text="Từ Hub, B2B, Shop &amp; Khách lẻ" FontSize="11" Foreground="#94A3B8"/>
+                                <TextBlock Text="Từ xe tải Linehaul &amp; Khách lẻ" FontSize="11" Foreground="#94A3B8"/>
                             </StackPanel>
                         </Border>
 
                         <!-- KPI 4: Xuất kho hôm nay -->
                         <Border Grid.Column="3" Style="{StaticResource TheKpiKhoStyle}" Margin="0">
                             <StackPanel>
-                                <TextBlock Text="ĐÃ XUẤT KHO HÔM NAY" FontSize="11" FontWeight="SemiBold" Foreground="#64748B"/>
-                                <TextBlock x:Name="txtXuatKhoHomNay" Text="12 chuyến (58 bưu kiện)" FontSize="22" FontWeight="Bold" Foreground="#D97706" Margin="0,4,0,0"/>
-                                <TextBlock Text="Giao chặng cuối &amp; Trung chuyển" FontSize="11" Foreground="#94A3B8"/>
+                                <TextBlock Text="ĐÃ XUẤT PHÁT HÔM NAY" FontSize="11" FontWeight="SemiBold" Foreground="#64748B"/>
+                                <TextBlock x:Name="txtXuatKhoHomNay" Text="12 chuyến đã xuất" FontSize="22" FontWeight="Bold" Foreground="#D97706" Margin="0,4,0,0"/>
+                                <TextBlock Text="Bàn giao Shipper &amp; Xe trung chuyển" FontSize="11" Foreground="#94A3B8"/>
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -192,13 +189,13 @@
                         <!-- Cột trái: Tải trọng theo từng phân khu kho (Tự động tính toán động) -->
                         <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="18" BorderBrush="#E2E8F0" BorderThickness="1" Margin="0,0,14,0">
                             <StackPanel>
-                                <TextBlock Text="SỨC CHỨA &amp; TẢI TRỌNG THỜI GIAN THỰC CÁC PHÂN KHU" FontSize="14" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,14"/>
+                                <TextBlock Text="SỨC CHỨA &amp; TẢI TRỌNG THỜI GIAN THỰC TẠI CÁC PHÂN KHU" FontSize="14" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,14"/>
 
                                 <!-- Khu A: Tiêu chuẩn -->
                                 <Border Background="#F8FAFC" CornerRadius="8" Padding="12" Margin="0,0,0,10">
                                     <StackPanel>
                                         <Grid>
-                                            <TextBlock Text="🏢 Khu A: Khu Lưu Kho Tiêu Chuẩn (Điện Tử &amp; May Mặc)" FontWeight="SemiBold" FontSize="12.5" Foreground="#0F172A"/>
+                                            <TextBlock Text="🏢 Khu A: Khu Lưu Bưu Kiện Tiêu Chuẩn" FontWeight="SemiBold" FontSize="12.5" Foreground="#0F172A"/>
                                             <TextBlock x:Name="txtKhuAInfo" Text="1,250 kg / 2,000 kg (62.5%)" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#2563EB"/>
                                         </Grid>
                                         <ProgressBar x:Name="pbKhuA" Height="8" Value="62.5" Maximum="100" Foreground="#2563EB" Background="#E2E8F0" BorderThickness="0" Margin="0,8,0,0"/>
@@ -209,7 +206,7 @@
                                 <Border Background="#F8FAFC" CornerRadius="8" Padding="12" Margin="0,0,0,10">
                                     <StackPanel>
                                         <Grid>
-                                            <TextBlock Text="⚡ Khu EXP: Khu Hàng Hỏa Tốc (Mỹ Phẩm &amp; Điện Thoại)" FontWeight="SemiBold" FontSize="12.5" Foreground="#0F172A"/>
+                                            <TextBlock Text="⚡ Khu EXP: Khu Bưu Kiện Hỏa Tốc &amp; Khẩn Cấp" FontWeight="SemiBold" FontSize="12.5" Foreground="#0F172A"/>
                                             <TextBlock x:Name="txtKhuEXPInfo" Text="120 kg / 500 kg (24.0%)" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#7C3AED"/>
                                         </Grid>
                                         <ProgressBar x:Name="pbKhuEXP" Height="8" Value="24" Maximum="100" Foreground="#7C3AED" Background="#E2E8F0" BorderThickness="0" Margin="0,8,0,0"/>
@@ -220,7 +217,7 @@
                                 <Border Background="#F8FAFC" CornerRadius="8" Padding="12">
                                     <StackPanel>
                                         <Grid>
-                                            <TextBlock Text="📥 Dock Inbound: Khu Tiếp Nhận &amp; Chờ Phân Luồng" FontWeight="SemiBold" FontSize="12.5" Foreground="#0F172A"/>
+                                            <TextBlock Text="📥 Sàn Dock Inbound: Khu Tiếp Nhận &amp; Chờ Phân Luồng" FontWeight="SemiBold" FontSize="12.5" Foreground="#0F172A"/>
                                             <TextBlock x:Name="txtKhuDockInfo" Text="950 kg / 2,000 kg (47.5%)" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#059669"/>
                                         </Grid>
                                         <ProgressBar x:Name="pbKhuDock" Height="8" Value="47.5" Maximum="100" Foreground="#059669" Background="#E2E8F0" BorderThickness="0" Margin="0,8,0,0"/>
@@ -232,13 +229,13 @@
                         <!-- Cột phải: Thao tác nhanh & Phím tắt quản lý kho -->
                         <Border Grid.Column="1" Background="White" CornerRadius="12" Padding="18" BorderBrush="#E2E8F0" BorderThickness="1">
                             <StackPanel>
-                                <TextBlock Text="THAO TÁC NHANH TRONG CA LÀM VIỆC" FontSize="14" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,14"/>
+                                <TextBlock Text="QUY TRÌNH THAO TÁC TẠI HUB LOGISTICS" FontSize="14" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,14"/>
 
                                 <Button Style="{StaticResource NutThaoTacKhoStyle}" Height="42" Background="#EFF6FF" Foreground="#2563EB"
                                         Padding="12,0" Margin="0,0,0,8" Click="BtnChuyenSangTiepNhan_Click">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="📥" Margin="0,0,8,0" FontSize="14"/>
-                                        <TextBlock Text="Tiếp Nhận Đơn Mới Vào Kho (Ghi Giờ)" FontSize="12.5" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Bước 1: Tiếp Nhận Hàng Vào Hub (Xe Tải / Quầy)" FontSize="12.5" FontWeight="SemiBold"/>
                                     </StackPanel>
                                 </Button>
 
@@ -246,15 +243,15 @@
                                         Padding="12,0" Margin="0,0,0,8" Click="BtnChuyenSangPhanLoai_Click">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="🏷️" Margin="0,0,8,0" FontSize="14"/>
-                                        <TextBlock Text="Phân Luồng Bưu Kiện Tại Dock" FontSize="12.5" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Bước 2: Phân Luồng (Giao Chặng Cuối vs Trung Chuyển)" FontSize="12.5" FontWeight="SemiBold"/>
                                     </StackPanel>
                                 </Button>
 
                                 <Button Style="{StaticResource NutThaoTacKhoStyle}" Height="42" Background="#FEF3C7" Foreground="#B45309"
-                                        Padding="12,0" Margin="0,0,0,8" Click="BtnMoKiemKeKho_Click">
+                                        Padding="12,0" Margin="0,0,0,8" Click="BtnChuyenSangViTri_Click">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="📋" Margin="0,0,8,0" FontSize="14"/>
-                                        <TextBlock Text="Kiểm Kê &amp; Cân Bằng Tồn Kho" FontSize="12.5" FontWeight="SemiBold"/>
+                                        <TextBlock Text="📍" Margin="0,0,8,0" FontSize="14"/>
+                                        <TextBlock Text="Bước 3: Bản Đồ Máng Tuyến &amp; Ô Kệ Chờ Xuất" FontSize="12.5" FontWeight="SemiBold"/>
                                     </StackPanel>
                                 </Button>
 
@@ -262,7 +259,7 @@
                                         Padding="12,0" Margin="0,0,0,8" Click="BtnChuyenSangXuatHang_Click">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="📤" Margin="0,0,8,0" FontSize="14"/>
-                                        <TextBlock Text="Xác Nhận Xuất Hàng Khỏi Kho" FontSize="12.5" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Bước 4: Xác Nhận Xuất Kho &amp; Bàn Giao Vận Tải" FontSize="12.5" FontWeight="SemiBold"/>
                                     </StackPanel>
                                 </Button>
 
@@ -270,7 +267,7 @@
                                         BorderBrush="#CBD5E1" BorderThickness="1" Padding="12,0" Click="BtnChuyenSangLichSu_Click">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="📜" Margin="0,0,8,0" FontSize="14"/>
-                                        <TextBlock Text="Xem Nhật Ký Nhập / Xuất Kho" FontSize="12.5" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Tra Cứu Nhật Ký Biến Động Hub" FontSize="12.5" FontWeight="SemiBold"/>
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
@@ -303,7 +300,7 @@
                                     <TextBlock Text="🛵" FontSize="18" Margin="0,0,6,0"/>
                                     <TextBlock Text="HÀNG GIAO CHẶNG CUỐI (LAST-MILE)" FontSize="13" FontWeight="Bold" Foreground="#6D28D9"/>
                                 </StackPanel>
-                                <TextBlock Text="Bưu kiện phát cho khách nhận tại nội thành (Hà Nội, Thái Nguyên...). Sau khi phân loại sẽ xếp vào máng gom tuyến của Shipper bưu tá để xuất phát." 
+                                <TextBlock Text="Bưu kiện phát cho khách nhận tại nội tỉnh/nội thành (Thái Nguyên: Sông Công, Phổ Yên, Đại Từ...). Sau khi phân loại sẽ xếp vào máng gom tuyến của Shipper để giao luôn trong ngày." 
                                            FontSize="12" Foreground="#5B21B6" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
@@ -315,7 +312,7 @@
                                     <TextBlock Text="🚛" FontSize="18" Margin="0,0,6,0"/>
                                     <TextBlock Text="HÀNG TRUNG CHUYỂN LIÊN TỈNH (TRANSIT)" FontSize="13" FontWeight="Bold" Foreground="#B45309"/>
                                 </StackPanel>
-                                <TextBlock Text="Bưu kiện chuyển tiếp sang các Hub trung chuyển liên tỉnh (Đà Nẵng, TP.HCM, Hải Phòng...). Sau khi phân loại sẽ xếp lên Pallet chuyển ra cửa xuất xe tải đường dài." 
+                                <TextBlock Text="Bưu kiện chuyển tiếp sang các Hub liên tỉnh (Hà Nội, Hải Phòng, Đà Nẵng, TP.HCM...). Sau khi phân loại sẽ xếp lên Pallet chuyển ra cửa xuất xe tải đường dài." 
                                            FontSize="12" Foreground="#92400E" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
@@ -363,7 +360,7 @@
                                     <DataGridTextColumn Header="Mô Tả Hàng Hóa" Binding="{Binding ProductSummary}" Width="180"/>
                                     <DataGridTextColumn Header="Khối Lượng" Binding="{Binding Weight, StringFormat='{}{0:N1} kg'}" Width="95"/>
                                     <DataGridTextColumn Header="Bên Nhận / Địa Chỉ" Binding="{Binding ReceiverAddress}" Width="*"/>
-                                    <DataGridTextColumn Header="Khu Vực Đích" Binding="{Binding DestinationArea}" Width="120"/>
+                                    <DataGridTextColumn Header="Khu Vực Đích" Binding="{Binding DestinationArea}" Width="140"/>
                                     
                                     <!-- Cột nút thao tác phân luồng -->
                                     <DataGridTemplateColumn Header="Thao Tác Phân Loại" Width="260">
@@ -372,12 +369,12 @@
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                     <Button Style="{StaticResource NutThaoTacKhoStyle}" Height="28" Padding="8,0" FontSize="11" Margin="0,0,6,0"
                                                             Background="#F5F3FF" Foreground="#6D28D9" BorderBrush="#DDD6FE" BorderThickness="1"
-                                                            Click="BtnPhanLoaiChangCuoi_Click" ToolTip="Phân loại vào luồng giao chặng cuối cho Shipper nội thành">
+                                                            Click="BtnPhanLoaiChangCuoi_Click" ToolTip="Phân loại vào máng gom tuyến của Shipper nội tỉnh">
                                                         <TextBlock Text="🛵 Chặng Cuối"/>
                                                     </Button>
                                                     <Button Style="{StaticResource NutThaoTacKhoStyle}" Height="28" Padding="8,0" FontSize="11"
                                                             Background="#FFFBEB" Foreground="#B45309" BorderBrush="#FDE68A" BorderThickness="1"
-                                                            Click="BtnPhanLoaiTrungChuyen_Click" ToolTip="Phân loại vào luồng xuất xe tải trung chuyển liên tỉnh">
+                                                            Click="BtnPhanLoaiTrungChuyen_Click" ToolTip="Phân loại vào Pallet xuất xe tải trung chuyển liên tỉnh">
                                                         <TextBlock Text="🚛 Trung Chuyển"/>
                                                     </Button>
                                                 </StackPanel>
@@ -391,99 +388,15 @@
                 </StackPanel>
 
                 <!-- ========================================================================= -->
-                <!-- NHÁNH 4: HÀNG ĐANG LƯU KHO & KIỂM KÊ (STORED INVENTORY & STOCK COUNT) -->
-                <!-- ========================================================================= -->
-                <StackPanel x:Name="panelHangLuuKho" Visibility="Collapsed">
-                    <Border Background="White" CornerRadius="12" Padding="18" BorderBrush="#E2E8F0" BorderThickness="1">
-                        <StackPanel>
-                            <!-- Header & Tìm kiếm & Phím tắt kiểm kê -->
-                            <Grid Margin="0,0,0,14">
-                                <StackPanel>
-                                    <TextBlock Text="THEO DÕI HÀNG HÓA ĐANG TỒN &amp; KIỂM KÊ KHO" FontSize="15" FontWeight="Bold" Foreground="#0F172A"/>
-                                    <TextBlock Text="Kiểm soát số lượng thực tế, số lượng đã giữ chỗ cho đơn và cân bằng tồn kho" FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
-                                </StackPanel>
-
-                                <!-- Hộp công cụ thao tác -->
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                    <!-- CheckBox Lọc Hàng Tồn Thấp -->
-                                    <CheckBox x:Name="chkChiHienTonThap" Content="⚠️ Chỉ tồn thấp (Dưới an toàn)" VerticalAlignment="Center" 
-                                              Margin="0,0,12,0" FontWeight="SemiBold" Foreground="#D97706" 
-                                              Checked="ChkChiHienTonThap_Changed" Unchecked="ChkChiHienTonThap_Changed"/>
-
-                                    <!-- Ô lọc tìm kiếm -->
-                                    <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8" Height="36" Width="220" Margin="0,0,8,0">
-                                        <Grid Margin="10,0">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="20"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Text="🔍" FontSize="12" VerticalAlignment="Center" Foreground="#94A3B8"/>
-                                            <TextBox x:Name="txtTimKiemTonKho" Grid.Column="1" Margin="4,0" FontSize="12" Background="Transparent" BorderThickness="0" VerticalAlignment="Center" TextChanged="TxtTimKiemTonKho_TextChanged"/>
-                                        </Grid>
-                                    </Border>
-
-                                    <!-- Nút Mở Phiếu Kiểm Kê -->
-                                    <Button x:Name="btnMoKiemKeKho" Style="{StaticResource NutThaoTacKhoStyle}" Height="36" Padding="14,0" 
-                                            Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" Foreground="#1D4ED8" Margin="0,0,8,0" Click="BtnMoKiemKeKho_Click">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="📋" Margin="0,0,6,0" FontSize="12"/>
-                                            <TextBlock Text="Kiểm Kê / Cân Bằng Tồn" FontSize="12"/>
-                                        </StackPanel>
-                                    </Button>
-
-                                    <Button Style="{StaticResource NutThaoTacKhoStyle}" Height="36" Padding="12,0" Background="#F1F5F9" Foreground="#334155" BorderBrush="#CBD5E1" BorderThickness="1" Click="BtnLamMoiKho_Click">
-                                        <TextBlock Text="Tải Lại"/>
-                                    </Button>
-                                </StackPanel>
-                            </Grid>
-
-                            <!-- Bảng DataGrid Tồn Kho -->
-                            <DataGrid x:Name="dgHangDangLuuKho" AutoGenerateColumns="False" CanUserAddRows="False"
-                                      IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column"
-                                      SelectionUnit="Cell" SelectionMode="Single"
-                                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                                      ScrollViewer.CanContentScroll="False"
-                                      BorderThickness="1" BorderBrush="#E2E8F0" Background="White" RowHeight="44">
-                                <DataGrid.Resources>
-                                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#EFF6FF"/>
-                                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#1D4ED8"/>
-                                </DataGrid.Resources>
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Mã SKU" Binding="{Binding ProductCode}" FontWeight="Bold" Width="120"/>
-                                    <DataGridTextColumn Header="Tên Hàng Hóa" Binding="{Binding ProductName}" Width="*"/>
-                                    <DataGridTextColumn Header="Vị Trí Kệ" Binding="{Binding LocationCode}" FontWeight="SemiBold" Foreground="#2563EB" Width="130"/>
-                                    <DataGridTextColumn Header="Tồn Thực Tế" Binding="{Binding Quantity}" FontWeight="Bold" Width="95"/>
-                                    <DataGridTextColumn Header="Đang Giữ Chỗ" Binding="{Binding ReservedQuantity}" Width="105"/>
-                                    <DataGridTextColumn Header="Hàng Hỏng" Binding="{Binding DamagedQuantity}" Foreground="#DC2626" Width="90"/>
-                                    <DataGridTextColumn Header="Khả Dụng Xuất" Binding="{Binding AvailableQuantity}" FontWeight="Bold" Foreground="#059669" Width="110"/>
-                                    <DataGridTextColumn Header="Định Mức An Toàn" Binding="{Binding MinStockLevel}" Width="125"/>
-                                    <DataGridTextColumn Header="Số Lô (Lot)" Binding="{Binding BatchNumber}" Width="120"/>
-                                    <DataGridTextColumn Header="Lần Nhập Gần Nhất" Binding="{Binding LastImportDate, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" Width="140"/>
-                                    <DataGridTemplateColumn Header="Trạng Thái Tồn" Width="130">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <Border CornerRadius="10" Padding="8,3" HorizontalAlignment="Left" Background="#F1F5F9">
-                                                    <TextBlock Text="{Binding StockStatusText}" Foreground="{Binding StatusColor}" FontWeight="Bold" FontSize="11"/>
-                                                </Border>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-
-                <!-- ========================================================================= -->
-                <!-- NHÁNH 5: VỊ TRÍ LƯU TRỮ & ĐIỀU CHUYỂN Ô KỆ (STORAGE LOCATIONS / PUT-AWAY) -->
+                <!-- NHÁNH 4: VỊ TRÍ MÁNG TUYẾN & Ô KỆ LƯU BÃI (SORTING LANES & RACKS) -->
                 <!-- ========================================================================= -->
                 <StackPanel x:Name="panelViTriLuuTru" Visibility="Collapsed">
                     <Border Background="White" CornerRadius="12" Padding="18" BorderBrush="#E2E8F0" BorderThickness="1">
                         <StackPanel>
                             <Grid Margin="0,0,0,16">
                                 <StackPanel>
-                                    <TextBlock Text="BẢN ĐỒ VỊ TRÍ Ô KỆ &amp; SỨC CHỨA TẢI TRỌNG (RACK MONITORING)" FontSize="15" FontWeight="Bold" Foreground="#0F172A"/>
-                                    <TextBlock Text="Theo dõi mức tải trọng thực tế (kg), thể tích tối đa (m3) và di dời hàng hóa giữa các ô kệ" FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
+                                    <TextBlock Text="BẢN ĐỒ VỊ TRÍ MÁNG TUYẾN &amp; Ô KỆ LƯU BÃI TẠI HUB" FontSize="15" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <TextBlock Text="Theo dõi mức tải trọng thực tế (kg), công suất chứa của từng máng gom tuyến và ô kệ trung chuyển" FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
                                 </StackPanel>
 
                                 <!-- Nút Lọc Phân Khu & Nút Điều Chuyển -->
@@ -498,7 +411,7 @@
                                                 <TextBlock Text="Khu A"/>
                                             </Button>
                                             <Button Style="{StaticResource NutThaoTacKhoStyle}" Height="30" Padding="10,0" Background="Transparent" Foreground="#64748B" Tag="EXP" Click="BtnLocZone_Click">
-                                                <TextBlock Text="Khu EXP"/>
+                                                <TextBlock Text="Khu Hỏa Tốc"/>
                                             </Button>
                                             <Button Style="{StaticResource NutThaoTacKhoStyle}" Height="30" Padding="10,0" Background="Transparent" Foreground="#64748B" Tag="IN" Click="BtnLocZone_Click">
                                                 <TextBlock Text="Dock Inbound"/>
@@ -511,7 +424,7 @@
                                             Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" Foreground="#047857" Click="BtnMoDieuChuyenKe_Click">
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock Text="🔄" Margin="0,0,6,0" FontSize="12"/>
-                                            <TextBlock Text="Điều Chuyển Ô Kệ" FontSize="12"/>
+                                            <TextBlock Text="Điều Chuyển Máng/Kệ" FontSize="12"/>
                                         </StackPanel>
                                     </Button>
                                 </StackPanel>
@@ -560,22 +473,22 @@
                 </StackPanel>
 
                 <!-- ========================================================================= -->
-                <!-- NHÁNH 6: XUẤT KHO & BÀN GIAO VẬN TẢI (OUTBOUND LOGISTICS HUB) -->
+                <!-- NHÁNH 5: XUẤT KHO & BÀN GIAO VẬN TẢI (OUTBOUND LOGISTICS HUB) -->
                 <!-- ========================================================================= -->
                 <StackPanel x:Name="panelXuatHang" Visibility="Collapsed">
                     <local:ExportManagementView x:Name="ucExportManagement"/>
                 </StackPanel>
 
                 <!-- ========================================================================= -->
-                <!-- NHÁNH 7: LỊCH SỬ NHẬP / XUẤT (MOVEMENT AUDIT LOG) -->
+                <!-- NHÁNH 6: LỊCH SỬ BIẾN ĐỘNG HUB & AUDIT TRAIL LOG -->
                 <!-- ========================================================================= -->
                 <StackPanel x:Name="panelLichSuNhapXuat" Visibility="Collapsed">
                     <Border Background="White" CornerRadius="12" Padding="18" BorderBrush="#E2E8F0" BorderThickness="1">
                         <StackPanel>
                             <Grid Margin="0,0,0,14">
                                 <StackPanel>
-                                    <TextBlock Text="NHẬT KÝ BIẾN ĐỘNG KHO BÃI TOÀN DIỆN (AUDIT LOG)" FontSize="15" FontWeight="Bold" Foreground="#0F172A"/>
-                                    <TextBlock Text="Ghi nhận vết kiểm toán: Nhập kho, phân loại chặng cuối / trung chuyển, kiểm kê, điều chuyển và xuất hàng" FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
+                                    <TextBlock Text="NHẬT KÝ BIẾN ĐỘNG BƯU KIỆN TẠI HUB TOÀN DIỆN (AUDIT LOG)" FontSize="15" FontWeight="Bold" Foreground="#0F172A"/>
+                                    <TextBlock Text="Ghi nhận vết kiểm toán: Tiếp nhận hàng về, phân luồng chặng cuối / trung chuyển, điều chuyển và xuất kho" FontSize="12" Foreground="#64748B" Margin="0,2,0,0"/>
                                 </StackPanel>
 
                                 <!-- Bộ lọc đa chiều & Xuất CSV -->
@@ -588,8 +501,7 @@
                                         <ComboBoxItem Content="🚛 Phân Loại Trung Chuyển"/>
                                         <ComboBoxItem Content="📤 Xuất Hàng Chặng Cuối"/>
                                         <ComboBoxItem Content="🚚 Xuất Hàng Trung Chuyển"/>
-                                        <ComboBoxItem Content="🔄 Điều Chuyển Kệ"/>
-                                        <ComboBoxItem Content="📋 Kiểm Kê / Cân Bằng Tồn"/>
+                                        <ComboBoxItem Content="🔄 Điều Chuyển Máng/Kệ"/>
                                     </ComboBox>
 
                                     <!-- Ô tìm kiếm nhật ký -->
@@ -605,7 +517,7 @@
                                     </Border>
 
                                     <!-- Nút xuất báo cáo nhật ký ra CSV -->
-                                    <Button x:Name="btnXuatLichSuCsv" Style="{StaticResource NutThaoTacKhoStyle}" Height="36" Padding="14,0"
+                                    <Button x:Name="btnXuatLichSuCsv" Style="{StaticResource NutThaoTacKhoStyle}" Height="36" Padding="14,0" 
                                             Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" Foreground="#047857" Click="BtnXuatLichSuCsv_Click">
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock Text="📊" Margin="0,0,6,0" FontSize="12"/>
@@ -640,10 +552,10 @@
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
 
-                                    <DataGridTextColumn Header="Mặt Hàng / Kiện" Binding="{Binding ItemName}" Width="200"/>
+                                    <DataGridTextColumn Header="Bưu Kiện / Hàng Hóa" Binding="{Binding ItemName}" Width="200"/>
                                     <DataGridTextColumn Header="Khối Lượng" Binding="{Binding Weight, StringFormat='{}{0:N1} kg'}" Width="95"/>
                                     <DataGridTextColumn Header="Luồng Di Chuyển" Binding="{Binding SourceOrDestination}" Width="*"/>
-                                    <DataGridTextColumn Header="Vị Trí Kệ" Binding="{Binding LocationCode}" Width="130"/>
+                                    <DataGridTextColumn Header="Vị Trí Máng/Kệ" Binding="{Binding LocationCode}" Width="130"/>
                                     <DataGridTextColumn Header="Người Thực Hiện" Binding="{Binding OperatorName}" Width="140"/>
                                     <DataGridTextColumn Header="Ghi Chú" Binding="{Binding Notes}" Width="200"/>
                                 </DataGrid.Columns>
@@ -656,84 +568,7 @@
         </ScrollViewer>
 
         <!-- ========================================================================= -->
-        <!-- 4. POPUP OVERLAY: KIỂM KÊ & ĐIỀU CHỈNH TỒN KHO (STOCK ADJUSTMENT) -->
-        <!-- ========================================================================= -->
-        <Grid x:Name="modalKiemKeTonKho" Visibility="Collapsed" Background="#80000000">
-            <Border Background="White" CornerRadius="14" Width="620" Padding="24"
-                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                    BorderBrush="#CBD5E1" BorderThickness="1">
-                <StackPanel>
-                    <!-- Tiêu đề modal -->
-                    <Grid Margin="0,0,0,16">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="📋" FontSize="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Phiếu Kiểm Kê &amp; Cân Bằng Tồn Kho" FontSize="16" FontWeight="Bold" Foreground="#0F172A"/>
-                            </StackPanel>
-                            <TextBlock Text="Cập nhật số lượng kiểm đếm thực tế, hàng móp vỡ và ghi nhận lý do kiểm toán" FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
-                        </StackPanel>
-                        <Button Style="{StaticResource NutThaoTacKhoStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" 
-                                Width="30" Height="30" Background="#F1F5F9" Foreground="#64748B" Content="✕" FontWeight="Bold" FontSize="13" Click="BtnDongKiemKe_Click"/>
-                    </Grid>
-
-                    <!-- Chọn sản phẩm -->
-                    <TextBlock Text="MẶT HÀNG TỒN KHO CẦN KIỂM KÊ (*)" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,4"/>
-                    <ComboBox x:Name="cboChonSanPhamKiemKe" Height="38" Margin="0,0,0,10" VerticalContentAlignment="Center" SelectionChanged="CboChonSanPhamKiemKe_SelectionChanged"/>
-
-                    <!-- Thẻ thông tin tồn hiện tại -->
-                    <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,12">
-                        <TextBlock x:Name="txtThongTinTonHienTai" Text="Vui lòng chọn sản phẩm để xem số liệu tồn..." FontSize="12" Foreground="#2563EB" FontWeight="SemiBold"/>
-                    </Border>
-
-                    <!-- 2 cột: Số lượng thực tế & Số lượng hỏng -->
-                    <Grid Margin="0,0,0,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Số lượng đếm thực tế -->
-                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                            <TextBlock Text="SỐ LƯỢNG ĐẾM THỰC TẾ (KIỆN) (*)" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,4"/>
-                            <TextBox x:Name="txtSoLuongThucTe" Height="36" VerticalContentAlignment="Center" Padding="8,0" FontSize="13" FontWeight="Bold" Foreground="#0F172A"/>
-                        </StackPanel>
-
-                        <!-- Số lượng hư hỏng -->
-                        <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                            <TextBlock Text="SỐ LƯỢNG HƯ HỎNG / RÁCH MÓP" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,4"/>
-                            <TextBox x:Name="txtSoLuongHuHong" Height="36" VerticalContentAlignment="Center" Padding="8,0" FontSize="13" Text="0" Foreground="#DC2626"/>
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- Lý do điều chỉnh -->
-                    <TextBlock Text="LÝ DO ĐIỀU CHỈNH CHÊNH LỆCH (*)" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,4"/>
-                    <ComboBox x:Name="cboLyDoDieuChinh" Height="38" Margin="0,0,0,10" VerticalContentAlignment="Center">
-                        <ComboBoxItem Content="Hao hụt tự nhiên trong quá trình lưu bãi" IsSelected="True"/>
-                        <ComboBoxItem Content="Hàng hóa rách móp, bể vỡ bao bì trong kho"/>
-                        <ComboBoxItem Content="Kiểm đếm thừa / nhập dư từ lô trước"/>
-                        <ComboBoxItem Content="Bổ sung hàng từ bưu kiện trả về / xử lý khiếu nại"/>
-                        <ComboBoxItem Content="Khác (ghi rõ trong phần ghi chú)"/>
-                    </ComboBox>
-
-                    <!-- Ghi chú -->
-                    <TextBlock Text="GHI CHÚ / NGƯỜI THỰC HIỆN" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,4"/>
-                    <TextBox x:Name="txtGhiChuKiemKe" Height="60" TextWrapping="Wrap" AcceptsReturn="True" Padding="8,6" FontSize="12" Margin="0,0,0,16"/>
-
-                    <!-- Nút bấm xác nhận -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Style="{StaticResource NutThaoTacKhoStyle}" Height="38" Padding="16,0" Background="#F1F5F9" Foreground="#475569" Margin="0,0,8,0" Click="BtnDongKiemKe_Click">
-                            <TextBlock Text="Hủy Bỏ" FontWeight="SemiBold"/>
-                        </Button>
-                        <Button x:Name="btnXacNhanKiemKe" Style="{StaticResource NutThaoTacKhoStyle}" Height="38" Padding="20,0" Background="#2563EB" Foreground="White" Click="BtnXacNhanKiemKe_Click">
-                            <TextBlock Text="Xác Nhận Cân Bằng Tồn" FontWeight="Bold"/>
-                        </Button>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-        </Grid>
-
-        <!-- ========================================================================= -->
-        <!-- 5. POPUP OVERLAY: ĐIỀU CHUYỂN HÀNG GIỮA CÁC VỊ TRÍ Ô KỆ (PUT-AWAY / RELOCATION) -->
+        <!-- 4. POPUP OVERLAY: ĐIỀU CHUYỂN HÀNG GIỮA CÁC MÁNG TUYẾN / Ô KỆ ================= -->
         <!-- ========================================================================= -->
         <Grid x:Name="modalDieuChuyenKe" Visibility="Collapsed" Background="#80000000">
             <Border Background="White" CornerRadius="14" Width="620" Padding="24"
@@ -745,9 +580,9 @@
                         <StackPanel>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="🔄" FontSize="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Lệnh Điều Chuyển Hàng Giữa Các Ô Kệ" FontSize="16" FontWeight="Bold" Foreground="#0F172A"/>
+                                <TextBlock Text="Lệnh Điều Chuyển Hàng Giữa Máng Tuyến &amp; Ô Kệ" FontSize="16" FontWeight="Bold" Foreground="#0F172A"/>
                             </StackPanel>
-                            <TextBlock Text="Di dời khối lượng hàng hóa từ vị trí kệ nguồn sang vị trí kệ đích (Put-away)" FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
+                            <TextBlock Text="Di dời bưu kiện/hàng hóa từ vị trí máng nguồn sang vị trí máng đích (Relocation)" FontSize="12" Foreground="#64748B" Margin="0,3,0,0"/>
                         </StackPanel>
                         <Button Style="{StaticResource NutThaoTacKhoStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" 
                                 Width="30" Height="30" Background="#F1F5F9" Foreground="#64748B" Content="✕" FontWeight="Bold" FontSize="13" Click="BtnDongDieuChuyen_Click"/>
@@ -762,13 +597,13 @@
 
                         <!-- Vị trí nguồn -->
                         <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                            <TextBlock Text="VỊ TRÍ KỆ NGUỒN (XUẤT ĐI) (*)" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,4"/>
+                            <TextBlock Text="VỊ TRÍ NGUỒN (XUẤT ĐI) (*)" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,4"/>
                             <ComboBox x:Name="cboViTriNguon" Height="38" VerticalContentAlignment="Center"/>
                         </StackPanel>
 
                         <!-- Vị trí đích -->
                         <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                            <TextBlock Text="VỊ TRÍ KỆ ĐÍCH (CHUYỂN ĐẾN) (*)" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,4"/>
+                            <TextBlock Text="VỊ TRÍ ĐÍCH (CHUYỂN ĐẾN) (*)" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,4"/>
                             <ComboBox x:Name="cboViTriDich" Height="38" VerticalContentAlignment="Center"/>
                         </StackPanel>
                     </Grid>
@@ -786,8 +621,8 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                            <TextBlock Text="MÔ TẢ HÀNG HÓA / MẶT HÀNG (*)" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,4"/>
-                            <TextBox x:Name="txtMoTaHangDieuChuyen" Height="36" VerticalContentAlignment="Center" Padding="8,0" FontSize="12" Text="Chuyển lô hàng lưu bãi"/>
+                            <TextBlock Text="MÔ TẢ BƯU KIỆN / LÔ HÀNG (*)" FontSize="11" FontWeight="Bold" Foreground="#475569" Margin="0,0,0,4"/>
+                            <TextBox x:Name="txtMoTaHangDieuChuyen" Height="36" VerticalContentAlignment="Center" Padding="8,0" FontSize="12" Text="Di dời kiện hàng chờ ca phát"/>
                         </StackPanel>
                     </Grid>
 
