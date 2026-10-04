@@ -12,7 +12,8 @@ namespace Quanlykhohanglogicts
         SortingTransit,      // Phân loại hàng trung chuyển (liên tỉnh)
         OutboundLastMile,    // Xác nhận xuất kho giao chặng cuối
         OutboundTransit,     // Xác nhận xuất kho xe trung chuyển
-        StockRelocation      // Điều chuyển vị trí ô kệ trong kho
+        StockRelocation,     // Điều chuyển vị trí ô kệ trong kho
+        InventoryAdjustment  // Kiểm kê & Cân bằng tồn
     }
 
     /// <summary>
@@ -91,6 +92,7 @@ namespace Quanlykhohanglogicts
             WarehouseMovementType.OutboundLastMile => "📤 Xuất Hàng Chặng Cuối",
             WarehouseMovementType.OutboundTransit => "🚚 Xuất Hàng Trung Chuyển",
             WarehouseMovementType.StockRelocation => "🔄 Điều Chuyển Vị Trí Kệ",
+            WarehouseMovementType.InventoryAdjustment => "📋 Kiểm Kê / Cân Bằng Tồn",
             _ => "Biến động khác"
         };
 
@@ -105,6 +107,7 @@ namespace Quanlykhohanglogicts
             WarehouseMovementType.OutboundLastMile => "#059669",    // Xanh lá xuất phát
             WarehouseMovementType.OutboundTransit => "#2563EB",     // Xanh dương xuất xe tải
             WarehouseMovementType.StockRelocation => "#475569",     // Xám điều chuyển
+            WarehouseMovementType.InventoryAdjustment => "#9333EA", // Tím kiểm kê
             _ => "#64748B"
         };
     }

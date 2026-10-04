@@ -1853,6 +1853,103 @@ namespace Quanlykhohanglogicts
             AddWarehouseMovement(bienDong);
         }
 
+        /// <summary>
+        /// HÀM NGHIỆP VỤ: Kiểm kê & Cân bằng tồn kho (Stock Adjustment)
+        /// - Nhiệm vụ: Cập nhật số lượng kiểm đếm thực tế và hàng hỏng, tự động ghi nhật ký kiểm toán.
+        /// </summary>
+        public bool DieuChinhTonKho(int inventoryId, int soLuongThucTe, int soLuongHong, string lyDo, string nguoiThucHien, string ghiChu)
+        {
+            lock (_lock)
+            {
+                var tonKho = _inventories.FirstOrDefault(i => i.Id == inventoryId);
+                if (tonKho == null) return false;
+
+                int soLuongCu = tonKho.Quantity;
+                int chenhLech = soLuongThucTe - soLuongCu;
+
+                tonKho.Quantity = soLuongThucTe;
+                tonKho.DamagedQuantity = soLuongHong;
+
+                var maGD = $"GD-KK-{DateTime.Now:yyMMdd}-{new Random().Next(100, 999)}";
+                var bienDong = new WarehouseMovement
+                {
+                    TransactionCode = maGD,
+                    Timestamp = DateTime.Now,
+                    MovementType = WarehouseMovementType.InventoryAdjustment,
+                    ItemName = tonKho.ProductName,
+                    ReferenceCode = tonKho.ProductCode,
+                    Quantity = Math.Abs(chenhLech),
+                    LocationCode = tonKho.LocationCode,
+                    OperatorName = string.IsNullOrWhiteSpace(nguoiThucHien) ? "Thủ Kho Hệ Thống" : nguoiThucHien,
+                    Notes = $"Cân bằng tồn: {soLuongCu} -> {soLuongThucTe} (Lệch {(chenhLech >= 0 ? "+" : "")}{chenhLech}, Hỏng {soLuongHong}). Lý do: {lyDo}. {ghiChu}"
+                };
+
+                AddWarehouseMovement(bienDong);
+
+                _recentActivities.Insert(0, new RecentActivity
+                {
+                    Id = _recentActivities.Count + 1,
+                    Title = $"Kiểm kê điều chỉnh tồn {tonKho.ProductCode}",
+                    Description = $"Thực tế {soLuongThucTe} ({tonKho.LocationCode}). Lý do: {lyDo}",
+                    Timestamp = DateTime.Now,
+                    Type = ActivityType.System
+                });
+
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// HÀM NGHIỆP VỤ: Điều chuyển hàng hóa giữa các vị trí ô kệ (Put-away / Internal Relocation)
+        /// - Nhiệm vụ: Di dời khối lượng từ kệ nguồn sang kệ đích, cập nhật tải trọng và ghi nhật ký.
+        /// </summary>
+        public bool DieuChuyenViTriKe(int viTriNguonId, int viTriDichId, double khoiLuongChuyen, string moTaHang, string nguoiThucHien, string ghiChu)
+        {
+            lock (_lock)
+            {
+                var nguon = _locations.FirstOrDefault(l => l.Id == viTriNguonId);
+                var dich = _locations.FirstOrDefault(l => l.Id == viTriDichId);
+
+                if (nguon == null || dich == null || khoiLuongChuyen <= 0) return false;
+
+                // Trừ tải trọng nguồn
+                nguon.CurrentWeight = Math.Max(0, nguon.CurrentWeight - khoiLuongChuyen);
+                nguon.Status = nguon.CurrentWeight <= 0 ? LocationStatus.Empty : LocationStatus.PartiallyFull;
+
+                // Cộng tải trọng đích
+                dich.CurrentWeight = dich.CurrentWeight + khoiLuongChuyen;
+                dich.Status = dich.CurrentWeight >= dich.MaxWeightCapacity ? LocationStatus.Full : LocationStatus.PartiallyFull;
+
+                var maGD = $"GD-DC-{DateTime.Now:yyMMdd}-{new Random().Next(100, 999)}";
+                var bienDong = new WarehouseMovement
+                {
+                    TransactionCode = maGD,
+                    Timestamp = DateTime.Now,
+                    MovementType = WarehouseMovementType.StockRelocation,
+                    ItemName = string.IsNullOrWhiteSpace(moTaHang) ? "Hàng hóa điều chuyển" : moTaHang,
+                    ReferenceCode = $"{nguon.LocationCode} -> {dich.LocationCode}",
+                    Weight = khoiLuongChuyen,
+                    SourceOrDestination = $"{nguon.LocationCode} -> {dich.LocationCode}",
+                    LocationCode = dich.LocationCode,
+                    OperatorName = string.IsNullOrWhiteSpace(nguoiThucHien) ? "Thủ Kho Hệ Thống" : nguoiThucHien,
+                    Notes = $"Điều chuyển {khoiLuongChuyen:N1} kg từ {nguon.LocationCode} sang {dich.LocationCode}. {ghiChu}"
+                };
+
+                AddWarehouseMovement(bienDong);
+
+                _recentActivities.Insert(0, new RecentActivity
+                {
+                    Id = _recentActivities.Count + 1,
+                    Title = $"Điều chuyển ô kệ: {nguon.LocationCode} ➜ {dich.LocationCode}",
+                    Description = $"Khối lượng: {khoiLuongChuyen:N1} kg ({moTaHang})",
+                    Timestamp = DateTime.Now,
+                    Type = ActivityType.System
+                });
+
+                return true;
+            }
+        }
+
         #endregion
 
         #region Thống kê 7 chỉ số KPI phục vụ Trang Tổng Quan
