@@ -53,41 +53,46 @@
 
                 <!-- ================= HEADER: TIÊU ĐỀ & CÔNG CỤ NHANH ================= -->
                 <Grid Margin="0,0,0,16">
-                    <StackPanel>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="📤" FontSize="22" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock Text="Nghiệp Vụ Xuất Kho &amp; Bàn Giao Vận Tải (Outbound)" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
+                            <TextBlock Text="Xuất Kho &amp; Bàn Giao Vận Tải (Outbound)" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
                             <Border Background="#FEE2E2" CornerRadius="6" Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center">
                                 <TextBlock Text="XUẤT BẾN &amp; BIÊN BẢN BÀN GIAO" FontSize="11" FontWeight="Bold" Foreground="#DC2626"/>
                             </Border>
                         </StackPanel>
                         <TextBlock Text="Kiểm soát toàn bộ bưu kiện rời kho: Xuất giao chặng cuối cho Shipper • Điều xe tải trung chuyển liên tỉnh • In biên bản bàn giao" 
-                                   FontSize="12.5" Foreground="#64748B" Margin="0,4,0,0"/>
+                                   FontSize="12" Foreground="#64748B" Margin="0,4,10,0" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
 
                     <!-- Nút thao tác nhanh trên Header -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button x:Name="btnMoModalLapLenhXuat" Style="{StaticResource NutThaoTacXuatStyle}" Height="38" Padding="14,0" 
-                                Background="#2563EB" Foreground="White" Margin="0,0,10,0" Click="BtnMoModalLapLenhXuat_Click">
+                                Background="#2563EB" Foreground="White" Margin="0,0,8,0" Click="BtnMoModalLapLenhXuat_Click">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="➕" Margin="0,0,6,0" FontSize="13"/>
-                                <TextBlock Text="Lập Lệnh Xuất Kho Mới" FontWeight="Bold" FontSize="12.5"/>
+                                <TextBlock Text="Lập Lệnh Xuất Kho Mới" FontWeight="Bold" FontSize="12"/>
                             </StackPanel>
                         </Button>
 
                         <Button x:Name="btnInPhieuGanNhat" Style="{StaticResource NutThaoTacXuatStyle}" Height="38" Padding="14,0" 
-                                Background="#F0FDFA" BorderBrush="#99F6E4" BorderThickness="1" Foreground="#0F766E" Margin="0,0,10,0" Click="BtnInPhieuGanNhat_Click">
+                                Background="#F0FDFA" BorderBrush="#99F6E4" BorderThickness="1" Foreground="#0F766E" Margin="0,0,8,0" Click="BtnInPhieuGanNhat_Click">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="🖨️" Margin="0,0,6,0" FontSize="13"/>
-                                <TextBlock Text="In Phiếu Xuất Bàn Giao" FontWeight="SemiBold" FontSize="12.5"/>
+                                <TextBlock Text="In Phiếu Xuất Bàn Giao" FontWeight="SemiBold" FontSize="12"/>
                             </StackPanel>
                         </Button>
 
                         <Button x:Name="btnXuatExcelLichSu" Style="{StaticResource NutThaoTacXuatStyle}" Height="38" Padding="12,0" 
-                                Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" Foreground="#047857" Margin="0,0,10,0" Click="BtnXuatExcelLichSu_Click">
+                                Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" Foreground="#047857" Margin="0,0,8,0" Click="BtnXuatExcelLichSu_Click">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="📊" Margin="0,0,6,0" FontSize="12"/>
-                                <TextBlock Text="Xuất Báo Cáo Excel" FontWeight="SemiBold" FontSize="12.5"/>
+                                <TextBlock Text="Xuất Báo Cáo Excel" FontWeight="SemiBold" FontSize="12"/>
                             </StackPanel>
                         </Button>
 
@@ -95,7 +100,7 @@
                                 Background="#F1F5F9" Foreground="#334155" BorderBrush="#CBD5E1" Click="BtnLamMoiDuLieu_Click">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="🔄" Margin="0,0,6,0" FontSize="12"/>
-                                <TextBlock Text="Nạp Lại" FontSize="12.5"/>
+                                <TextBlock Text="Nạp Lại" FontSize="12"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -203,20 +208,89 @@
 
                         <DataGrid x:Name="dgLichSuXuatKho" AutoGenerateColumns="False" CanUserAddRows="False"
                                   IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                                  BorderThickness="1" BorderBrush="#E2E8F0" RowHeight="46"
+                                  BorderThickness="1" BorderBrush="#E2E8F0" RowHeight="48"
                                   Background="White" RowHeaderWidth="0" MaxHeight="520"
+                                  SelectionUnit="Cell" SelectionMode="Single"
                                   HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                                   ScrollViewer.CanContentScroll="False">
+                            <DataGrid.Resources>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#EFF6FF"/>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#1D4ED8"/>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#EFF6FF"/>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#1D4ED8"/>
+                            </DataGrid.Resources>
+
+                            <!-- Style Cell: Bấm vào ô nào thì DUY NHẤT ô đó đổi màu background, không đổi màu cả dòng -->
+                            <DataGrid.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Setter Property="Padding" Value="8,4"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="DataGridCell">
+                                                <Border Background="{TemplateBinding Background}" 
+                                                        BorderBrush="{TemplateBinding BorderBrush}" 
+                                                        BorderThickness="{TemplateBinding BorderThickness}" 
+                                                        Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <!-- Khi ô được bấm chuột chọn: Đổi màu background ô này sang xanh nhạt viền xanh -->
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#EFF6FF"/>
+                                            <Setter Property="BorderBrush" Value="#60A5FA"/>
+                                            <Setter Property="Foreground" Value="#1D4ED8"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.CellStyle>
+
+                            <!-- Style Row: Giữ background trắng, không đổi màu cả dòng khi có ô được click -->
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Background" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#F1F5F9"/>
+                                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#F8FAFC"/>
+                                        </Trigger>
+                                        <!-- Không đổi background toàn bộ dòng khi chọn -->
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="White"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+
+                            <DataGrid.ColumnHeaderStyle>
+                                <Style TargetType="DataGridColumnHeader">
+                                    <Setter Property="Background" Value="#F8FAFC"/>
+                                    <Setter Property="Foreground" Value="#475569"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="Padding" Value="10,8"/>
+                                    <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                </Style>
+                            </DataGrid.ColumnHeaderStyle>
+
                             <DataGrid.Columns>
                                 <!-- Cột 1: Mã giao dịch xuất kho -->
-                                <DataGridTextColumn Header="Mã Phiếu Xuất" Binding="{Binding TransactionCode}" FontWeight="Bold" Width="135"/>
+                                <DataGridTextColumn Header="Mã Phiếu Xuất" Binding="{Binding TransactionCode}" FontWeight="Bold" Width="125"/>
 
                                 <!-- Cột 2: Thời điểm xuất kho -->
                                 <DataGridTextColumn Header="Thời Điểm Xuất" Binding="{Binding Timestamp, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" 
-                                                    FontWeight="SemiBold" Foreground="#2563EB" Width="145"/>
+                                                    FontWeight="SemiBold" Foreground="#2563EB" Width="135"/>
 
                                 <!-- Cột 3: Mã vận đơn tham chiếu -->
-                                <DataGridTemplateColumn Header="Mã Đơn / Bưu Kiện" Width="175">
+                                <DataGridTemplateColumn Header="Mã Đơn / Bưu Kiện" Width="150">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Border Background="#F1F5F9" CornerRadius="6" Padding="8,4" HorizontalAlignment="Left">
@@ -227,7 +301,7 @@
                                 </DataGridTemplateColumn>
 
                                 <!-- Cột 4: Hình thức xuất -->
-                                <DataGridTemplateColumn Header="Hình Thức Xuất" Width="185">
+                                <DataGridTemplateColumn Header="Hình Thức Xuất" Width="175">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Border Background="#EFF6FF" CornerRadius="6" Padding="8,4" HorizontalAlignment="Left">
@@ -237,33 +311,57 @@
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
 
-                                <!-- Cột 5: Mặt hàng -->
-                                <DataGridTextColumn Header="Mặt Hàng Xuất" Binding="{Binding ItemName}" Width="200"/>
-
-                                <!-- Cột 6: Tài xế / Xe tiếp nhận -->
-                                <DataGridTextColumn Header="Bên Tiếp Nhận (Tài Xế / Xe)" Binding="{Binding SourceOrDestination}" FontWeight="SemiBold" Width="220"/>
-
-                                <!-- Cột 7: Khối lượng -->
-                                <DataGridTextColumn Header="Khối Lượng" Binding="{Binding Weight, StringFormat='{}{0:N1} kg'}" Width="100"/>
-
-                                <!-- Cột 8: Thủ kho thực hiện -->
-                                <DataGridTextColumn Header="Thủ Kho Xuất" Binding="{Binding OperatorName}" Width="140"/>
-
-                                <!-- Cột 9: Ghi chú -->
-                                <DataGridTextColumn Header="Ghi Chú Nghiệp Vụ" Binding="{Binding Notes}" Width="*"/>
-
-                                <!-- Cột 10: Thao tác In Phiếu -->
-                                <DataGridTemplateColumn Header="Thao Tác" Width="110">
+                                <!-- Cột 5: Mặt hàng xuất -->
+                                <DataGridTemplateColumn Header="Mặt Hàng Xuất" Width="170">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Style="{StaticResource NutThaoTacXuatStyle}" Height="30" Padding="10,0" 
-                                                    Background="#0D9488" Foreground="White" FontSize="11.5"
-                                                    Click="BtnInPhieuRow_Click">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="🖨️" Margin="0,0,4,0"/>
-                                                    <TextBlock Text="In Phiếu"/>
-                                                </StackPanel>
-                                            </Button>
+                                            <TextBlock Text="{Binding ItemName}" FontSize="12" Foreground="#1E293B" 
+                                                       TextTrimming="CharacterEllipsis" ToolTip="{Binding ItemName}" VerticalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Cột 6: Bên tiếp nhận -->
+                                <DataGridTemplateColumn Header="Bên Tiếp Nhận (Tài Xế / Xe)" Width="190">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding SourceOrDestination}" FontWeight="SemiBold" FontSize="12" Foreground="#0F172A" 
+                                                       TextTrimming="CharacterEllipsis" ToolTip="{Binding SourceOrDestination}" VerticalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Cột 7: Khối lượng -->
+                                <DataGridTextColumn Header="Khối Lượng" Binding="{Binding Weight, StringFormat='{}{0:N1} kg'}" Width="90"/>
+
+                                <!-- Cột 8: Thủ kho thực hiện -->
+                                <DataGridTextColumn Header="Thủ Kho Xuất" Binding="{Binding OperatorName}" Width="120"/>
+
+                                <!-- Cột 9: Ghi chú xuất kho (Hiển thị đầy đủ chữ, tự ngắt dòng và có Tooltip xem toàn bộ) -->
+                                <DataGridTemplateColumn Header="Ghi Chú Xuất Kho" Width="*" MinWidth="260">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" MaxHeight="42" 
+                                                       VerticalAlignment="Center" ToolTip="{Binding Notes}" 
+                                                       FontSize="12" Foreground="#334155" LineHeight="16"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Cột 10: Thao tác In Phiếu (Khoảng cách thoáng đãng, căn giữa chuẩn, không bị đè) -->
+                                <DataGridTemplateColumn Header="Thao Tác" Width="120">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Button Style="{StaticResource NutThaoTacXuatStyle}" Height="30" Padding="12,0" 
+                                                        Background="#0D9488" Foreground="White" FontSize="11.5"
+                                                        Click="BtnInPhieuRow_Click" ToolTip="In phiếu xuất kho kiêm biên bản bàn giao">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="🖨️" Margin="0,0,5,0" FontSize="11"/>
+                                                        <TextBlock Text="In Phiếu" FontWeight="SemiBold"/>
+                                                    </StackPanel>
+                                                </Button>
+                                            </Border>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>

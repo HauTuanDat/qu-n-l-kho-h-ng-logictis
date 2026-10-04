@@ -125,7 +125,7 @@
                             <RadioButton x:Name="tabTiepNhanHang" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📥 2. Tiếp Nhận &amp; Nhập Kho (Xe Tải / Khách Lẻ)" Checked="TabNghiepVu_Checked"/>
                             <RadioButton x:Name="tabHangLuuKho" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📦 3. Tồn Kho &amp; Định Mức An Toàn" Checked="TabNghiepVu_Checked"/>
                             <RadioButton x:Name="tabViTriLuuTru" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📍 4. Vị Trí Lưu Trữ &amp; Bản Đồ Ô Kệ" Checked="TabNghiepVu_Checked"/>
-                            <RadioButton x:Name="tabXuatHang" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📤 5. Nghiệp Vụ Xuất Kho (Chặng Cuối / Xe Tải)" Checked="TabNghiepVu_Checked"/>
+                            <RadioButton x:Name="tabXuatHang" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📤 5. Xuất Kho (Chặng Cuối / Xe Tải)" Checked="TabNghiepVu_Checked"/>
                             <RadioButton x:Name="tabLichSuNhapXuat" Style="{StaticResource TabNghiepVuKhoStyle}" Content="📜 6. Lịch Sử Biến Động &amp; Sổ Nhật Ký Kho" Checked="TabNghiepVu_Checked"/>
                         </StackPanel>
                     </ScrollViewer>
