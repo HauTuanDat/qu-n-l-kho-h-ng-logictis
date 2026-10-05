@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 
 namespace Quanlykhohanglogicts
 {
     /// <summary>
     /// Ngữ cảnh dữ liệu kho hàng Logistics (Data Context).
-    /// Kết nối trực tiếp vào cơ sở dữ liệu SQL Server (Database: quanlykho)
-    /// và đồng bộ lưu trữ dữ liệu vĩnh viễn trong CSDL.
+    /// Quản lý dữ liệu tập trung, kết nối ORM trực tiếp qua Entity Framework Core 10 (WarehouseDbContext)
+    /// tới SQL Server (Database: quanlykho), kết hợp bộ nhớ đệm Thread-Safe.
     /// </summary>
     public class WarehouseContext
     {
@@ -19,8 +19,11 @@ namespace Quanlykhohanglogicts
         /// <summary>
         /// Chuỗi kết nối tới cơ sở dữ liệu SQL Server trên máy cục bộ
         /// </summary>
-        public string ConnectionString { get; set; } = 
-            "Server=localhost;Database=quanlykho;Trusted_Connection=True;TrustServerCertificate=True;";
+        public string ConnectionString
+        {
+            get => WarehouseDbContext.DefaultConnectionString;
+            set => WarehouseDbContext.DefaultConnectionString = value;
+        }
 
         /// <summary>
         /// Trạng thái kết nối cơ sở dữ liệu SQL Server thực tế
@@ -51,47 +54,53 @@ namespace Quanlykhohanglogicts
             InitializeDatabase();
         }
 
-        #region Khởi tạo & Đồng bộ CSDL SQL Server
+        #region Khởi tạo & Đồng bộ CSDL SQL Server qua Entity Framework Core (EF Core)
         /// <summary>
-        /// Kết nối SQL Server, đảm bảo các bảng cần thiết tồn tại và đồng bộ dữ liệu
+        /// Kết nối SQL Server qua Entity Framework Core (WarehouseDbContext),
+        /// đảm bảo các bảng cần thiết tồn tại và đồng bộ dữ liệu vào bộ nhớ.
         /// </summary>
         public void InitializeDatabase()
         {
             try
             {
-                using var conn = new SqlConnection(ConnectionString);
-                conn.Open();
+                using var db = new WarehouseDbContext();
+                
+                // Kiểm tra khả năng kết nối tới SQL Server
+                if (!db.Database.CanConnect())
+                {
+                    throw new Exception("Không thể kết nối đến máy chủ SQL Server quanlykho.");
+                }
 
                 IsDatabaseConnected = true;
-                ConnectionStatusMessage = "Kết nối SQL Server thành công (Database: quanlykho)";
+                ConnectionStatusMessage = "Kết nối SQL Server thành công qua EF Core (Database: quanlykho)";
 
                 // 1. Đảm bảo cấu trúc các bảng tồn tại (DDL)
-                EnsureTablesExist(conn);
+                EnsureTablesExist(db);
 
-                // 2. Đồng bộ người dùng từ bảng _users
-                SyncUsersFromDatabase(conn);
+                // 2. Đồng bộ người dùng từ DbSet<User>
+                SyncUsersFromDatabase(db);
 
-                // 3. Đồng bộ danh sách đơn vận chuyển từ bảng ShippingOrders
-                SyncShippingOrdersFromDatabase(conn);
+                // 3. Đồng bộ danh sách đơn vận chuyển từ DbSet<ShippingOrder>
+                SyncShippingOrdersFromDatabase(db);
 
-                // 4. Đồng bộ danh sách phiếu nhập kho từ bảng ImportOrders
-                SyncImportOrdersFromDatabase(conn);
+                // 4. Đồng bộ danh sách phiếu nhập kho từ DbSet<ImportOrder>
+                SyncImportOrdersFromDatabase(db);
 
-                // 5. Đồng bộ danh sách shipper từ bảng Shippers
-                SyncShippersFromDatabase(conn);
+                // 5. Đồng bộ danh sách shipper từ DbSet<Shipper>
+                SyncShippersFromDatabase(db);
 
-                // 6. Đồng bộ nhật ký hoạt động từ bảng RecentActivities
-                SyncActivitiesFromDatabase(conn);
+                // 6. Đồng bộ nhật ký hoạt động từ DbSet<RecentActivity>
+                SyncActivitiesFromDatabase(db);
             }
             catch (Exception ex)
             {
                 IsDatabaseConnected = false;
-                ConnectionStatusMessage = $"Không thể kết nối SQL Server: {ex.Message}";
-                System.Diagnostics.Debug.WriteLine($"[WarehouseContext SQL Error] {ex.Message}");
+                ConnectionStatusMessage = $"Không thể kết nối SQL Server (EF Core): {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"[WarehouseContext EF Core Error] {ex.Message}");
             }
         }
 
-        private void EnsureTablesExist(SqlConnection conn)
+        private void EnsureTablesExist(WarehouseDbContext db)
         {
             const string ddl = @"
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ShippingOrders')
@@ -167,115 +176,103 @@ namespace Quanlykhohanglogicts
                     Icon NVARCHAR(50) NULL,
                     Category NVARCHAR(50) NULL
                 );
+            END
+
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = '_users')
+            BEGIN
+                CREATE TABLE _users (
+                    UserId INT IDENTITY(1,1) PRIMARY KEY,
+                    Username NVARCHAR(50) NOT NULL,
+                    Password NVARCHAR(255) NOT NULL,
+                    FullName NVARCHAR(100) NULL,
+                    Role NVARCHAR(50) NOT NULL DEFAULT 'Staff',
+                    IsActive BIT NOT NULL DEFAULT 1,
+                    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
+                );
             END";
 
-            using var cmd = new SqlCommand(ddl, conn);
-            cmd.ExecuteNonQuery();
+            db.Database.ExecuteSqlRaw(ddl);
         }
 
-        private void SyncUsersFromDatabase(SqlConnection conn)
+        private void SyncUsersFromDatabase(WarehouseDbContext db)
         {
             try
             {
-                using var cmd = new SqlCommand("SELECT UserId, Username, Password, FullName, Role, IsActive, CreatedAt FROM _users", conn);
-                using var reader = cmd.ExecuteReader();
-
-                while (reader.Read())
+                var dbUsers = db.Users.AsNoTracking().ToList();
+                lock (_lock)
                 {
-                    string username = reader["Username"]?.ToString() ?? "";
-                    if (string.IsNullOrWhiteSpace(username)) continue;
-
-                    string roleStr = reader["Role"]?.ToString() ?? "Staff";
-                    UserRole role = roleStr.ToLower() switch
+                    foreach (var user in dbUsers)
                     {
-                        "admin" => UserRole.Admin,
-                        "manager" => UserRole.Manager,
-                        _ => UserRole.Staff
-                    };
-
-                    lock (_lock)
-                    {
-                        var existing = _users.FirstOrDefault(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+                        if (string.IsNullOrWhiteSpace(user.Username)) continue;
+                        var existing = _users.FirstOrDefault(u => u.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase));
                         if (existing == null)
                         {
-                            _users.Add(new User
-                            {
-                                Id = reader["UserId"] != DBNull.Value ? Convert.ToInt32(reader["UserId"]) : _users.Count + 1,
-                                Username = username,
-                                PasswordHash = reader["Password"]?.ToString() ?? "",
-                                FullName = reader["FullName"] != DBNull.Value && !string.IsNullOrWhiteSpace(reader["FullName"]?.ToString()) 
-                                    ? reader["FullName"]!.ToString()! 
-                                    : (username == "a" ? "Tài Khoản Quản Trị Hệ Thống" : username),
-                                Role = role,
-                                IsActive = reader["IsActive"] == DBNull.Value || Convert.ToBoolean(reader["IsActive"]),
-                                CreatedAt = reader["CreatedAt"] != DBNull.Value ? Convert.ToDateTime(reader["CreatedAt"]) : DateTime.Now
-                            });
+                            _users.Add(user);
+                        }
+                        else
+                        {
+                            existing.Id = user.Id;
+                            existing.PasswordHash = user.PasswordHash;
+                            existing.FullName = !string.IsNullOrWhiteSpace(user.FullName) ? user.FullName : existing.FullName;
+                            existing.Role = user.Role;
+                            existing.IsActive = user.IsActive;
+                            existing.CreatedAt = user.CreatedAt;
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SyncUsers Error] {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SyncUsers EF Core Error] {ex.Message}");
             }
         }
 
-        private void SyncShippingOrdersFromDatabase(SqlConnection conn)
+        private void SyncShippingOrdersFromDatabase(WarehouseDbContext db)
         {
             try
             {
-                // Kiểm tra số lượng đơn hiện có trong CSDL
-                using var countCmd = new SqlCommand("SELECT COUNT(*) FROM ShippingOrders", conn);
-                int count = Convert.ToInt32(countCmd.ExecuteScalar());
-
+                int count = db.ShippingOrders.Count();
                 if (count == 0)
                 {
-                    // Nạp các đơn mẫu ban đầu vào SQL Server
                     lock (_lock)
                     {
                         foreach (var o in _shippingOrders)
                         {
-                            InsertShippingOrderToDb(o, conn);
+                            db.ShippingOrders.Add(new ShippingOrder
+                            {
+                                OrderCode = o.OrderCode,
+                                SenderName = o.SenderName,
+                                SenderPhone = o.SenderPhone,
+                                SenderAddress = o.SenderAddress,
+                                ReceiverName = o.ReceiverName,
+                                ReceiverPhone = o.ReceiverPhone,
+                                ReceiverAddress = o.ReceiverAddress,
+                                DestinationArea = o.DestinationArea,
+                                ProductSummary = o.ProductSummary,
+                                Weight = o.Weight,
+                                IsExpress = o.IsExpress,
+                                CodAmount = o.CodAmount,
+                                ShippingFee = o.ShippingFee,
+                                ExpressSurcharge = o.ExpressSurcharge,
+                                ReceiverPaysFee = o.ReceiverPaysFee,
+                                Status = o.Status,
+                                AssignedShipperId = o.AssignedShipperId,
+                                AssignedShipperName = o.AssignedShipperName,
+                                ShipperPhone = o.ShipperPhone,
+                                CreatedDate = o.CreatedDate,
+                                EstimatedDeliveryDate = o.EstimatedDeliveryDate,
+                                DeliveredDate = o.DeliveredDate,
+                                Notes = o.Notes
+                            });
                         }
+                        db.SaveChanges();
                     }
                 }
                 else
                 {
-                    // Tải dữ liệu từ SQL Server về danh sách bộ nhớ
-                    using var selectCmd = new SqlCommand("SELECT * FROM ShippingOrders ORDER BY CreatedDate DESC", conn);
-                    using var reader = selectCmd.ExecuteReader();
-
-                    var dbOrders = new List<ShippingOrder>();
-                    while (reader.Read())
-                    {
-                        dbOrders.Add(new ShippingOrder
-                        {
-                            Id = Convert.ToInt32(reader["Id"]),
-                            OrderCode = reader["OrderCode"].ToString() ?? "",
-                            SenderName = reader["SenderName"].ToString() ?? "",
-                            SenderPhone = reader["SenderPhone"]?.ToString() ?? "",
-                            SenderAddress = reader["SenderAddress"]?.ToString() ?? "",
-                            ReceiverName = reader["ReceiverName"].ToString() ?? "",
-                            ReceiverPhone = reader["ReceiverPhone"]?.ToString() ?? "",
-                            ReceiverAddress = reader["ReceiverAddress"].ToString() ?? "",
-                            DestinationArea = reader["DestinationArea"].ToString() ?? "Hà Nội",
-                            ProductSummary = reader["ProductSummary"].ToString() ?? "",
-                            Weight = Convert.ToDouble(reader["Weight"]),
-                            IsExpress = Convert.ToBoolean(reader["IsExpress"]),
-                            CodAmount = Convert.ToDecimal(reader["CodAmount"]),
-                            ShippingFee = Convert.ToDecimal(reader["ShippingFee"]),
-                            ExpressSurcharge = reader["ExpressSurcharge"] != DBNull.Value ? Convert.ToDecimal(reader["ExpressSurcharge"]) : 0,
-                            ReceiverPaysFee = reader["ReceiverPaysFee"] == DBNull.Value || Convert.ToBoolean(reader["ReceiverPaysFee"]),
-                            Status = (ShippingOrderStatus)Convert.ToInt32(reader["Status"]),
-                            AssignedShipperId = reader["AssignedShipperId"] != DBNull.Value ? Convert.ToInt32(reader["AssignedShipperId"]) : null,
-                            AssignedShipperName = reader["AssignedShipperName"]?.ToString() ?? "Chưa phân phối",
-                            ShipperPhone = reader["ShipperPhone"]?.ToString() ?? "",
-                            CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
-                            EstimatedDeliveryDate = Convert.ToDateTime(reader["EstimatedDeliveryDate"]),
-                            DeliveredDate = reader["DeliveredDate"] != DBNull.Value ? Convert.ToDateTime(reader["DeliveredDate"]) : null,
-                            Notes = reader["Notes"]?.ToString() ?? ""
-                        });
-                    }
+                    var dbOrders = db.ShippingOrders.AsNoTracking()
+                        .OrderByDescending(o => o.CreatedDate)
+                        .ToList();
 
                     lock (_lock)
                     {
@@ -286,49 +283,42 @@ namespace Quanlykhohanglogicts
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SyncShippingOrders Error] {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SyncShippingOrders EF Core Error] {ex.Message}");
             }
         }
 
-        private void SyncImportOrdersFromDatabase(SqlConnection conn)
+        private void SyncImportOrdersFromDatabase(WarehouseDbContext db)
         {
             try
             {
-                using var countCmd = new SqlCommand("SELECT COUNT(*) FROM ImportOrders", conn);
-                int count = Convert.ToInt32(countCmd.ExecuteScalar());
-
+                int count = db.ImportOrders.Count();
                 if (count == 0)
                 {
                     lock (_lock)
                     {
                         foreach (var o in _importOrders)
                         {
-                            InsertImportOrderToDb(o, conn);
+                            db.ImportOrders.Add(new ImportOrder
+                            {
+                                ImportCode = o.ImportCode,
+                                SourceType = o.SourceType,
+                                SenderName = o.SenderName,
+                                WaybillNumber = o.WaybillNumber,
+                                VehiclePlate = o.VehiclePlate,
+                                TotalWeight = o.TotalWeight,
+                                Status = o.Status,
+                                Notes = o.Notes,
+                                CreatedDate = o.CreatedDate
+                            });
                         }
+                        db.SaveChanges();
                     }
                 }
                 else
                 {
-                    using var selectCmd = new SqlCommand("SELECT * FROM ImportOrders ORDER BY CreatedDate DESC", conn);
-                    using var reader = selectCmd.ExecuteReader();
-
-                    var dbOrders = new List<ImportOrder>();
-                    while (reader.Read())
-                    {
-                        dbOrders.Add(new ImportOrder
-                        {
-                            Id = Convert.ToInt32(reader["Id"]),
-                            ImportCode = reader["ImportCode"].ToString() ?? "",
-                            SourceType = (ImportSourceType)Convert.ToInt32(reader["SourceType"]),
-                            SenderName = reader["SenderName"].ToString() ?? "",
-                            WaybillNumber = reader["WaybillNumber"]?.ToString() ?? "",
-                            VehiclePlate = reader["VehicleNumber"]?.ToString() ?? "",
-                            TotalWeight = Convert.ToDouble(reader["TotalWeight"]),
-                            Status = (ImportOrderStatus)Convert.ToInt32(reader["Status"]),
-                            Notes = reader["Notes"]?.ToString() ?? "",
-                            CreatedDate = Convert.ToDateTime(reader["CreatedDate"])
-                        });
-                    }
+                    var dbOrders = db.ImportOrders.AsNoTracking()
+                        .OrderByDescending(o => o.CreatedDate)
+                        .ToList();
 
                     lock (_lock)
                     {
@@ -339,58 +329,40 @@ namespace Quanlykhohanglogicts
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SyncImportOrders Error] {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SyncImportOrders EF Core Error] {ex.Message}");
             }
         }
 
-        private void SyncShippersFromDatabase(SqlConnection conn)
+        private void SyncShippersFromDatabase(WarehouseDbContext db)
         {
             try
             {
-                using var countCmd = new SqlCommand("SELECT COUNT(*) FROM Shippers", conn);
-                int count = Convert.ToInt32(countCmd.ExecuteScalar());
-
+                int count = db.Shippers.Count();
                 if (count == 0)
                 {
                     lock (_lock)
                     {
                         foreach (var s in _shippers)
                         {
-                            using var cmd = new SqlCommand(@"
-                                INSERT INTO Shippers (FullName, PhoneNumber, VehicleType, LicensePlate, CurrentArea, Status, CompletedOrdersToday, Rating)
-                                VALUES (@FullName, @PhoneNumber, @VehicleType, @LicensePlate, @CurrentArea, @Status, @CompletedOrdersToday, @Rating)", conn);
-                            cmd.Parameters.AddWithValue("@FullName", s.FullName);
-                            cmd.Parameters.AddWithValue("@PhoneNumber", s.PhoneNumber);
-                            cmd.Parameters.AddWithValue("@VehicleType", s.VehicleType);
-                            cmd.Parameters.AddWithValue("@LicensePlate", s.LicensePlate);
-                            cmd.Parameters.AddWithValue("@CurrentArea", s.CurrentArea);
-                            cmd.Parameters.AddWithValue("@Status", (int)s.Status);
-                            cmd.Parameters.AddWithValue("@CompletedOrdersToday", s.CompletedOrdersToday);
-                            cmd.Parameters.AddWithValue("@Rating", s.Rating);
-                            cmd.ExecuteNonQuery();
+                            db.Shippers.Add(new Shipper
+                            {
+                                FullName = s.FullName,
+                                Phone = s.Phone,
+                                VehicleType = s.VehicleType,
+                                VehiclePlate = s.VehiclePlate,
+                                DeliveryArea = s.DeliveryArea,
+                                Status = s.Status,
+                                CompletedTodayCount = s.CompletedTodayCount,
+                                Rating = s.Rating
+                            });
                         }
+                        db.SaveChanges();
                     }
                 }
 
-                // Tải danh sách Shipper thực tế từ database
-                using var selectCmd = new SqlCommand("SELECT * FROM Shippers ORDER BY Id ASC", conn);
-                using var reader = selectCmd.ExecuteReader();
-                var dbShippers = new List<Shipper>();
-                while (reader.Read())
-                {
-                    dbShippers.Add(new Shipper
-                    {
-                        Id = Convert.ToInt32(reader["Id"]),
-                        FullName = reader["FullName"].ToString() ?? "",
-                        Phone = reader["PhoneNumber"]?.ToString() ?? "",
-                        VehicleType = reader["VehicleType"]?.ToString() ?? "Xe máy",
-                        VehiclePlate = reader["LicensePlate"]?.ToString() ?? "",
-                        DeliveryArea = reader["CurrentArea"]?.ToString() ?? "Quận Ba Đình",
-                        Status = (ShipperStatus)Convert.ToInt32(reader["Status"]),
-                        CompletedTodayCount = Convert.ToInt32(reader["CompletedOrdersToday"]),
-                        Rating = Convert.ToDouble(reader["Rating"])
-                    });
-                }
+                var dbShippers = db.Shippers.AsNoTracking()
+                    .OrderBy(s => s.Id)
+                    .ToList();
 
                 if (dbShippers.Count > 0)
                 {
@@ -403,53 +375,37 @@ namespace Quanlykhohanglogicts
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SyncShippers Error] {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SyncShippers EF Core Error] {ex.Message}");
             }
         }
 
-        private void SyncActivitiesFromDatabase(SqlConnection conn)
+        private void SyncActivitiesFromDatabase(WarehouseDbContext db)
         {
             try
             {
-                using var countCmd = new SqlCommand("SELECT COUNT(*) FROM RecentActivities", conn);
-                int count = Convert.ToInt32(countCmd.ExecuteScalar());
-
+                int count = db.RecentActivities.Count();
                 if (count == 0)
                 {
                     lock (_lock)
                     {
                         foreach (var a in _recentActivities)
                         {
-                            using var cmd = new SqlCommand(@"
-                                INSERT INTO RecentActivities (Title, Description, Timestamp, Icon, Category)
-                                VALUES (@Title, @Description, @Timestamp, @Icon, @Category)", conn);
-                            cmd.Parameters.AddWithValue("@Title", a.Title);
-                            cmd.Parameters.AddWithValue("@Description", a.Description);
-                            cmd.Parameters.AddWithValue("@Timestamp", a.Timestamp);
-                            cmd.Parameters.AddWithValue("@Icon", (object?)a.Icon ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@Category", (object?)a.Type.ToString() ?? DBNull.Value);
-                            cmd.ExecuteNonQuery();
+                            db.RecentActivities.Add(new RecentActivity
+                            {
+                                Title = a.Title,
+                                Description = a.Description,
+                                Timestamp = a.Timestamp,
+                                Type = a.Type
+                            });
                         }
+                        db.SaveChanges();
                     }
                 }
 
-                // Tải lịch sử hoạt động từ database
-                using var selectCmd = new SqlCommand("SELECT TOP 50 * FROM RecentActivities ORDER BY Timestamp DESC", conn);
-                using var reader = selectCmd.ExecuteReader();
-                var dbActivities = new List<RecentActivity>();
-                while (reader.Read())
-                {
-                    string category = reader["Category"]?.ToString() ?? "System";
-                    _ = Enum.TryParse<ActivityType>(category, true, out var actType);
-                    dbActivities.Add(new RecentActivity
-                    {
-                        Id = Convert.ToInt32(reader["Id"]),
-                        Title = reader["Title"].ToString() ?? "",
-                        Description = reader["Description"]?.ToString() ?? "",
-                        Timestamp = Convert.ToDateTime(reader["Timestamp"]),
-                        Type = actType
-                    });
-                }
+                var dbActivities = db.RecentActivities.AsNoTracking()
+                    .OrderByDescending(a => a.Timestamp)
+                    .Take(50)
+                    .ToList();
 
                 if (dbActivities.Count > 0)
                 {
@@ -462,71 +418,8 @@ namespace Quanlykhohanglogicts
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SyncActivities Error] {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SyncActivities EF Core Error] {ex.Message}");
             }
-        }
-
-
-        private static int InsertShippingOrderToDb(ShippingOrder o, SqlConnection conn)
-        {
-            const string sql = @"
-                INSERT INTO ShippingOrders 
-                (OrderCode, SenderName, SenderPhone, SenderAddress, ReceiverName, ReceiverPhone, ReceiverAddress, DestinationArea, ProductSummary, Weight, IsExpress, CodAmount, ShippingFee, ExpressSurcharge, ReceiverPaysFee, Status, AssignedShipperName, ShipperPhone, CreatedDate, EstimatedDeliveryDate, Notes)
-                VALUES 
-                (@OrderCode, @SenderName, @SenderPhone, @SenderAddress, @ReceiverName, @ReceiverPhone, @ReceiverAddress, @DestinationArea, @ProductSummary, @Weight, @IsExpress, @CodAmount, @ShippingFee, @ExpressSurcharge, @ReceiverPaysFee, @Status, @AssignedShipperName, @ShipperPhone, @CreatedDate, @EstimatedDeliveryDate, @Notes);
-                SELECT SCOPE_IDENTITY();";
-
-            using var cmd = new SqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@OrderCode", o.OrderCode);
-            cmd.Parameters.AddWithValue("@SenderName", o.SenderName);
-            cmd.Parameters.AddWithValue("@SenderPhone", o.SenderPhone);
-            cmd.Parameters.AddWithValue("@SenderAddress", (object?)o.SenderAddress ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ReceiverName", o.ReceiverName);
-            cmd.Parameters.AddWithValue("@ReceiverPhone", o.ReceiverPhone);
-            cmd.Parameters.AddWithValue("@ReceiverAddress", o.ReceiverAddress);
-            cmd.Parameters.AddWithValue("@DestinationArea", o.DestinationArea);
-            cmd.Parameters.AddWithValue("@ProductSummary", o.ProductSummary);
-            cmd.Parameters.AddWithValue("@Weight", o.Weight);
-            cmd.Parameters.AddWithValue("@IsExpress", o.IsExpress);
-            cmd.Parameters.AddWithValue("@CodAmount", o.CodAmount);
-            cmd.Parameters.AddWithValue("@ShippingFee", o.ShippingFee);
-            cmd.Parameters.AddWithValue("@ExpressSurcharge", o.ExpressSurcharge);
-            cmd.Parameters.AddWithValue("@ReceiverPaysFee", o.ReceiverPaysFee);
-            cmd.Parameters.AddWithValue("@Status", (int)o.Status);
-            cmd.Parameters.AddWithValue("@AssignedShipperName", (object?)o.AssignedShipperName ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ShipperPhone", (object?)o.ShipperPhone ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@CreatedDate", o.CreatedDate);
-            cmd.Parameters.AddWithValue("@EstimatedDeliveryDate", o.EstimatedDeliveryDate);
-            cmd.Parameters.AddWithValue("@Notes", (object?)o.Notes ?? DBNull.Value);
-
-            object result = cmd.ExecuteScalar();
-            return Convert.ToInt32(result);
-        }
-
-        private static int InsertImportOrderToDb(ImportOrder o, SqlConnection conn)
-        {
-            const string sql = @"
-                INSERT INTO ImportOrders 
-                (ImportCode, SourceType, SourceTypeName, SenderName, WaybillNumber, VehicleNumber, TotalWeight, Status, StatusDisplayName, Notes, CreatedDate)
-                VALUES 
-                (@ImportCode, @SourceType, @SourceTypeName, @SenderName, @WaybillNumber, @VehicleNumber, @TotalWeight, @Status, @StatusDisplayName, @Notes, @CreatedDate);
-                SELECT SCOPE_IDENTITY();";
-
-            using var cmd = new SqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@ImportCode", o.ImportCode);
-            cmd.Parameters.AddWithValue("@SourceType", (int)o.SourceType);
-            cmd.Parameters.AddWithValue("@SourceTypeName", o.SourceTypeName);
-            cmd.Parameters.AddWithValue("@SenderName", o.SenderName);
-            cmd.Parameters.AddWithValue("@WaybillNumber", (object?)o.WaybillNumber ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@VehicleNumber", (object?)o.VehiclePlate ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@TotalWeight", o.TotalWeight);
-            cmd.Parameters.AddWithValue("@Status", (int)o.Status);
-            cmd.Parameters.AddWithValue("@StatusDisplayName", o.StatusDisplayName);
-            cmd.Parameters.AddWithValue("@Notes", (object?)o.Notes ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@CreatedDate", o.CreatedDate);
-
-            object result = cmd.ExecuteScalar();
-            return Convert.ToInt32(result);
         }
         #endregion
 
@@ -815,47 +708,25 @@ namespace Quanlykhohanglogicts
                 if (nguoiDungTrongCache != null) return nguoiDungTrongCache;
             }
 
-            // Nếu chưa có trong cache và có kết nối DB, truy vấn trực tiếp từ SQL Server
+            // Nếu chưa có trong cache và có kết nối DB, truy vấn trực tiếp từ SQL Server qua EF Core
             if (IsDatabaseConnected)
             {
                 try
                 {
-                    using var ketNoi = new SqlConnection(ConnectionString);
-                    ketNoi.Open();
-                    using var cauLenh = new SqlCommand("SELECT TOP 1 UserId, Username, Password, FullName, Role, IsActive, CreatedAt FROM _users WHERE Username = @Username", ketNoi);
-                    cauLenh.Parameters.AddWithValue("@Username", tenDangNhap.Trim());
-                    using var boDoc = cauLenh.ExecuteReader();
-                    if (boDoc.Read())
+                    using var db = new WarehouseDbContext();
+                    var nguoiDungDb = db.Users.AsNoTracking().FirstOrDefault(u => u.Username == tenDangNhap.Trim());
+                    if (nguoiDungDb != null)
                     {
-                        string chuoiVaiTro = boDoc["Role"]?.ToString() ?? "Staff";
-                        UserRole vaiTro = chuoiVaiTro.ToLower() switch
-                        {
-                            "admin" => UserRole.Admin,
-                            "manager" => UserRole.Manager,
-                            _ => UserRole.Staff
-                        };
-
-                        var nguoiDung = new User
-                        {
-                            Id = boDoc["UserId"] != DBNull.Value ? Convert.ToInt32(boDoc["UserId"]) : 1,
-                            Username = boDoc["Username"].ToString() ?? tenDangNhap,
-                            PasswordHash = boDoc["Password"]?.ToString() ?? "",
-                            FullName = boDoc["FullName"] != DBNull.Value ? boDoc["FullName"].ToString()! : tenDangNhap,
-                            Role = vaiTro,
-                            IsActive = boDoc["IsActive"] == DBNull.Value || Convert.ToBoolean(boDoc["IsActive"]),
-                            CreatedAt = boDoc["CreatedAt"] != DBNull.Value ? Convert.ToDateTime(boDoc["CreatedAt"]) : DateTime.Now
-                        };
-
                         lock (_lock)
                         {
-                            _users.Add(nguoiDung);
+                            _users.Add(nguoiDungDb);
                         }
-                        return nguoiDung;
+                        return nguoiDungDb;
                     }
                 }
                 catch (Exception ngoaiLe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[FindUserByUsername SQL Error] {ngoaiLe.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[FindUserByUsername EF Core Error] {ngoaiLe.Message}");
                 }
             }
 
@@ -900,22 +771,23 @@ namespace Quanlykhohanglogicts
             {
                 try
                 {
-                    using var ketNoi = new SqlConnection(ConnectionString);
-                    ketNoi.Open();
-                    using var cauLenh = new SqlCommand(@"
-                        INSERT INTO _users (Username, Password, FullName, Role, IsActive, CreatedAt)
-                        VALUES (@Username, @Password, @FullName, @Role, @IsActive, @CreatedAt)", ketNoi);
-                    cauLenh.Parameters.AddWithValue("@Username", nguoiDung.Username);
-                    cauLenh.Parameters.AddWithValue("@Password", nguoiDung.PasswordHash);
-                    cauLenh.Parameters.AddWithValue("@FullName", nguoiDung.FullName);
-                    cauLenh.Parameters.AddWithValue("@Role", nguoiDung.Role.ToString());
-                    cauLenh.Parameters.AddWithValue("@IsActive", nguoiDung.IsActive);
-                    cauLenh.Parameters.AddWithValue("@CreatedAt", nguoiDung.CreatedAt);
-                    cauLenh.ExecuteNonQuery();
+                    using var db = new WarehouseDbContext();
+                    var entity = new User
+                    {
+                        Username = nguoiDung.Username,
+                        PasswordHash = nguoiDung.PasswordHash,
+                        FullName = nguoiDung.FullName,
+                        Role = nguoiDung.Role,
+                        IsActive = nguoiDung.IsActive,
+                        CreatedAt = nguoiDung.CreatedAt
+                    };
+                    db.Users.Add(entity);
+                    db.SaveChanges();
+                    nguoiDung.Id = entity.Id;
                 }
                 catch (Exception ngoaiLe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[AddUser SQL Error] {ngoaiLe.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[AddUser EF Core Error] {ngoaiLe.Message}");
                 }
             }
         }
@@ -942,16 +814,17 @@ namespace Quanlykhohanglogicts
             {
                 try
                 {
-                    using var ketNoi = new SqlConnection(ConnectionString);
-                    ketNoi.Open();
-                    using var cauLenh = new SqlCommand("UPDATE _users SET IsActive = @IsActive WHERE UserId = @UserId", ketNoi);
-                    cauLenh.Parameters.AddWithValue("@IsActive", trangThaiMoi);
-                    cauLenh.Parameters.AddWithValue("@UserId", maNguoiDung);
-                    cauLenh.ExecuteNonQuery();
+                    using var db = new WarehouseDbContext();
+                    var user = db.Users.Find(maNguoiDung);
+                    if (user != null)
+                    {
+                        user.IsActive = trangThaiMoi;
+                        db.SaveChanges();
+                    }
                 }
                 catch (Exception ngoaiLe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ToggleUserActiveStatus SQL Error] {ngoaiLe.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[ToggleUserActiveStatus EF Core Error] {ngoaiLe.Message}");
                 }
             }
         }
@@ -976,16 +849,17 @@ namespace Quanlykhohanglogicts
             {
                 try
                 {
-                    using var ketNoi = new SqlConnection(ConnectionString);
-                    ketNoi.Open();
-                    using var cauLenh = new SqlCommand("UPDATE _users SET Password = @Password WHERE UserId = @UserId", ketNoi);
-                    cauLenh.Parameters.AddWithValue("@Password", matKhauMoiTho);
-                    cauLenh.Parameters.AddWithValue("@UserId", maNguoiDung);
-                    cauLenh.ExecuteNonQuery();
+                    using var db = new WarehouseDbContext();
+                    var user = db.Users.Find(maNguoiDung);
+                    if (user != null)
+                    {
+                        user.PasswordHash = matKhauMoiTho;
+                        db.SaveChanges();
+                    }
                 }
                 catch (Exception ngoaiLe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[UpdateUserPassword SQL Error] {ngoaiLe.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[UpdateUserPassword EF Core Error] {ngoaiLe.Message}");
                 }
             }
         }
@@ -1022,32 +896,31 @@ namespace Quanlykhohanglogicts
             {
                 try
                 {
-                    using var ketNoi = new SqlConnection(ConnectionString);
-                    ketNoi.Open();
-                    using var cauLenh = new SqlCommand(@"
-                        UPDATE ShippingOrders 
-                        SET AssignedShipperId = @ShipperId, AssignedShipperName = @ShipperName, ShipperPhone = @ShipperPhone, 
-                            Status = CASE WHEN Status IN (0,1) THEN 2 ELSE Status END
-                        WHERE Id = @Id", ketNoi);
-                    cauLenh.Parameters.AddWithValue("@ShipperId", maTaiXe);
-                    cauLenh.Parameters.AddWithValue("@ShipperName", tenTaiXe);
-                    cauLenh.Parameters.AddWithValue("@ShipperPhone", soDienThoaiTaiXe);
-                    cauLenh.Parameters.AddWithValue("@Id", maDonHang);
-                    cauLenh.ExecuteNonQuery();
+                    using var db = new WarehouseDbContext();
+                    var don = db.ShippingOrders.Find(maDonHang);
+                    if (don != null)
+                    {
+                        don.AssignedShipperId = maTaiXe;
+                        don.AssignedShipperName = tenTaiXe;
+                        don.ShipperPhone = soDienThoaiTaiXe;
+                        if (don.Status == ShippingOrderStatus.NewReceived || don.Status == ShippingOrderStatus.PendingProcessing)
+                        {
+                            don.Status = ShippingOrderStatus.Delivering;
+                        }
+                    }
 
-                    using var cauLenhLichSu = new SqlCommand(@"
-                        INSERT INTO RecentActivities (Title, Description, Timestamp, Icon, Category)
-                        VALUES (@Title, @Description, @Timestamp, @Icon, @Category)", ketNoi);
-                    cauLenhLichSu.Parameters.AddWithValue("@Title", $"Điều phối Shipper {tenTaiXe}");
-                    cauLenhLichSu.Parameters.AddWithValue("@Description", $"Đã phân công đơn hàng ID #{maDonHang}");
-                    cauLenhLichSu.Parameters.AddWithValue("@Timestamp", DateTime.Now);
-                    cauLenhLichSu.Parameters.AddWithValue("@Icon", "🛵");
-                    cauLenhLichSu.Parameters.AddWithValue("@Category", "Delivering");
-                    cauLenhLichSu.ExecuteNonQuery();
+                    db.RecentActivities.Add(new RecentActivity
+                    {
+                        Title = $"Điều phối Shipper {tenTaiXe}",
+                        Description = $"Đã phân công đơn hàng ID #{maDonHang}",
+                        Timestamp = DateTime.Now,
+                        Type = ActivityType.Delivering
+                    });
+                    db.SaveChanges();
                 }
                 catch (Exception ngoaiLe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[AssignShipper SQL Error] {ngoaiLe.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[AssignShipper EF Core Error] {ngoaiLe.Message}");
                 }
             }
         }
@@ -1083,24 +956,34 @@ namespace Quanlykhohanglogicts
             {
                 try
                 {
-                    using var ketNoi = new SqlConnection(ConnectionString);
-                    ketNoi.Open();
-                    int maPhieuNhapMoi = InsertImportOrderToDb(phieuNhap, ketNoi);
-                    phieuNhap.Id = maPhieuNhapMoi;
+                    using var db = new WarehouseDbContext();
+                    var entity = new ImportOrder
+                    {
+                        ImportCode = phieuNhap.ImportCode,
+                        SourceType = phieuNhap.SourceType,
+                        SenderName = phieuNhap.SenderName,
+                        WaybillNumber = phieuNhap.WaybillNumber,
+                        VehiclePlate = phieuNhap.VehiclePlate,
+                        TotalWeight = phieuNhap.TotalWeight,
+                        Status = phieuNhap.Status,
+                        Notes = phieuNhap.Notes,
+                        CreatedDate = phieuNhap.CreatedDate
+                    };
+                    db.ImportOrders.Add(entity);
 
-                    using var cauLenhLichSu = new SqlCommand(@"
-                        INSERT INTO RecentActivities (Title, Description, Timestamp, Icon, Category)
-                        VALUES (@Title, @Description, @Timestamp, @Icon, @Category)", ketNoi);
-                    cauLenhLichSu.Parameters.AddWithValue("@Title", $"Tạo mới phiếu nhập {phieuNhap.ImportCode}");
-                    cauLenhLichSu.Parameters.AddWithValue("@Description", $"Nguồn gửi: {phieuNhap.SenderName} ({phieuNhap.SourceTypeName})");
-                    cauLenhLichSu.Parameters.AddWithValue("@Timestamp", DateTime.Now);
-                    cauLenhLichSu.Parameters.AddWithValue("@Icon", "📥");
-                    cauLenhLichSu.Parameters.AddWithValue("@Category", "Import");
-                    cauLenhLichSu.ExecuteNonQuery();
+                    db.RecentActivities.Add(new RecentActivity
+                    {
+                        Title = $"Tạo mới phiếu nhập {phieuNhap.ImportCode}",
+                        Description = $"Nguồn gửi: {phieuNhap.SenderName} ({phieuNhap.SourceTypeName})",
+                        Timestamp = DateTime.Now,
+                        Type = ActivityType.Import
+                    });
+                    db.SaveChanges();
+                    phieuNhap.Id = entity.Id;
                 }
                 catch (Exception ngoaiLe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[AddImportOrder SQL Error] {ngoaiLe.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[AddImportOrder EF Core Error] {ngoaiLe.Message}");
                 }
             }
 
@@ -1148,24 +1031,46 @@ namespace Quanlykhohanglogicts
             {
                 try
                 {
-                    using var ketNoi = new SqlConnection(ConnectionString);
-                    ketNoi.Open();
-                    int maDonHangMoi = InsertShippingOrderToDb(donHang, ketNoi);
-                    donHang.Id = maDonHangMoi;
+                    using var db = new WarehouseDbContext();
+                    var entity = new ShippingOrder
+                    {
+                        OrderCode = donHang.OrderCode,
+                        SenderName = donHang.SenderName,
+                        SenderPhone = donHang.SenderPhone,
+                        SenderAddress = donHang.SenderAddress,
+                        ReceiverName = donHang.ReceiverName,
+                        ReceiverPhone = donHang.ReceiverPhone,
+                        ReceiverAddress = donHang.ReceiverAddress,
+                        DestinationArea = donHang.DestinationArea,
+                        ProductSummary = donHang.ProductSummary,
+                        Weight = donHang.Weight,
+                        IsExpress = donHang.IsExpress,
+                        CodAmount = donHang.CodAmount,
+                        ShippingFee = donHang.ShippingFee,
+                        ExpressSurcharge = donHang.ExpressSurcharge,
+                        ReceiverPaysFee = donHang.ReceiverPaysFee,
+                        Status = donHang.Status,
+                        AssignedShipperName = donHang.AssignedShipperName,
+                        ShipperPhone = donHang.ShipperPhone,
+                        CreatedDate = donHang.CreatedDate,
+                        EstimatedDeliveryDate = donHang.EstimatedDeliveryDate,
+                        Notes = donHang.Notes
+                    };
+                    db.ShippingOrders.Add(entity);
 
-                    using var cauLenhLichSu = new SqlCommand(@"
-                        INSERT INTO RecentActivities (Title, Description, Timestamp, Icon, Category)
-                        VALUES (@Title, @Description, @Timestamp, @Icon, @Category)", ketNoi);
-                    cauLenhLichSu.Parameters.AddWithValue("@Title", donHang.IsExpress ? $"Tạo đơn Express {donHang.OrderCode}" : $"Tạo đơn hàng {donHang.OrderCode}");
-                    cauLenhLichSu.Parameters.AddWithValue("@Description", $"Gửi tới: {donHang.ReceiverName} ({donHang.DestinationArea})");
-                    cauLenhLichSu.Parameters.AddWithValue("@Timestamp", DateTime.Now);
-                    cauLenhLichSu.Parameters.AddWithValue("@Icon", donHang.IsExpress ? "⚡" : "📦");
-                    cauLenhLichSu.Parameters.AddWithValue("@Category", donHang.IsExpress ? "Express" : "OrderNew");
-                    cauLenhLichSu.ExecuteNonQuery();
+                    db.RecentActivities.Add(new RecentActivity
+                    {
+                        Title = donHang.IsExpress ? $"Tạo đơn Express {donHang.OrderCode}" : $"Tạo đơn hàng {donHang.OrderCode}",
+                        Description = $"Gửi tới: {donHang.ReceiverName} ({donHang.DestinationArea})",
+                        Timestamp = DateTime.Now,
+                        Type = donHang.IsExpress ? ActivityType.Express : ActivityType.OrderNew
+                    });
+                    db.SaveChanges();
+                    donHang.Id = entity.Id;
                 }
                 catch (Exception ngoaiLe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[AddShippingOrder SQL Error] {ngoaiLe.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[AddShippingOrder EF Core Error] {ngoaiLe.Message}");
                 }
             }
 
@@ -1211,17 +1116,21 @@ namespace Quanlykhohanglogicts
             {
                 try
                 {
-                    using var ketNoi = new SqlConnection(ConnectionString);
-                    ketNoi.Open();
-                    using var cauLenh = new SqlCommand("UPDATE ShippingOrders SET Status = @Status, DeliveredDate = @DeliveredDate WHERE Id = @Id", ketNoi);
-                    cauLenh.Parameters.AddWithValue("@Status", (int)trangThaiMoi);
-                    cauLenh.Parameters.AddWithValue("@DeliveredDate", trangThaiMoi == ShippingOrderStatus.Delivered ? (object)DateTime.Now : DBNull.Value);
-                    cauLenh.Parameters.AddWithValue("@Id", maDonHang);
-                    cauLenh.ExecuteNonQuery();
+                    using var db = new WarehouseDbContext();
+                    var don = db.ShippingOrders.Find(maDonHang);
+                    if (don != null)
+                    {
+                        don.Status = trangThaiMoi;
+                        if (trangThaiMoi == ShippingOrderStatus.Delivered)
+                        {
+                            don.DeliveredDate = DateTime.Now;
+                        }
+                        db.SaveChanges();
+                    }
                 }
                 catch (Exception ngoaiLe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[UpdateShippingOrderStatus SQL Error] {ngoaiLe.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[UpdateShippingOrderStatus EF Core Error] {ngoaiLe.Message}");
                 }
             }
         }
@@ -1251,31 +1160,22 @@ namespace Quanlykhohanglogicts
             {
                 try
                 {
-                    using var ketNoi = new SqlConnection(ConnectionString);
-                    ketNoi.Open();
-                    const string sql = @"
-                        UPDATE ShippingOrders 
-                        SET Status = @Status, 
-                            AssignedShipperId = @AssignedShipperId, 
-                            AssignedShipperName = @AssignedShipperName, 
-                            ShipperPhone = @ShipperPhone, 
-                            Notes = @Notes, 
-                            DeliveredDate = @DeliveredDate 
-                        WHERE Id = @Id OR OrderCode = @OrderCode";
-                    using var cauLenh = new SqlCommand(sql, ketNoi);
-                    cauLenh.Parameters.AddWithValue("@Status", (int)donHang.Status);
-                    cauLenh.Parameters.AddWithValue("@AssignedShipperId", (object?)donHang.AssignedShipperId ?? DBNull.Value);
-                    cauLenh.Parameters.AddWithValue("@AssignedShipperName", (object?)donHang.AssignedShipperName ?? DBNull.Value);
-                    cauLenh.Parameters.AddWithValue("@ShipperPhone", (object?)donHang.ShipperPhone ?? DBNull.Value);
-                    cauLenh.Parameters.AddWithValue("@Notes", (object?)donHang.Notes ?? DBNull.Value);
-                    cauLenh.Parameters.AddWithValue("@DeliveredDate", (object?)donHang.DeliveredDate ?? DBNull.Value);
-                    cauLenh.Parameters.AddWithValue("@Id", donHang.Id);
-                    cauLenh.Parameters.AddWithValue("@OrderCode", donHang.OrderCode ?? "");
-                    cauLenh.ExecuteNonQuery();
+                    using var db = new WarehouseDbContext();
+                    var targetDb = db.ShippingOrders.FirstOrDefault(o => o.Id == donHang.Id || (!string.IsNullOrEmpty(donHang.OrderCode) && o.OrderCode == donHang.OrderCode));
+                    if (targetDb != null)
+                    {
+                        targetDb.Status = donHang.Status;
+                        targetDb.AssignedShipperId = donHang.AssignedShipperId;
+                        targetDb.AssignedShipperName = donHang.AssignedShipperName;
+                        targetDb.ShipperPhone = donHang.ShipperPhone;
+                        targetDb.Notes = donHang.Notes;
+                        targetDb.DeliveredDate = donHang.DeliveredDate;
+                        db.SaveChanges();
+                    }
                 }
                 catch (Exception ngoaiLe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[UpdateShippingOrder SQL Error] {ngoaiLe.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[UpdateShippingOrder EF Core Error] {ngoaiLe.Message}");
                 }
             }
         }
@@ -1337,39 +1237,28 @@ namespace Quanlykhohanglogicts
             {
                 try
                 {
-                    using var ketNoi = new SqlConnection(ConnectionString);
-                    ketNoi.Open();
+                    using var db = new WarehouseDbContext();
+                    var dsDon = db.ShippingOrders.Where(o => danhSachMaDon.Contains(o.Id)).ToList();
+                    foreach (var don in dsDon)
+                    {
+                        don.AssignedShipperId = maTaiXe;
+                        don.AssignedShipperName = tenTaiXe;
+                        don.ShipperPhone = soDienThoaiTaiXe;
+                        don.Status = ShippingOrderStatus.Delivering;
+                    }
 
-                    // Cập nhật hàng loạt bảng ShippingOrders
-                    string chuoiDanhSachId = string.Join(",", danhSachMaDon);
-                    string cauLenhSql = $@"
-                        UPDATE ShippingOrders 
-                        SET AssignedShipperId = @ShipperId, 
-                            AssignedShipperName = @ShipperName, 
-                            ShipperPhone = @ShipperPhone, 
-                            Status = 2 
-                        WHERE Id IN ({chuoiDanhSachId})";
-
-                    using var cauLenh = new SqlCommand(cauLenhSql, ketNoi);
-                    cauLenh.Parameters.AddWithValue("@ShipperId", maTaiXe);
-                    cauLenh.Parameters.AddWithValue("@ShipperName", tenTaiXe);
-                    cauLenh.Parameters.AddWithValue("@ShipperPhone", soDienThoaiTaiXe);
-                    cauLenh.ExecuteNonQuery();
-
-                    // Thêm bản ghi hoạt động
-                    using var cauLenhLichSu = new SqlCommand(@"
-                        INSERT INTO RecentActivities (Title, Description, Timestamp, Icon, Category)
-                        VALUES (@Title, @Description, @Timestamp, @Icon, @Category)", ketNoi);
-                    cauLenhLichSu.Parameters.AddWithValue("@Title", $"Phát hành chuyến gom {tenTuyenDuong}");
-                    cauLenhLichSu.Parameters.AddWithValue("@Description", $"Shipper {tenTaiXe} nhận giao {danhSachMaDon.Count} bưu kiện");
-                    cauLenhLichSu.Parameters.AddWithValue("@Timestamp", DateTime.Now);
-                    cauLenhLichSu.Parameters.AddWithValue("@Icon", "🗺️");
-                    cauLenhLichSu.Parameters.AddWithValue("@Category", "Delivering");
-                    cauLenhLichSu.ExecuteNonQuery();
+                    db.RecentActivities.Add(new RecentActivity
+                    {
+                        Title = $"Phát hành chuyến gom {tenTuyenDuong}",
+                        Description = $"Shipper {tenTaiXe} nhận giao {danhSachMaDon.Count} bưu kiện",
+                        Timestamp = DateTime.Now,
+                        Type = ActivityType.ShipperAssigned
+                    });
+                    db.SaveChanges();
                 }
                 catch (Exception ngoaiLe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[DieuPhoiGomChuyenTuyen SQL Error] {ngoaiLe.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[DieuPhoiGomChuyenTuyen EF Core Error] {ngoaiLe.Message}");
                 }
             }
         }
@@ -1406,47 +1295,16 @@ namespace Quanlykhohanglogicts
             {
                 try
                 {
-                    using var ketNoi = new SqlConnection(ConnectionString);
-                    ketNoi.Open();
-                    using var cauLenh = new SqlCommand(@"
-                        SELECT TOP 1 * FROM ShippingOrders 
-                        WHERE OrderCode LIKE @Keyword OR ReceiverPhone LIKE @Keyword OR SenderPhone LIKE @Keyword", ketNoi);
-                    cauLenh.Parameters.AddWithValue("@Keyword", $"%{tuKhoaChuanHoa}%");
-                    using var docDuLieu = cauLenh.ExecuteReader();
-                    if (docDuLieu.Read())
-                    {
-                        var donHang = new ShippingOrder
-                        {
-                            Id = Convert.ToInt32(docDuLieu["Id"]),
-                            OrderCode = docDuLieu["OrderCode"]?.ToString() ?? "",
-                            SenderName = docDuLieu["SenderName"]?.ToString() ?? "",
-                            SenderPhone = docDuLieu["SenderPhone"]?.ToString() ?? "",
-                            SenderAddress = docDuLieu["SenderAddress"]?.ToString() ?? "",
-                            ReceiverName = docDuLieu["ReceiverName"]?.ToString() ?? "",
-                            ReceiverPhone = docDuLieu["ReceiverPhone"]?.ToString() ?? "",
-                            ReceiverAddress = docDuLieu["ReceiverAddress"]?.ToString() ?? "",
-                            DestinationArea = docDuLieu["DestinationArea"]?.ToString() ?? "",
-                            ProductSummary = docDuLieu["ProductSummary"]?.ToString() ?? "",
-                            Weight = Convert.ToDouble(docDuLieu["Weight"]),
-                            IsExpress = Convert.ToBoolean(docDuLieu["IsExpress"]),
-                            CodAmount = Convert.ToDecimal(docDuLieu["CodAmount"]),
-                            ShippingFee = Convert.ToDecimal(docDuLieu["ShippingFee"]),
-                            ExpressSurcharge = Convert.ToDecimal(docDuLieu["ExpressSurcharge"]),
-                            ReceiverPaysFee = Convert.ToBoolean(docDuLieu["ReceiverPaysFee"]),
-                            Status = (ShippingOrderStatus)Convert.ToInt32(docDuLieu["Status"]),
-                            AssignedShipperName = docDuLieu["AssignedShipperName"]?.ToString() ?? "Chưa phân phối",
-                            ShipperPhone = docDuLieu["ShipperPhone"]?.ToString() ?? "",
-                            CreatedDate = Convert.ToDateTime(docDuLieu["CreatedDate"]),
-                            EstimatedDeliveryDate = Convert.ToDateTime(docDuLieu["EstimatedDeliveryDate"]),
-                            DeliveredDate = docDuLieu["DeliveredDate"] != DBNull.Value ? Convert.ToDateTime(docDuLieu["DeliveredDate"]) : null,
-                            Notes = docDuLieu["Notes"]?.ToString() ?? ""
-                        };
-                        return donHang;
-                    }
+                    using var db = new WarehouseDbContext();
+                    var donHang = db.ShippingOrders.AsNoTracking().FirstOrDefault(o =>
+                        o.OrderCode.Contains(tuKhoaChuanHoa) ||
+                        o.ReceiverPhone.Contains(tuKhoaChuanHoa) ||
+                        o.SenderPhone.Contains(tuKhoaChuanHoa));
+                    if (donHang != null) return donHang;
                 }
                 catch (Exception ngoaiLe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[TimKiemDonHang SQL Error] {ngoaiLe.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[TimKiemDonHang EF Core Error] {ngoaiLe.Message}");
                 }
             }
 
@@ -1524,29 +1382,25 @@ namespace Quanlykhohanglogicts
             {
                 try
                 {
-                    using var ketNoi = new SqlConnection(ConnectionString);
-                    ketNoi.Open();
-                    using var cauLenh = new SqlCommand(@"
-                        INSERT INTO Shippers (FullName, PhoneNumber, VehicleType, LicensePlate, CurrentArea, Status, CompletedOrdersToday, Rating)
-                        VALUES (@FullName, @PhoneNumber, @VehicleType, @LicensePlate, @CurrentArea, @Status, @CompletedOrdersToday, @Rating);
-                        SELECT SCOPE_IDENTITY();", ketNoi);
-                    cauLenh.Parameters.AddWithValue("@FullName", taiXe.FullName);
-                    cauLenh.Parameters.AddWithValue("@PhoneNumber", taiXe.Phone);
-                    cauLenh.Parameters.AddWithValue("@VehicleType", taiXe.VehicleType);
-                    cauLenh.Parameters.AddWithValue("@LicensePlate", taiXe.VehiclePlate);
-                    cauLenh.Parameters.AddWithValue("@CurrentArea", taiXe.DeliveryArea);
-                    cauLenh.Parameters.AddWithValue("@Status", (int)taiXe.Status);
-                    cauLenh.Parameters.AddWithValue("@CompletedOrdersToday", taiXe.CompletedTodayCount);
-                    cauLenh.Parameters.AddWithValue("@Rating", taiXe.Rating);
-                    object result = cauLenh.ExecuteScalar();
-                    if (result != null && int.TryParse(result.ToString(), out int newId))
+                    using var db = new WarehouseDbContext();
+                    var entity = new Shipper
                     {
-                        taiXe.Id = newId;
-                    }
+                        FullName = taiXe.FullName,
+                        Phone = taiXe.Phone,
+                        VehicleType = taiXe.VehicleType,
+                        VehiclePlate = taiXe.VehiclePlate,
+                        DeliveryArea = taiXe.DeliveryArea,
+                        Status = taiXe.Status,
+                        CompletedTodayCount = taiXe.CompletedTodayCount,
+                        Rating = taiXe.Rating
+                    };
+                    db.Shippers.Add(entity);
+                    db.SaveChanges();
+                    taiXe.Id = entity.Id;
                 }
                 catch (Exception ngoaiLe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[AddShipper SQL Error] {ngoaiLe.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[AddShipper EF Core Error] {ngoaiLe.Message}");
                 }
             }
         }
@@ -1602,16 +1456,17 @@ namespace Quanlykhohanglogicts
             {
                 try
                 {
-                    using var ketNoi = new SqlConnection(ConnectionString);
-                    ketNoi.Open();
-                    using var cauLenh = new SqlCommand("UPDATE Shippers SET Status = @Status WHERE Id = @Id", ketNoi);
-                    cauLenh.Parameters.AddWithValue("@Status", (int)trangThaiMoi);
-                    cauLenh.Parameters.AddWithValue("@Id", maTaiXe);
-                    cauLenh.ExecuteNonQuery();
+                    using var db = new WarehouseDbContext();
+                    var taiXe = db.Shippers.Find(maTaiXe);
+                    if (taiXe != null)
+                    {
+                        taiXe.Status = trangThaiMoi;
+                        db.SaveChanges();
+                    }
                 }
                 catch (Exception ngoaiLe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[UpdateShipperShiftAndStatus SQL Error] {ngoaiLe.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[UpdateShipperShiftAndStatus EF Core Error] {ngoaiLe.Message}");
                 }
             }
         }
@@ -1635,16 +1490,17 @@ namespace Quanlykhohanglogicts
             {
                 try
                 {
-                    using var ketNoi = new SqlConnection(ConnectionString);
-                    ketNoi.Open();
-                    using var cauLenh = new SqlCommand("UPDATE Shippers SET CurrentArea = @CurrentArea WHERE Id = @Id", ketNoi);
-                    cauLenh.Parameters.AddWithValue("@CurrentArea", khuVucMoi);
-                    cauLenh.Parameters.AddWithValue("@Id", maTaiXe);
-                    cauLenh.ExecuteNonQuery();
+                    using var db = new WarehouseDbContext();
+                    var taiXe = db.Shippers.Find(maTaiXe);
+                    if (taiXe != null)
+                    {
+                        taiXe.DeliveryArea = khuVucMoi;
+                        db.SaveChanges();
+                    }
                 }
                 catch (Exception ngoaiLe)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[UpdateShipperAreaAndLimit SQL Error] {ngoaiLe.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[UpdateShipperAreaAndLimit EF Core Error] {ngoaiLe.Message}");
                 }
             }
         }
