@@ -205,10 +205,12 @@ namespace Quanlykhohanglogicts
                 });
             }
 
-            // SẮP XẾP TOÀN BỘ DANH SÁCH: QUY TẮC QUÁ TẢI - ƯU TIÊN TUYỆT ĐỐI 100% ĐƠN HỎA TỐC (EXPRESS) ĐỨNG TRƯỚC
+            // SẮP XẾP TOÀN BỘ DANH SÁCH: SẮP XẾP CHUẨN XÁC THEO ĐIỂM SỐ MA TRẬN SLA ĐA TẦNG (CHỐNG STARVATION)
+            // - Đơn Hỏa Tốc khởi điểm 1.000 điểm nên tự nhiên luôn đứng trước đơn thường (10 - 400 điểm).
+            // - Đơn thường nếu bị trễ hạn quá mức (> 10h), điểm số sẽ vọt lên > 1.000 điểm và tự động vượt mặt Hỏa Tốc để được cứu hộ!
             var danhSachSapXep = danhSachDaTinhDiem
-                .OrderByDescending(x => x.IsExpress)        // 1. Đơn Hỏa Tốc 100% luôn xếp trên đơn thường
-                .ThenByDescending(x => x.PriorityScore)    // 2. Trong cùng nhóm: Đơn nào cận hạn/quá hạn hơn xếp trước
+                .OrderByDescending(x => x.PriorityScore)
+                .ThenBy(x => x.Order.CreatedDate)
                 .ToList();
 
             // PHÂN TÁCH THÀNH 2 NHÓM THEO HẠN MỨC NĂNG LỰC GIAO (VD: 40 ĐƠN)
@@ -224,9 +226,18 @@ namespace Quanlykhohanglogicts
                 {
                     // NẰM TRONG HẠN MỨC -> DUYỆT GIAO NGAY
                     muc.IsApprovedForDelivery = true;
-                    muc.AllocationReason = muc.IsExpress 
-                        ? "⚡ Ưu tiên số 1: Đơn Hỏa Tốc (Express) bắt buộc xuất kho ngay" 
-                        : "Cận hạn cam kết SLA, còn chỗ trong hạn mức ngày nên được duyệt";
+                    if (muc.PriorityScore >= 1000 && !muc.IsExpress)
+                    {
+                        muc.AllocationReason = "🔥 Cứu hộ khẩn cấp: Đơn thường bị trễ hạn quá lâu, giải cứu vi phạm SLA";
+                    }
+                    else if (muc.IsExpress)
+                    {
+                        muc.AllocationReason = "⚡ Ưu tiên số 1: Đơn Hỏa Tốc (Express) bắt buộc xuất kho ngay";
+                    }
+                    else
+                    {
+                        muc.AllocationReason = "Cận hạn cam kết SLA, đủ điểm trong hạn mức ngày nên được duyệt";
+                    }
                     _danhSachDuyetGiao.Add(muc);
                 }
                 else
@@ -234,8 +245,8 @@ namespace Quanlykhohanglogicts
                     // VƯỢT QUÁ HẠN MỨC -> LƯU KHO CHỜ CA SAU
                     muc.IsApprovedForDelivery = false;
                     muc.AllocationReason = muc.IsExpress
-                        ? $"⚠️ Vượt quá hạn mức {nangLucGiao} đơn/ngày - Hỏa tốc dời chuyến tiếp theo"
-                        : $"📦 Đơn thường: Lưu kho ca sau (Hạn SLA an toàn, nhường suất cho đơn Hỏa Tốc)";
+                        ? $"⚠️ Vượt quá hạn mức {nangLucGiao} đơn/ca - Hỏa tốc dời chuyến tiếp theo"
+                        : "Đơn tiêu chuẩn hạn SLA còn an toàn, lưu kho nhường suất cho đơn ưu tiên cao";
                     _danhSachLuuKho.Add(muc);
                 }
             }
