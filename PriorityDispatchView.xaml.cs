@@ -685,10 +685,17 @@ namespace Quanlykhohanglogicts
 
                     File.WriteAllText(hopThoaiLuu.FileName, sb.ToString(), new UTF8Encoding(true));
 
-                    MessageBox.Show(
-                        $"Đã xuất báo cáo phân bổ thành công ra tệp:\n{hopThoaiLuu.FileName}\n\n" +
-                        $"Tổng số: {_danhSachDuyetGiao.Count + _danhSachLuuKho.Count} bản ghi (gồm {_danhSachDuyetGiao.Count} đơn duyệt và {_danhSachLuuKho.Count} đơn lưu kho).",
-                        "Xuất Báo Cáo Thành Công", MessageBoxButton.OK, MessageBoxImage.Information);
+                    var hoiMo = MessageBox.Show(
+                        $"ĐÃ XUẤT BÁO CÁO PHÂN BỔ THÀNH CÔNG!\n\n" +
+                        $"• Tổng số: {_danhSachDuyetGiao.Count + _danhSachLuuKho.Count} bản ghi ({_danhSachDuyetGiao.Count} đơn duyệt và {_danhSachLuuKho.Count} đơn lưu kho).\n" +
+                        $"• Tệp đã lưu tại:\n{hopThoaiLuu.FileName}\n\n" +
+                        $"Bạn có muốn mở ngay tập tin này trong Microsoft Excel không?",
+                        "Xuất Báo Cáo Thành Công", MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                    if (hoiMo == MessageBoxResult.Yes)
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(hopThoaiLuu.FileName) { UseShellExecute = true });
+                    }
                 }
             }
             catch (Exception ngoaiLe)

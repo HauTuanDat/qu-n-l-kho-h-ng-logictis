@@ -465,12 +465,18 @@ namespace Quanlykhohanglogicts
                 decimal tongTienThuHoCod = danhSachDon.Sum(x => x.CodAmount);
                 decimal tongTienThanhToan = danhSachDon.Sum(x => x.TotalCustomerPayment);
 
-                MessageBox.Show($"XUẤT BÁO CÁO THÀNH CÔNG!\n\n" +
+                var hoiMo = MessageBox.Show($"XUẤT BÁO CÁO THÀNH CÔNG!\n\n" +
                                 $"• Tổng số đơn hàng: {danhSachDon.Count} đơn\n" +
                                 $"• Tổng tiền thu hộ COD: {tongTienThuHoCod:N0} đ\n" +
                                 $"• Tổng tiền cần thanh toán: {tongTienThanhToan:N0} đ\n\n" +
-                                $"File Excel/CSV đã được lưu tại Desktop của bạn:\n{duongDanTepTinHoanChinh}",
-                    "Báo Cáo Đối Soát COD", MessageBoxButton.OK, MessageBoxImage.Information);
+                                $"File Excel/CSV đã được lưu tại Desktop:\n{duongDanTepTinHoanChinh}\n\n" +
+                                $"Bạn có muốn mở ngay tập tin này trong Microsoft Excel không?",
+                    "Báo Cáo Đối Soát COD", MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                if (hoiMo == MessageBoxResult.Yes)
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(duongDanTepTinHoanChinh) { UseShellExecute = true });
+                }
             }
             catch (Exception ex)
             {
