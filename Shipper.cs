@@ -35,24 +35,24 @@ namespace Quanlykhohanglogicts
         /// <summary>
         /// Số Căn cước công dân / CMND của Shipper
         /// </summary>
-        public string CitizenId { get; set; } = "001095012345";
+        public string? CitizenId { get; set; } = "001095012345";
 
         /// <summary>
         /// Loại phương tiện: Xe máy Honda Wave / Xe máy Yamaha Sirius / Xe tải van 1.25 tấn
         /// </summary>
-        public string VehicleType { get; set; } = "Xe máy";
+        public string? VehicleType { get; set; } = "Xe máy";
 
         /// <summary>
         /// Biển kiểm soát phương tiện (VD: 29B1-888.99)
         /// </summary>
-        public string VehiclePlate { get; set; } = string.Empty;
-        public string LicensePlate { get => VehiclePlate; set => VehiclePlate = value; }
+        public string? VehiclePlate { get; set; } = string.Empty;
+        public string? LicensePlate { get => VehiclePlate; set => VehiclePlate = value; }
 
         /// <summary>
         /// Địa bàn / Tuyến quận phụ trách giao hàng chính
         /// </summary>
-        public string DeliveryArea { get; set; } = "Quận Ba Đình";
-        public string CurrentArea { get => DeliveryArea; set => DeliveryArea = value; }
+        public string? DeliveryArea { get; set; } = "Quận Ba Đình";
+        public string? CurrentArea { get => DeliveryArea; set => DeliveryArea = value; }
 
         /// <summary>
         /// Trạng thái hoạt động hiện tại
@@ -67,7 +67,7 @@ namespace Quanlykhohanglogicts
         /// <summary>
         /// Ca làm việc: Ca Sáng (07:00 - 15:00) / Ca Chiều (13:00 - 21:00) / Ca Hành Chính (08:00 - 17:30)
         /// </summary>
-        public string WorkShift { get; set; } = "Ca Sáng (07:00 - 15:00)";
+        public string? WorkShift { get; set; } = "Ca Sáng (07:00 - 15:00)";
 
         /// <summary>
         /// Giới hạn số lượng đơn hàng tối đa có thể nhận trong 1 ngày (mặc định: 25 đơn)

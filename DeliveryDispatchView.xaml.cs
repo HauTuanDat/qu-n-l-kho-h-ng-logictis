@@ -40,6 +40,10 @@ namespace Quanlykhohanglogicts
             InitializeComponent();
             dpNgayPhanCong.SelectedDate = DateTime.Today;
             dpChonNgayGiao.SelectedDate = DateTime.Today;
+            if (ucPriorityDispatch != null)
+            {
+                ucPriorityDispatch.OnYeuCauChuyenTab += ChuyenTabTMS;
+            }
             NapDuLieu();
         }
 
@@ -148,6 +152,28 @@ namespace Quanlykhohanglogicts
             {
                 panelLichSuDieuPhoiTab.Visibility = Visibility.Visible;
                 CapNhatKeHoachGiaoDuKien();
+            }
+        }
+
+        /// <summary>
+        /// TIỆN ÍCH: Điều hướng trực tiếp sang 1 trong 4 Tab TMS (0: Phân bổ SLA, 1: Gom Tuyến, 2: Phân công Shipper, 3: Lịch sử)
+        /// </summary>
+        public void ChuyenTabTMS(int tabIndex)
+        {
+            switch (tabIndex)
+            {
+                case 0:
+                    tabPhanBoSla.IsChecked = true;
+                    break;
+                case 1:
+                    tabGomTuyen.IsChecked = true;
+                    break;
+                case 2:
+                    tabPhanCongShipper.IsChecked = true;
+                    break;
+                case 3:
+                    tabLichSuDieuPhoi.IsChecked = true;
+                    break;
             }
         }
 

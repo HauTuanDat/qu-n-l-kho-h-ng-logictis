@@ -32,6 +32,11 @@ namespace Quanlykhohanglogicts
         private List<PriorityDispatchItem> _danhSachLuuKho = new();
         private int _nangLucGiaoHienTai = 50;
 
+        /// <summary>
+        /// Sự kiện yêu cầu phân hệ cha (DeliveryDispatchView) chuyển sang Tab TMS tương ứng (0: Phân bổ SLA, 1: Gom Tuyến, 2: Phân công Shipper, 3: Lịch sử)
+        /// </summary>
+        public event Action<int>? OnYeuCauChuyenTab;
+
         public PriorityDispatchView()
         {
             InitializeComponent();
@@ -53,10 +58,24 @@ namespace Quanlykhohanglogicts
             string khuVucChon = (cboLocKhuVuc?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "";
             if (!string.IsNullOrEmpty(khuVucChon) && !khuVucChon.Contains("Tất Cả"))
             {
-                donChoGiao = donChoGiao.Where(o => 
-                    (o.DestinationArea != null && o.DestinationArea.IndexOf(khuVucChon, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                    (o.ReceiverAddress != null && o.ReceiverAddress.IndexOf(khuVucChon, StringComparison.OrdinalIgnoreCase) >= 0)
-                ).ToList();
+                if (khuVucChon.Contains("Kịch Bản Chuẩn 100 Đơn (Hà Nội)"))
+                {
+                    donChoGiao = donChoGiao.Where(o => 
+                        o.OrderCode.StartsWith("LOGIX-HN-") || 
+                        (o.OrderCode.StartsWith("LOGIX-") && (o.OrderCode.Contains("-EXP-") || o.OrderCode.Contains("-STD-")) && !o.OrderCode.StartsWith("LOGIX-TN-"))
+                    ).ToList();
+                }
+                else if (khuVucChon.Contains("Kịch Bản Chuẩn 100 Đơn (Thái Nguyên)"))
+                {
+                    donChoGiao = donChoGiao.Where(o => o.OrderCode.StartsWith("LOGIX-TN-")).ToList();
+                }
+                else
+                {
+                    donChoGiao = donChoGiao.Where(o => 
+                        (o.DestinationArea != null && o.DestinationArea.IndexOf(khuVucChon, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (o.ReceiverAddress != null && o.ReceiverAddress.IndexOf(khuVucChon, StringComparison.OrdinalIgnoreCase) >= 0)
+                    ).ToList();
+                }
             }
 
             return donChoGiao;
@@ -69,10 +88,11 @@ namespace Quanlykhohanglogicts
         {
             var donChoGiao = LayDanhSachDonChoGiao();
 
-            // Nếu kho chưa có đủ dữ liệu kịch bản mô phỏng (dưới 20 đơn), tự động tạo 100 đơn mẫu
-            if (donChoGiao.Count < 20)
+            // Nếu hệ thống chưa từng nạp bộ kịch bản mô phỏng 100 đơn chuẩn, tự động khởi tạo lần đầu
+            var kho = WarehouseContext.Instance;
+            if (!kho.GetAllShippingOrders().Any(o => o.OrderCode.StartsWith("LOGIX-HN-") || o.OrderCode.StartsWith("LOGIX-TN-")))
             {
-                WarehouseContext.Instance.GenerateSampleOrdersForSimulation(100);
+                kho.GenerateSampleOrdersForSimulation(100);
                 donChoGiao = LayDanhSachDonChoGiao();
             }
 
@@ -122,9 +142,18 @@ namespace Quanlykhohanglogicts
 
                 if (khoangThoiGianConLai.TotalMinutes <= 0)
                 {
-                    // ĐÃ QUÁ HẠN CAM KẾT: Cực kỳ khẩn cấp cần giải cứu gấp
-                    diemUuTien += 500.0 + Math.Min(Math.Abs(khoangThoiGianConLai.TotalHours) * 10, 200.0);
-                    if (!don.IsExpress)
+                    // ĐÃ QUÁ HẠN CAM KẾT: Cực kỳ khẩn cấp cần giải cứu gấp (Cơ chế Dynamic Aging chống Starvation)
+                    // Cứ mỗi 1 giờ quá hạn, điểm phạt tăng lũy tiến (+50 điểm/h). 
+                    // Khi đơn thường trễ quá 10 giờ -> Điểm vượt ngưỡng 1000, tự động leo lên Top 1 để giải cứu, không bao giờ bị 'chết cứng'!
+                    double soGioTre = Math.Abs(khoangThoiGianConLai.TotalHours);
+                    diemUuTien += 500.0 + soGioTre * 50.0;
+                    if (diemUuTien >= 1000.0)
+                    {
+                        capDoUuTien = "🔥 Cứu Hộ Khẩn Cấp";
+                        mauHuyHieu = "#991B1B";
+                        nenHuyHieu = "#FEE2E2";
+                    }
+                    else if (!don.IsExpress)
                     {
                         capDoUuTien = "🚨 Cấp 2: Quá Hạn SLA";
                         mauHuyHieu = "#DC2626";
@@ -271,17 +300,24 @@ namespace Quanlykhohanglogicts
         /// </summary>
         private void BtnDemoKichBanMuaBao_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Sinh 100 đơn hàng mô phỏng kịch bản quá tải
-            WarehouseContext.Instance.GenerateSampleOrdersForSimulation(100);
+            // 1. Dọn sạch đơn cũ và khởi tạo đúng 100 đơn kịch bản chuẩn (30 Hỏa tốc + 20 Cận hạn SLA + 50 Lưu kho)
+            WarehouseContext.Instance.ResetAndGenerateSimulationOrders("Hanoi", 50);
 
             // 2. Thiết lập đúng hạn mức 50 đơn (năng lực 2 Shipper trực ca hôm nay)
             txtNangLucGiaoToiDa.Text = "50";
             _nangLucGiaoHienTai = 50;
 
-            // 3. Reset bộ lọc khu vực về tất cả
+            // 3. Tự động chọn kịch bản chuẩn 100 đơn Hà Nội (Cách ly độc lập, không làm ảnh hưởng đơn khác)
             if (cboLocKhuVuc != null)
             {
-                cboLocKhuVuc.SelectedIndex = 0;
+                for (int i = 0; i < cboLocKhuVuc.Items.Count; i++)
+                {
+                    if (cboLocKhuVuc.Items[i] is ComboBoxItem item && item.Content?.ToString()?.Contains("Kịch Bản Chuẩn 100 Đơn (Hà Nội)") == true)
+                    {
+                        cboLocKhuVuc.SelectedIndex = i;
+                        break;
+                    }
+                }
             }
 
             // 4. Nạp dữ liệu và chạy phân bổ ma trận SLA
@@ -297,20 +333,21 @@ namespace Quanlykhohanglogicts
             // 6. Hiển thị báo cáo kết quả quản trị điều phối
             int soHoaToc = _danhSachDuyetGiao.Count(x => x.IsExpress);
             int soHoaTocTonKho = _danhSachDuyetGiao.Count(x => x.IsExpress) + _danhSachLuuKho.Count(x => x.IsExpress);
+            int soBoSung = _danhSachDuyetGiao.Count - soHoaToc;
 
             MessageBox.Show(
                 $"🌧️ KỊCH BẢN VẬN HÀNH QUÁ TẢI (MƯA BÃO / THIẾU SHIPPER):\n" +
                 $"─────────────────────────────────────────────────────\n" +
-                $"• Tồn kho chờ phân phối: {donChoGiao.Count} bưu kiện\n" +
+                $"• Tồn kho chờ phân phối: {donChoGiao.Count} bưu kiện (Đã chuẩn hóa 100 đơn mô phỏng)\n" +
                 $"• Nhân sự trực ca: 2 Shipper (Năng lực nhận tối đa: 50 bưu kiện)\n\n" +
                 $"🏆 KẾT QUẢ THỰC THI MA TRẬN ƯU TIÊN SLA ĐA TẦNG:\n" +
                 $"─────────────────────────────────────────────────────\n" +
                 $"🟢 [DUYỆT GIAO NGAY]: {_danhSachDuyetGiao.Count} / 50 đơn (100% Công Suất Ca)\n" +
-                $"   ⚡ Ưu tiên Cấp 1: 100% Đơn Hỏa Tốc VIP (+1000 điểm) = {soHoaToc}/{soHoaTocTonKho} đơn xuất bến ngay!\n" +
-                $"   ⏱️ Ưu tiên Cấp 2: Các đơn cận hạn & quá hạn SLA (+500đ) bổ sung đủ hạn mức.\n\n" +
+                $"   ⚡ Ưu tiên Cấp 1: 100% Đơn Hỏa Tốc VIP (+1.000 điểm) = {soHoaToc}/{soHoaTocTonKho} đơn xuất bến ngay!\n" +
+                $"   ⏱️ Ưu tiên Cấp 2: {soBoSung} đơn cận hạn SLA (+500 điểm) bổ sung đủ hạn mức 50 đơn.\n\n" +
                 $"🟡 [LƯU KHO CA SAU]: {_danhSachLuuKho.Count} đơn\n" +
-                $"   📦 Toàn bộ là đơn tiêu chuẩn có SLA còn xa, an toàn giữ lại kho nhường chỗ cho đơn VIP.\n\n" +
-                $"👉 Hệ thống đã giải quyết hoàn hảo bài toán quản trị quá tải!",
+                $"   📦 Toàn bộ {_danhSachLuuKho.Count} đơn tiêu chuẩn có SLA còn xa (24h-48h), an toàn giữ lại kho nhường chỗ cho đơn VIP.\n\n" +
+                $"👉 Hệ thống đã giải quyết hoàn hảo bài toán quản trị quá tải mà không có bất kỳ mâu thuẫn nghiệp vụ nào!",
                 "Kết Quả Điều Phối Ma Trận SLA Đa Tầng", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
@@ -333,16 +370,20 @@ namespace Quanlykhohanglogicts
 
             int soHoaTocDuyet = _danhSachDuyetGiao.Count(x => x.IsExpress);
             int tongHoaToc = soHoaTocDuyet + _danhSachLuuKho.Count(x => x.IsExpress);
+            int soBoSungDuyet = _danhSachDuyetGiao.Count - soHoaTocDuyet;
+            int soLuuKho = _danhSachLuuKho.Count;
 
             MessageBox.Show(
                 $"⚡ THỰC THI MA TRẬN SLA ĐA TẦNG THÀNH CÔNG!\n\n" +
                 $"• Tổng bưu kiện chờ phân phối: {donChoGiao.Count} đơn\n" +
                 $"• Hạn mức năng lực giao ca này: {_nangLucGiaoHienTai} đơn\n\n" +
-                $"🟢 DUYỆT GIAO NGAY: {_danhSachDuyetGiao.Count} đơn\n" +
-                $"  ⚡ Đơn Hỏa Tốc VIP (+1000đ): Đã duyệt {soHoaTocDuyet}/{tongHoaToc} đơn (Ưu tiên tuyệt đối)\n" +
-                $"  ⏱️ Đơn Cận Hạn SLA (+500đ): Đã xếp thứ tự deadline gấp nhất\n\n" +
-                $"🟡 LƯU KHO CA SAU: {_danhSachLuuKho.Count} đơn\n" +
-                $"  📦 Đơn tiêu chuẩn an toàn lưu kho, không bị phạt hợp đồng SLA.\n\n" +
+                $"────────────────────────────────────────\n" +
+                $"🟢 DUYỆT GIAO NGAY: {_danhSachDuyetGiao.Count} đơn (Đạt 100% công suất)\n" +
+                $"  ⚡ Đơn Hỏa Tốc VIP (+1.000 điểm): Đã duyệt {soHoaTocDuyet}/{tongHoaToc} đơn (Ưu tiên tuyệt đối xuất bến)\n" +
+                $"  ⏱️ Đơn Cận Hạn SLA (+500 điểm): Đã duyệt {soBoSungDuyet} đơn (Bổ sung đủ hạn mức {_nangLucGiaoHienTai} đơn theo deadline gấp)\n\n" +
+                $"🟡 LƯU KHO CA SAU: {soLuuKho} đơn\n" +
+                $"  📦 {soLuuKho} đơn tiêu chuẩn an toàn lưu kho (Hạn SLA còn dài 24h - 48h, không bị phạt hợp đồng SLA).\n" +
+                $"────────────────────────────────────────\n\n" +
                 $"Thuật toán đã tối ưu hóa 100% tài nguyên vận tải cho doanh nghiệp!",
                 "Kết Quả Phân Bổ Ưu Tiên TMS", MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -396,23 +437,23 @@ namespace Quanlykhohanglogicts
         {
             var xacNhan = MessageBox.Show(
                 "BẠN CÓ MUỐN KHỞI TẠO KỊCH BẢN THỬ NGHIỆM ĐÚNG VÍ DỤ 100 ĐƠN THÁI NGUYÊN?\n\n" +
-                "• Quy mô: 100 đơn hàng phân bổ tại Tỉnh THÁI NGUYÊN (TP Thái Nguyên, Sông Công, Phổ Yên, Đại Từ...)\n" +
-                "• Cơ cấu đơn: ~32 đơn HỎA TỐC ⚡ (Express) + các đơn cận hạn SLA + 68 đơn tiêu chuẩn\n" +
+                "• Quy mô: Đúng 100 đơn hàng phân bổ tại Tỉnh THÁI NGUYÊN (TP Thái Nguyên, Sông Công, Phổ Yên, Đại Từ...)\n" +
+                "• Cơ cấu đơn: 25 đơn HỎA TỐC ⚡ (Express) + 15 đơn cận hạn SLA + 60 đơn tiêu chuẩn an toàn\n" +
                 "• Hạn mức năng lực giao hôm nay: 40 ĐƠN\n\n" +
                 "Thuật toán sẽ tự động phân bổ:\n" +
-                "  + Đưa 40 đơn (toàn bộ đơn Hỏa Tốc + cận hạn gấp) sang tab [🟢 ĐÃ DUYỆT GIAO NGAY]\n" +
-                "  + Đưa 60 đơn tiêu chuẩn còn lại sang tab [🟡 LƯU KHO CHỜ CA SAU]",
+                "  + Đưa 40 đơn (100% đơn Hỏa Tốc: 25/25 + 15 đơn cận hạn SLA) sang tab [🟢 ĐÃ DUYỆT GIAO NGAY]\n" +
+                "  + Đưa 60 đơn tiêu chuẩn an toàn còn lại sang tab [🟡 LƯU KHO CHỜ CA SAU]",
                 "Khởi Tạo 100 Đơn Thái Nguyên (Giao 40 Đơn)", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (xacNhan == MessageBoxResult.Yes)
             {
-                WarehouseContext.Instance.GenerateThaiNguyenOrdersForSimulation(100);
+                WarehouseContext.Instance.ResetAndGenerateSimulationOrders("ThaiNguyen", 40);
 
                 if (cboLocKhuVuc != null)
                 {
                     for (int i = 0; i < cboLocKhuVuc.Items.Count; i++)
                     {
-                        if (cboLocKhuVuc.Items[i] is ComboBoxItem item && item.Content.ToString() == "Thái Nguyên")
+                        if (cboLocKhuVuc.Items[i] is ComboBoxItem item && item.Content?.ToString()?.Contains("Kịch Bản Chuẩn 100 Đơn (Thái Nguyên)") == true)
                         {
                             cboLocKhuVuc.SelectedIndex = i;
                             break;
@@ -425,13 +466,22 @@ namespace Quanlykhohanglogicts
 
                 NapDuLieuKho();
 
+                int hoaTocTN = _danhSachDuyetGiao.Count(x => x.IsExpress);
+                int tongHoaTocTN = hoaTocTN + _danhSachLuuKho.Count(x => x.IsExpress);
+                int boSungTN = _danhSachDuyetGiao.Count - hoaTocTN;
+
                 MessageBox.Show(
-                    "ĐÃ CHẠY XONG THUẬT TOÁN ĐIỀU PHỐI ƯU TIÊN CHO 100 ĐƠN THÁI NGUYÊN!\n\n" +
-                    $"• Số đơn DUYỆT GIAO NGAY: {_danhSachDuyetGiao.Count} / 40 đơn\n" +
-                    $"  (Toàn bộ {_danhSachDuyetGiao.Count(x => x.IsExpress)} đơn Hỏa Tốc được ưu tiên tuyệt đối đi giao trước!)\n" +
-                    $"• Số đơn LƯU KHO CA SAU: {_danhSachLuuKho.Count} đơn (Đơn tiêu chuẩn SLA còn xa, an toàn lưu kho ca sau)\n\n" +
+                    "⚡ THỰC THI MA TRẬN ĐIỀU PHỐI 100 ĐƠN THÁI NGUYÊN THÀNH CÔNG!\n\n" +
+                    $"• Hạn mức năng lực giao ca này: 40 đơn\n" +
+                    $"────────────────────────────────────────\n" +
+                    $"🟢 DUYỆT GIAO NGAY: {_danhSachDuyetGiao.Count} / 40 đơn (Đạt 100% công suất)\n" +
+                    $"  ⚡ Đơn Hỏa Tốc VIP (+1.000 điểm): {hoaTocTN}/{tongHoaTocTN} đơn được ưu tiên tuyệt đối xuất bến ngay!\n" +
+                    $"  ⏱️ Đơn Cận Hạn SLA (+500 điểm): {boSungTN} đơn bổ sung đủ hạn mức 40 đơn theo deadline gấp nhất\n\n" +
+                    $"🟡 LƯU KHO CA SAU: {_danhSachLuuKho.Count} đơn\n" +
+                    $"  📦 {_danhSachLuuKho.Count} đơn tiêu chuẩn an toàn lưu kho (Hạn SLA còn dài 24h - 48h, không bị phạt hợp đồng SLA).\n" +
+                    $"────────────────────────────────────────\n\n" +
                     "Bạn có thể bấm nút [Phê Duyệt Xuất Kho & Gán Shipper] ở góc phải để xuất bến giao hàng!",
-                    "Phân Bổ Thành Công", MessageBoxButton.OK, MessageBoxImage.Information);
+                    "Kết Quả Phân Bổ Ưu Tiên TMS", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -441,17 +491,17 @@ namespace Quanlykhohanglogicts
         private void BtnSinh100DonMau_Click(object sender, RoutedEventArgs e)
         {
             var xacNhan = MessageBox.Show(
-                "Bạn có muốn sinh 100 đơn hàng mẫu kịch bản mô phỏng chung?\n\n" +
+                "Bạn có muốn khởi tạo kịch bản 100 đơn hàng mô phỏng chuẩn?\n\n" +
                 "Kịch bản bao gồm:\n" +
-                "• Khoảng 35 đơn HỎA TỐC ⚡ (Express 2h-4h)\n" +
-                "• Các đơn quá hạn SLA và cận hạn giao trong 1-2h\n" +
-                "• Khoảng 65 đơn tiêu chuẩn theo các quận huyện\n\n" +
-                "Dữ liệu này sẽ giúp bạn kiểm thử rõ nét thuật toán ưu tiên!",
+                "• 30 đơn HỎA TỐC ⚡ (Express cam kết 2h)\n" +
+                "• 20 đơn cận hạn cam kết SLA cần giao ca này\n" +
+                "• 50 đơn tiêu chuẩn an toàn lưu kho (24h-48h)\n\n" +
+                "Hệ thống sẽ làm sạch kho và tải đúng 100 đơn chuẩn!",
                 "Khởi Tạo 100 Đơn Mẫu Kịch Bản", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (xacNhan == MessageBoxResult.Yes)
             {
-                WarehouseContext.Instance.GenerateSampleOrdersForSimulation(100);
+                WarehouseContext.Instance.ResetAndGenerateSimulationOrders("Hanoi", 50);
                 NapDuLieuKho();
                 MessageBox.Show("Đã sinh thành công 100 đơn hàng mẫu kịch bản!", "Thành Công", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -491,6 +541,31 @@ namespace Quanlykhohanglogicts
         {
             if (sender is Button nut && nut.DataContext is PriorityDispatchItem mucCanHoan)
             {
+                string canhBaoUuTien = "";
+                if (mucCanHoan.IsExpress)
+                {
+                    canhBaoUuTien = "\n\n⚠️ LƯU Ý ĐẶC BIỆT: Đây là đơn hàng HỎA TỐC (Express) có độ ưu tiên cao! Việc hoãn đơn có thể làm vi phạm cam kết SLA với khách hàng.";
+                }
+                else if (mucCanHoan.EstimatedDeliveryDate <= DateTime.Now.AddHours(4))
+                {
+                    canhBaoUuTien = "\n\n⚠️ LƯU Ý ĐẶC BIỆT: Đơn hàng này sắp đến hạn cam kết SLA! Hoãn đơn có thể làm tăng nguy cơ giao trễ hạn.";
+                }
+
+                var xacNhan = MessageBox.Show(
+                    $"Bạn có chắc chắn muốn hoãn đơn hàng này sang ca sau không?\n\n" +
+                    $"• Mã đơn: {mucCanHoan.OrderCode}\n" +
+                    $"• Khách nhận: {mucCanHoan.ReceiverName} ({mucCanHoan.DestinationArea})\n" +
+                    $"• Hàng hóa: {mucCanHoan.ProductSummary}\n" +
+                    $"• Loại dịch vụ: {(mucCanHoan.IsExpress ? "⚡ Hỏa Tốc (Express)" : "📦 Tiêu Chuẩn")}\n" +
+                    $"• Điểm ưu tiên SLA: {mucCanHoan.PriorityScore:N0} điểm" +
+                    $"{canhBaoUuTien}\n\n" +
+                    $"Đơn hàng sẽ được chuyển sang bảng 'Lưu kho chờ ca sau' để nhường tải cho các đơn khác.",
+                    "Xác Nhận Hoãn Đơn Hàng",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (xacNhan != MessageBoxResult.Yes) return;
+
                 _danhSachDuyetGiao.Remove(mucCanHoan);
                 mucCanHoan.IsApprovedForDelivery = false;
                 mucCanHoan.AllocationReason = "Điều phối viên hoãn thủ công sang ca sau";
@@ -511,6 +586,18 @@ namespace Quanlykhohanglogicts
         {
             if (sender is Button nut && nut.DataContext is PriorityDispatchItem mucCanDay)
             {
+                var xacNhan = MessageBox.Show(
+                    $"Bạn có chắc chắn muốn duyệt giao khẩn cấp cho đơn hàng này trong ca hiện tại không?\n\n" +
+                    $"• Mã đơn: {mucCanDay.OrderCode}\n" +
+                    $"• Khách nhận: {mucCanDay.ReceiverName} ({mucCanDay.DestinationArea})\n" +
+                    $"• Hàng hóa: {mucCanDay.ProductSummary}\n\n" +
+                    $"Đơn hàng sẽ được chuyển lên bảng 'Danh sách duyệt xuất giao' để xuất bến trong ca này.",
+                    "Xác Nhận Duyệt Giao Khẩn Cấp",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (xacNhan != MessageBoxResult.Yes) return;
+
                 _danhSachLuuKho.Remove(mucCanDay);
                 mucCanDay.IsApprovedForDelivery = true;
                 mucCanDay.AllocationReason = "Điều phối viên đẩy lên duyệt khẩn cấp (Khách giục)";
@@ -548,14 +635,20 @@ namespace Quanlykhohanglogicts
                 var danhSachId = _danhSachDuyetGiao.Select(x => x.OrderId).ToList();
                 int soLuongThanhCong = WarehouseContext.Instance.BatchAssignOrdersToShippers(danhSachId);
 
-                MessageBox.Show(
+                var hoiChuyenTab = MessageBox.Show(
                     $"ĐÃ PHÊ DUYỆT VÀ PHÂN CÔNG THÀNH CÔNG {soLuongThanhCong} ĐƠN HÀNG!\n\n" +
                     $"• Toàn bộ {_danhSachDuyetGiao.Count(x => x.IsExpress)} đơn Hỏa Tốc đã được xuất kho ngay lập tức.\n" +
                     $"• Các tài xế Shipper đã tiếp nhận lộ trình giao hàng.\n" +
-                    $"• {_danhSachLuuKho.Count} đơn còn lại tiếp tục được lưu giữ an toàn tại kho cho ca tiếp theo.",
-                    "Xuất Kho Hoàn Tất", MessageBoxButton.OK, MessageBoxImage.Information);
+                    $"• {_danhSachLuuKho.Count} đơn còn lại tiếp tục được lưu giữ an toàn tại kho cho ca tiếp theo.\n\n" +
+                    $"Bạn có muốn chuyển sang Tab [Gom Tuyến Giao Hàng] để tối ưu hóa lộ trình và kiểm tra các tuyến vừa gán không?",
+                    "Xuất Kho Hoàn Tất", MessageBoxButton.YesNo, MessageBoxImage.Information);
 
                 NapDuLieuKho();
+
+                if (hoiChuyenTab == MessageBoxResult.Yes)
+                {
+                    OnYeuCauChuyenTab?.Invoke(1); // Chuyển sang Tab 2: Gom Tuyến
+                }
             }
         }
 

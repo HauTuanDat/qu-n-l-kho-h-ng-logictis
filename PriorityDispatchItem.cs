@@ -65,7 +65,7 @@ namespace Quanlykhohanglogicts
         public string AllocationReason { get; set; } = string.Empty;
 
         /// <summary>
-        /// Thời gian cam kết SLA còn lại hiển thị trực quan (VD: Quá hạn 30p, Còn 1.5h, Còn 26h)
+        /// Thời gian cam kết SLA còn lại hiển thị trực quan (VD: Trễ 15p (Cứu nguy), Cấp bách (Còn 45p), An toàn (Còn 26h))
         /// </summary>
         public string SlaRemainingText
         {
@@ -75,19 +75,20 @@ namespace Quanlykhohanglogicts
                 if (thoiGianConLai.TotalMinutes < 0)
                 {
                     int phutTre = (int)Math.Abs(thoiGianConLai.TotalMinutes);
-                    return phutTre >= 60 ? $"🚨 QUÁ HẠN {phutTre / 60}h{phutTre % 60}p!" : $"🚨 QUÁ HẠN {phutTre} phút!";
+                    return phutTre >= 60 ? $"🚨 Trễ {phutTre / 60}h{phutTre % 60}p (Cứu nguy)" : $"🚨 Trễ {phutTre} phút (Cứu nguy)";
                 }
                 else if (thoiGianConLai.TotalHours < 2)
                 {
-                    return $"⚡ Giao gấp (Còn {(int)thoiGianConLai.TotalMinutes}p)";
+                    int phutCon = (int)thoiGianConLai.TotalMinutes;
+                    return phutCon < 60 ? $"⚡ Cấp bách (Còn {phutCon}p)" : $"⚡ Cấp bách (Còn 1h{phutCon % 60}p)";
                 }
-                else if (thoiGianConLai.TotalHours < 12)
+                else if (thoiGianConLai.TotalHours < 6)
                 {
                     return $"⏱️ Cận hạn (Còn {thoiGianConLai.TotalHours:N1}h)";
                 }
                 else
                 {
-                    return $"🛡️ An toàn (Còn {thoiGianConLai.TotalHours:N0}h)";
+                    return $"🟢 An toàn (Còn {thoiGianConLai.TotalHours:N0}h)";
                 }
             }
         }
@@ -100,10 +101,10 @@ namespace Quanlykhohanglogicts
             get
             {
                 var thoiGianConLai = Order.EstimatedDeliveryDate - DateTime.Now;
-                if (thoiGianConLai.TotalMinutes < 0) return "#DC2626"; // Đỏ rực
-                if (thoiGianConLai.TotalHours < 2) return "#EA580C";   // Cam đỏ
-                if (thoiGianConLai.TotalHours < 12) return "#D97706";  // Vàng cam
-                return "#16A34A";                                     // Xanh lá an toàn
+                if (thoiGianConLai.TotalMinutes < 0) return "#DC2626"; // Đỏ rực cảnh báo
+                if (thoiGianConLai.TotalHours < 2) return "#EA580C";   // Cam đỏ cấp bách
+                if (thoiGianConLai.TotalHours < 6) return "#D97706";  // Vàng cam cận hạn
+                return "#059669";                                     // Xanh lục an toàn
             }
         }
 

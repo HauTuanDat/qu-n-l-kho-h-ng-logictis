@@ -66,23 +66,23 @@ namespace Quanlykhohanglogicts
         /// </summary>
         public string SenderName { get; set; } = string.Empty;
 
-        public string SenderPhone { get; set; } = string.Empty;
-        public string SenderAddress { get; set; } = string.Empty;
+        public string? SenderPhone { get; set; } = string.Empty;
+        public string? SenderAddress { get; set; } = string.Empty;
 
         /// <summary>
         /// Mã bảng kê vận chuyển / Mã chuyến xe tải giao tới (Manifest Number)
         /// </summary>
-        public string WaybillNumber { get; set; } = string.Empty;
+        public string? WaybillNumber { get; set; } = string.Empty;
 
         /// <summary>
         /// Biển số xe tải giao hàng (nếu là xe container / xe tải trung chuyển)
         /// </summary>
-        public string VehiclePlate { get; set; } = string.Empty;
+        public string? VehiclePlate { get; set; } = string.Empty;
 
         /// <summary>
         /// Tên tài xế giao hàng
         /// </summary>
-        public string DriverName { get; set; } = string.Empty;
+        public string? DriverName { get; set; } = string.Empty;
 
         /// <summary>
         /// Tổng khối lượng lô hàng nhập (Đơn vị: kg)
@@ -100,7 +100,7 @@ namespace Quanlykhohanglogicts
         public ImportOrderStatus Status { get; set; } = ImportOrderStatus.PendingInspection;
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
-        public string CreatedByName { get; set; } = "Nhân viên bến nhập";
+        public string? CreatedByName { get; set; } = "Nhân viên bến nhập";
 
         public DateTime? ApprovedDate { get; set; }
         public string? ApprovedByName { get; set; }
@@ -108,7 +108,7 @@ namespace Quanlykhohanglogicts
         /// <summary>
         /// Ghi chú kiểm đếm / Tình trạng seal niêm phong xe
         /// </summary>
-        public string Notes { get; set; } = string.Empty;
+        public string? Notes { get; set; } = string.Empty;
 
         /// <summary>
         /// Danh sách chi tiết các mặt hàng trong lô nhập

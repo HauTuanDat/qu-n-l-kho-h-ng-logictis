@@ -23,9 +23,9 @@ namespace Quanlykhohanglogicts
         /// </summary>
         public string SenderName { get; set; } = string.Empty;
 
-        public string SenderPhone { get; set; } = string.Empty;
+        public string? SenderPhone { get; set; } = string.Empty;
 
-        public string SenderAddress { get; set; } = string.Empty;
+        public string? SenderAddress { get; set; } = string.Empty;
 
         public DateTime CreatedTime { get; set; } = DateTime.Now;
 
@@ -41,11 +41,11 @@ namespace Quanlykhohanglogicts
         /// </summary>
         public decimal TotalReturnFee { get; set; }
 
-        public string OperatorName { get; set; } = "Thủ Kho Hàng Hoàn";
+        public string? OperatorName { get; set; } = "Thủ Kho Hàng Hoàn";
 
-        public string Status { get; set; } = "Đang Lưu Kho"; // Đang Lưu Kho, Đã Trả Shop
+        public string? Status { get; set; } = "Đang Lưu Kho"; // Đang Lưu Kho, Đã Trả Shop
 
-        public string Notes { get; set; } = string.Empty;
+        public string? Notes { get; set; } = string.Empty;
 
         public List<int> OrderIds { get; set; } = new();
 

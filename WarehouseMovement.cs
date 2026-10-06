@@ -49,7 +49,7 @@ namespace Quanlykhohanglogicts
         /// <summary>
         /// Mã bưu kiện / Mã đơn liên quan (nếu có, VD: LOGIX-98001)
         /// </summary>
-        public string ReferenceCode { get; set; } = string.Empty;
+        public string? ReferenceCode { get; set; } = string.Empty;
 
         /// <summary>
         /// Số lượng kiện
@@ -64,22 +64,22 @@ namespace Quanlykhohanglogicts
         /// <summary>
         /// Nguồn gửi đến hoặc Đích đến (VD: "Shop GenZ -> Dock Inbound", "Khu A -> Shipper Tuấn", "Khu B -> Xe Tải Long Biên")
         /// </summary>
-        public string SourceOrDestination { get; set; } = string.Empty;
+        public string? SourceOrDestination { get; set; } = string.Empty;
 
         /// <summary>
         /// Vị trí kệ kho liên quan (VD: KHO-A-D01-K01, DOCK-INBOUND-01)
         /// </summary>
-        public string LocationCode { get; set; } = "DOCK-INBOUND-01";
+        public string? LocationCode { get; set; } = "DOCK-INBOUND-01";
 
         /// <summary>
         /// Nhân viên kho hoặc Quản lý kho thực hiện giao dịch
         /// </summary>
-        public string OperatorName { get; set; } = "Thủ Kho Hệ Thống";
+        public string? OperatorName { get; set; } = "Thủ Kho Hệ Thống";
 
         /// <summary>
         /// Ghi chú nghiệp vụ
         /// </summary>
-        public string Notes { get; set; } = string.Empty;
+        public string? Notes { get; set; } = string.Empty;
 
         /// <summary>
         /// Tên loại giao dịch hiển thị bằng tiếng Việt

@@ -704,8 +704,82 @@ namespace Quanlykhohanglogicts
 
             if (donNoiVungChoGiao.Count == 0)
             {
+                var donChoGiaoNgoaiVung = _danhSachTatCaDonHang
+                    .Where(d => d.Status == ShippingOrderStatus.NewReceived || d.Status == ShippingOrderStatus.PendingProcessing)
+                    .ToList();
+
+                if (donChoGiaoNgoaiVung.Count > 0)
+                {
+                    var hoiXuLy = MessageBox.Show(
+                        $"ℹ️ THÔNG BÁO PHÂN PHỐI VẬN ĐƠN:\n\n" +
+                        $"• Nút [Xuất Giao Đơn Nội Vùng] chuyên gom các đơn có người nhận tại THÁI NGUYÊN (cùng tỉnh với kho trạm hiện tại).\n" +
+                        $"• Danh sách hiện tại đang có {donChoGiaoNgoaiVung.Count} đơn chờ xử lý, nhưng toàn bộ là đơn TRUNG CHUYỂN đi HÀ NỘI (Ngoại tỉnh).\n\n" +
+                        $"👉 HƯỚNG DẪN XỬ LÝ:\n" +
+                        $"• Bấm [YES] ➔ Chuyển sang phân hệ [Trung Tâm Điều Phối TMS (Phân Bổ SLA)] để duyệt hạn mức và gom tuyến chuẩn.\n" +
+                        $"• Bấm [NO]  ➔ Xuất kho và phân công Shipper trực tiếp cho toàn bộ {donChoGiaoNgoaiVung.Count} đơn này ngay tại đây!\n" +
+                        $"• Bấm [Cancel] ➔ Đóng thông báo để xem danh sách.",
+                        "Phân Luồng Đơn Hàng Vận Chuyển",
+                        MessageBoxButton.YesNoCancel,
+                        MessageBoxImage.Question);
+
+                    if (hoiXuLy == MessageBoxResult.Yes)
+                    {
+                        if (Application.Current.MainWindow is MainWindow cuaSoChinh)
+                        {
+                            cuaSoChinh.ChuyenSangTrangDieuPhoiUuTien();
+                        }
+                        return;
+                    }
+                    else if (hoiXuLy == MessageBoxResult.No)
+                    {
+                        var dsShipperKhaDung = WarehouseContext.Instance.GetAllShippers().Where(s => !s.IsLocked).ToList();
+                        if (dsShipperKhaDung.Count == 0) dsShipperKhaDung = WarehouseContext.Instance.GetAllShippers().ToList();
+
+                        int idxShipper = 0;
+                        foreach (var don in donChoGiaoNgoaiVung)
+                        {
+                            var shipper = dsShipperKhaDung[idxShipper % dsShipperKhaDung.Count];
+                            idxShipper++;
+
+                            don.Status = ShippingOrderStatus.Delivering;
+                            don.AssignedShipperId = shipper.Id;
+                            don.AssignedShipperName = shipper.FullName;
+                            don.ShipperPhone = shipper.Phone;
+                            don.Notes = (don.Notes ?? "") + $" | [XUẤT HÀNG LOẠT] Bàn giao {shipper.FullName} lúc {DateTime.Now:HH:mm dd/MM}";
+
+                            WarehouseContext.Instance.UpdateShippingOrder(don);
+
+                            WarehouseContext.Instance.AddWarehouseMovement(new WarehouseMovement
+                            {
+                                TransactionCode = $"GD-XK-LM-{DateTime.Now:yyMMddHHmmss}-{don.Id}",
+                                Timestamp = DateTime.Now,
+                                MovementType = WarehouseMovementType.OutboundLastMile,
+                                ItemName = $"{don.ProductSummary}",
+                                ReferenceCode = don.OrderCode,
+                                Quantity = 1,
+                                Weight = don.Weight,
+                                SourceOrDestination = $"Kho Tổng ➔ Shipper: {shipper.FullName}",
+                                LocationCode = "DOCK-LAST-MILE-01",
+                                OperatorName = UserSession.Current.CurrentUser?.FullName ?? "Điều phối viên",
+                                Notes = $"Xuất kho đi giao đơn hàng {don.OrderCode}"
+                            });
+                        }
+
+                        MessageBox.Show(
+                            $"✅ ĐÃ XUẤT KHO VÀ ĐI GIAO THÀNH CÔNG {donChoGiaoNgoaiVung.Count} ĐƠN HÀNG!\n\n" +
+                            $"Tất cả các đơn đã được phân bổ cho đội ngũ Shipper và chuyển sang trạng thái 'Đang Giao'.",
+                            "Xuất Giao Thành Công",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
+
+                        NapDuLieuDonHang();
+                        return;
+                    }
+                    return;
+                }
+
                 MessageBox.Show(
-                    "Hiện tại không có đơn hàng nội vùng Thái Nguyên nào đang ở trạng thái 'Mới tiếp nhận' hoặc 'Chờ xử lý' cần xuất giao!",
+                    "Hiện tại không có đơn hàng nào đang ở trạng thái 'Mới tiếp nhận' hoặc 'Chờ xử lý' cần xuất giao!",
                     "Thông Báo Phân Phối",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);

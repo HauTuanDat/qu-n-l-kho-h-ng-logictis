@@ -43,7 +43,7 @@ namespace Quanlykhohanglogicts
         // --- THÔNG TIN BÊN GỬI HÀNG ---
         public string SenderName { get; set; } = string.Empty;
         public string SenderPhone { get; set; } = string.Empty;
-        public string SenderAddress { get; set; } = string.Empty;
+        public string? SenderAddress { get; set; } = string.Empty;
 
         // --- THÔNG TIN BÊN NHẬN HÀNG ---
         public string ReceiverName { get; set; } = string.Empty;
@@ -97,8 +97,8 @@ namespace Quanlykhohanglogicts
 
         // --- SHIPPER PHỤ TRÁCH GIAO HÀNG ---
         public int? AssignedShipperId { get; set; }
-        public string AssignedShipperName { get; set; } = "Chưa phân phối";
-        public string ShipperPhone { get; set; } = string.Empty;
+        public string? AssignedShipperName { get; set; } = "Chưa phân phối";
+        public string? ShipperPhone { get; set; } = string.Empty;
 
         // --- MỐC THỜI GIAN & CAM KẾT SLA ---
         public DateTime CreatedDate { get; set; } = DateTime.Now;
@@ -110,7 +110,7 @@ namespace Quanlykhohanglogicts
 
         public DateTime? DeliveredDate { get; set; }
 
-        public string Notes { get; set; } = string.Empty;
+        public string? Notes { get; set; } = string.Empty;
 
         // --- CÁC TRƯỜNG PHỤC VỤ LOGISTICS NGƯỢC (REVERSE LOGISTICS & RTO) ---
         /// <summary>
@@ -121,7 +121,7 @@ namespace Quanlykhohanglogicts
         /// <summary>
         /// Lý do giao thất bại gần nhất
         /// </summary>
-        public string FailureReason { get; set; } = string.Empty;
+        public string? FailureReason { get; set; } = string.Empty;
 
         /// <summary>
         /// Thời điểm ghi nhận giao hàng thất bại gần nhất
@@ -131,12 +131,12 @@ namespace Quanlykhohanglogicts
         /// <summary>
         /// Mã vận đơn chuyển hoàn (VD: RTO-260925-001)
         /// </summary>
-        public string RtoTrackingCode { get; set; } = string.Empty;
+        public string? RtoTrackingCode { get; set; } = string.Empty;
 
         /// <summary>
         /// Vị trí kệ lưu trữ hàng hoàn trong kho (VD: KHO-RTO-01, KHO-RTO-02)
         /// </summary>
-        public string RtoLocationCode { get; set; } = "KHO-RTO-01";
+        public string? RtoLocationCode { get; set; } = "KHO-RTO-01";
 
         /// <summary>
         /// Ngày phê duyệt chuyển hoàn (RTO Approved Date)
@@ -151,7 +151,7 @@ namespace Quanlykhohanglogicts
         /// <summary>
         /// Mã biên bản bàn giao trả lại cho Shop
         /// </summary>
-        public string ReturnHandoverBatchCode { get; set; } = string.Empty;
+        public string? ReturnHandoverBatchCode { get; set; } = string.Empty;
 
         /// <summary>
         /// THUỘC TÍNH KIỂM TRA: Cảnh báo đơn quá hạn cam kết giao hàng

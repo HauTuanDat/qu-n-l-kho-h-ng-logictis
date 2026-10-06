@@ -329,7 +329,7 @@
 
                                 <!-- Tìm kiếm kiện hàng cần phân loại -->
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8" Height="36" Width="260" Margin="0,0,8,0">
+                                    <Border Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8" Height="36" Width="230" Margin="0,0,8,0">
                                         <Grid Margin="10,0">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="20"/>
@@ -339,8 +339,14 @@
                                             <TextBox x:Name="txtTimKiemPhanLoai" Grid.Column="1" Margin="4,0" FontSize="12" Background="Transparent" BorderThickness="0" VerticalAlignment="Center" TextChanged="TxtTimKiemPhanLoai_TextChanged"/>
                                         </Grid>
                                     </Border>
-                                    <Button Style="{StaticResource NutThaoTacKhoStyle}" Height="36" Padding="12,0" Background="#F1F5F9" Foreground="#334155" BorderBrush="#CBD5E1" BorderThickness="1" Click="BtnLamMoiKho_Click">
+                                    <Button Style="{StaticResource NutThaoTacKhoStyle}" Height="36" Padding="12,0" Background="#F1F5F9" Foreground="#334155" BorderBrush="#CBD5E1" BorderThickness="1" Click="BtnLamMoiKho_Click" Margin="0,0,8,0">
                                         <TextBlock Text="Tải Lại"/>
+                                    </Button>
+                                    <Button Style="{StaticResource NutThaoTacKhoStyle}" Height="36" Padding="14,0" Background="#2563EB" Foreground="White" BorderThickness="0" Click="BtnTuDongPhanLuongHangLoat_Click" ToolTip="Tự động phân tích địa chỉ và phân luồng hàng loạt tất cả bưu kiện trên sàn Dock tiếp nhận">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="⚡" FontSize="13" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Phân Luồng Tự Động (Auto-Sort)" FontWeight="SemiBold"/>
+                                        </StackPanel>
                                     </Button>
                                 </StackPanel>
                             </Grid>

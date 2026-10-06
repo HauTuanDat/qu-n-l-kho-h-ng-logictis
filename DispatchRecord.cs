@@ -31,9 +31,9 @@ namespace Quanlykhohanglogicts
         // --- THÔNG TIN SHIPPER PHỤ TRÁCH ---
         public int ShipperId { get; set; }
         public string ShipperName { get; set; } = string.Empty;
-        public string ShipperPhone { get; set; } = string.Empty;
-        public string VehiclePlate { get; set; } = string.Empty;
-        public string DeliveryArea { get; set; } = string.Empty;
+        public string? ShipperPhone { get; set; } = string.Empty;
+        public string? VehiclePlate { get; set; } = string.Empty;
+        public string? DeliveryArea { get; set; } = string.Empty;
 
         // --- CHỈ SỐ LÔ HÀNG BÀN GIAO ---
         public int TotalOrders { get; set; }
@@ -44,14 +44,14 @@ namespace Quanlykhohanglogicts
         /// <summary>
         /// Tên người thực hiện điều phối (Admin hoặc Quản lý kho)
         /// </summary>
-        public string DispatcherName { get; set; } = "Điều Phối Viên";
+        public string? DispatcherName { get; set; } = "Điều Phối Viên";
 
         /// <summary>
         /// Trạng thái chuyến giao: Đang Đi Giao, Hoàn Tất, Hủy
         /// </summary>
-        public string Status { get; set; } = "Đang Đi Giao";
+        public string? Status { get; set; } = "Đang Đi Giao";
 
-        public string Notes { get; set; } = string.Empty;
+        public string? Notes { get; set; } = string.Empty;
 
         /// <summary>
         /// Danh sách ID các đơn hàng nằm trong chuyến điều phối này

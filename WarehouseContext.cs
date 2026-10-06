@@ -91,6 +91,18 @@ namespace Quanlykhohanglogicts
 
                 // 6. Đồng bộ nhật ký hoạt động từ DbSet<RecentActivity>
                 SyncActivitiesFromDatabase(db);
+
+                // 7. Đồng bộ danh sách vị trí kho bãi từ DbSet<WarehouseLocation>
+                SyncLocationsFromDatabase(db);
+
+                // 8. Đồng bộ nhật ký biến động kho từ DbSet<WarehouseMovement>
+                SyncMovementsFromDatabase(db);
+
+                // 9. Đồng bộ danh sách phiên điều phối từ DbSet<DispatchRecord>
+                SyncDispatchRecordsFromDatabase(db);
+
+                // 10. Đồng bộ danh sách biên bản bàn giao hoàn trả từ DbSet<ReturnHandoverBatch>
+                SyncReturnBatchesFromDatabase(db);
             }
             catch (Exception ex)
             {
@@ -103,6 +115,7 @@ namespace Quanlykhohanglogicts
         private void EnsureTablesExist(WarehouseDbContext db)
         {
             const string ddl = @"
+            -- 1. Bảng ShippingOrders
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ShippingOrders')
             BEGIN
                 CREATE TABLE ShippingOrders (
@@ -129,43 +142,115 @@ namespace Quanlykhohanglogicts
                     CreatedDate DATETIME2 NOT NULL DEFAULT GETDATE(),
                     EstimatedDeliveryDate DATETIME2 NOT NULL DEFAULT GETDATE(),
                     DeliveredDate DATETIME2 NULL,
-                    Notes NVARCHAR(500) NULL
+                    Notes NVARCHAR(500) NULL,
+                    FailedDeliveryCount INT NOT NULL DEFAULT 0,
+                    FailureReason NVARCHAR(255) NULL,
+                    FailureTimestamp DATETIME2 NULL,
+                    RtoTrackingCode NVARCHAR(50) NULL,
+                    RtoLocationCode NVARCHAR(50) NULL,
+                    RtoApprovedDate DATETIME2 NULL,
+                    ReturnShippingFee DECIMAL(18,2) NOT NULL DEFAULT 10000,
+                    ReturnHandoverBatchCode NVARCHAR(50) NULL
                 );
             END
+            ELSE
+            BEGIN
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ShippingOrders') AND name = 'FailedDeliveryCount')
+                    ALTER TABLE ShippingOrders ADD FailedDeliveryCount INT NOT NULL DEFAULT 0;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ShippingOrders') AND name = 'FailureReason')
+                    ALTER TABLE ShippingOrders ADD FailureReason NVARCHAR(255) NULL;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ShippingOrders') AND name = 'FailureTimestamp')
+                    ALTER TABLE ShippingOrders ADD FailureTimestamp DATETIME2 NULL;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ShippingOrders') AND name = 'RtoTrackingCode')
+                    ALTER TABLE ShippingOrders ADD RtoTrackingCode NVARCHAR(50) NULL;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ShippingOrders') AND name = 'RtoLocationCode')
+                    ALTER TABLE ShippingOrders ADD RtoLocationCode NVARCHAR(50) NULL;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ShippingOrders') AND name = 'RtoApprovedDate')
+                    ALTER TABLE ShippingOrders ADD RtoApprovedDate DATETIME2 NULL;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ShippingOrders') AND name = 'ReturnShippingFee')
+                    ALTER TABLE ShippingOrders ADD ReturnShippingFee DECIMAL(18,2) NOT NULL DEFAULT 10000;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ShippingOrders') AND name = 'ReturnHandoverBatchCode')
+                    ALTER TABLE ShippingOrders ADD ReturnHandoverBatchCode NVARCHAR(50) NULL;
+            END
 
+            -- 2. Bảng ImportOrders
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ImportOrders')
             BEGIN
                 CREATE TABLE ImportOrders (
                     Id INT IDENTITY(1,1) PRIMARY KEY,
                     ImportCode NVARCHAR(50) NOT NULL,
                     SourceType INT NOT NULL DEFAULT 0,
-                    SourceTypeName NVARCHAR(100) NOT NULL,
+                    SourceTypeName NVARCHAR(100) NULL,
                     SenderName NVARCHAR(100) NOT NULL,
+                    SenderPhone NVARCHAR(20) NULL,
+                    SenderAddress NVARCHAR(255) NULL,
                     WaybillNumber NVARCHAR(50) NULL,
                     VehicleNumber NVARCHAR(50) NULL,
+                    DriverName NVARCHAR(100) NULL,
                     TotalWeight FLOAT NOT NULL DEFAULT 0,
+                    TotalValue DECIMAL(18,2) NOT NULL DEFAULT 0,
                     Status INT NOT NULL DEFAULT 0,
-                    StatusDisplayName NVARCHAR(100) NOT NULL,
+                    StatusDisplayName NVARCHAR(100) NULL,
+                    CreatedByName NVARCHAR(100) NULL,
+                    ApprovedDate DATETIME2 NULL,
+                    ApprovedByName NVARCHAR(100) NULL,
                     Notes NVARCHAR(500) NULL,
                     CreatedDate DATETIME2 NOT NULL DEFAULT GETDATE()
                 );
             END
+            ELSE
+            BEGIN
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ImportOrders') AND name = 'SenderPhone')
+                    ALTER TABLE ImportOrders ADD SenderPhone NVARCHAR(20) NULL;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ImportOrders') AND name = 'SenderAddress')
+                    ALTER TABLE ImportOrders ADD SenderAddress NVARCHAR(255) NULL;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ImportOrders') AND name = 'DriverName')
+                    ALTER TABLE ImportOrders ADD DriverName NVARCHAR(100) NULL;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ImportOrders') AND name = 'TotalValue')
+                    ALTER TABLE ImportOrders ADD TotalValue DECIMAL(18,2) NOT NULL DEFAULT 0;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ImportOrders') AND name = 'CreatedByName')
+                    ALTER TABLE ImportOrders ADD CreatedByName NVARCHAR(100) NULL;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ImportOrders') AND name = 'ApprovedDate')
+                    ALTER TABLE ImportOrders ADD ApprovedDate DATETIME2 NULL;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('ImportOrders') AND name = 'ApprovedByName')
+                    ALTER TABLE ImportOrders ADD ApprovedByName NVARCHAR(100) NULL;
+            END
 
+            -- 3. Bảng Shippers
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Shippers')
             BEGIN
                 CREATE TABLE Shippers (
                     Id INT IDENTITY(1,1) PRIMARY KEY,
                     FullName NVARCHAR(100) NOT NULL,
                     PhoneNumber NVARCHAR(20) NOT NULL,
+                    CitizenId NVARCHAR(20) NULL,
                     VehicleType NVARCHAR(50) NOT NULL,
                     LicensePlate NVARCHAR(20) NOT NULL,
                     CurrentArea NVARCHAR(100) NOT NULL,
                     Status INT NOT NULL DEFAULT 0,
+                    IsLocked BIT NOT NULL DEFAULT 0,
+                    WorkShift NVARCHAR(50) NULL,
+                    MaxOrdersPerDay INT NOT NULL DEFAULT 25,
+                    MaxWeightCapacity FLOAT NOT NULL DEFAULT 50.0,
                     CompletedOrdersToday INT NOT NULL DEFAULT 0,
                     Rating FLOAT NOT NULL DEFAULT 5.0
                 );
             END
+            ELSE
+            BEGIN
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Shippers') AND name = 'CitizenId')
+                    ALTER TABLE Shippers ADD CitizenId NVARCHAR(20) NULL;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Shippers') AND name = 'IsLocked')
+                    ALTER TABLE Shippers ADD IsLocked BIT NOT NULL DEFAULT 0;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Shippers') AND name = 'WorkShift')
+                    ALTER TABLE Shippers ADD WorkShift NVARCHAR(50) NULL;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Shippers') AND name = 'MaxOrdersPerDay')
+                    ALTER TABLE Shippers ADD MaxOrdersPerDay INT NOT NULL DEFAULT 25;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Shippers') AND name = 'MaxWeightCapacity')
+                    ALTER TABLE Shippers ADD MaxWeightCapacity FLOAT NOT NULL DEFAULT 50.0;
+            END
 
+            -- 4. Bảng RecentActivities
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'RecentActivities')
             BEGIN
                 CREATE TABLE RecentActivities (
@@ -178,6 +263,7 @@ namespace Quanlykhohanglogicts
                 );
             END
 
+            -- 5. Bảng _users
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = '_users')
             BEGIN
                 CREATE TABLE _users (
@@ -185,9 +271,103 @@ namespace Quanlykhohanglogicts
                     Username NVARCHAR(50) NOT NULL,
                     Password NVARCHAR(255) NOT NULL,
                     FullName NVARCHAR(100) NULL,
+                    Email NVARCHAR(100) NULL,
+                    PhoneNumber NVARCHAR(20) NULL,
                     Role NVARCHAR(50) NOT NULL DEFAULT 'Staff',
                     IsActive BIT NOT NULL DEFAULT 1,
-                    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
+                    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+                    LastLoginAt DATETIME2 NULL
+                );
+            END
+            ELSE
+            BEGIN
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('_users') AND name = 'Email')
+                    ALTER TABLE _users ADD Email NVARCHAR(100) NULL;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('_users') AND name = 'PhoneNumber')
+                    ALTER TABLE _users ADD PhoneNumber NVARCHAR(20) NULL;
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('_users') AND name = 'LastLoginAt')
+                    ALTER TABLE _users ADD LastLoginAt DATETIME2 NULL;
+            END
+
+            -- 6. Bảng WarehouseLocations
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'WarehouseLocations')
+            BEGIN
+                CREATE TABLE WarehouseLocations (
+                    Id INT IDENTITY(1,1) PRIMARY KEY,
+                    LocationCode NVARCHAR(50) NOT NULL,
+                    WarehouseName NVARCHAR(100) NOT NULL,
+                    Zone NVARCHAR(100) NOT NULL,
+                    Aisle NVARCHAR(20) NOT NULL,
+                    Rack NVARCHAR(20) NOT NULL,
+                    Shelf NVARCHAR(20) NOT NULL,
+                    Bin NVARCHAR(20) NOT NULL,
+                    MaxWeightCapacity FLOAT NOT NULL DEFAULT 1000.0,
+                    CurrentWeight FLOAT NOT NULL DEFAULT 0.0,
+                    MaxVolumeCapacity FLOAT NOT NULL DEFAULT 5.0,
+                    Status INT NOT NULL DEFAULT 0
+                );
+            END
+
+            -- 7. Bảng WarehouseMovements
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'WarehouseMovements')
+            BEGIN
+                CREATE TABLE WarehouseMovements (
+                    Id INT IDENTITY(1,1) PRIMARY KEY,
+                    TransactionCode NVARCHAR(50) NOT NULL,
+                    Timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
+                    MovementType INT NOT NULL DEFAULT 0,
+                    ItemName NVARCHAR(255) NOT NULL,
+                    ReferenceCode NVARCHAR(100) NULL,
+                    Quantity INT NOT NULL DEFAULT 1,
+                    Weight FLOAT NOT NULL DEFAULT 0.0,
+                    SourceOrDestination NVARCHAR(255) NULL,
+                    LocationCode NVARCHAR(50) NULL,
+                    OperatorName NVARCHAR(100) NULL,
+                    Notes NVARCHAR(500) NULL
+                );
+            END
+
+            -- 8. Bảng DispatchRecords
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'DispatchRecords')
+            BEGIN
+                CREATE TABLE DispatchRecords (
+                    Id INT IDENTITY(1,1) PRIMARY KEY,
+                    DispatchCode NVARCHAR(50) NOT NULL,
+                    DispatchDate DATETIME2 NOT NULL DEFAULT GETDATE(),
+                    CreatedTime DATETIME2 NOT NULL DEFAULT GETDATE(),
+                    ShipperId INT NOT NULL,
+                    ShipperName NVARCHAR(100) NOT NULL,
+                    ShipperPhone NVARCHAR(20) NULL,
+                    VehiclePlate NVARCHAR(20) NULL,
+                    DeliveryArea NVARCHAR(100) NULL,
+                    TotalOrders INT NOT NULL DEFAULT 0,
+                    ExpressOrdersCount INT NOT NULL DEFAULT 0,
+                    TotalCodAmount DECIMAL(18,2) NOT NULL DEFAULT 0,
+                    TotalWeight FLOAT NOT NULL DEFAULT 0.0,
+                    DispatcherName NVARCHAR(100) NULL,
+                    Status NVARCHAR(50) NOT NULL DEFAULT N'Đang Đi Giao',
+                    Notes NVARCHAR(500) NULL,
+                    OrderIds NVARCHAR(MAX) NULL
+                );
+            END
+
+            -- 9. Bảng ReturnHandoverBatches
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ReturnHandoverBatches')
+            BEGIN
+                CREATE TABLE ReturnHandoverBatches (
+                    Id INT IDENTITY(1,1) PRIMARY KEY,
+                    BatchCode NVARCHAR(50) NOT NULL,
+                    SenderName NVARCHAR(100) NOT NULL,
+                    SenderPhone NVARCHAR(20) NULL,
+                    SenderAddress NVARCHAR(255) NULL,
+                    CreatedTime DATETIME2 NOT NULL DEFAULT GETDATE(),
+                    TotalOrders INT NOT NULL DEFAULT 0,
+                    TotalCodValue DECIMAL(18,2) NOT NULL DEFAULT 0,
+                    TotalReturnFee DECIMAL(18,2) NOT NULL DEFAULT 0,
+                    OperatorName NVARCHAR(100) NULL,
+                    Status NVARCHAR(50) NOT NULL DEFAULT N'Đang Lưu Kho',
+                    Notes NVARCHAR(500) NULL,
+                    OrderIds NVARCHAR(MAX) NULL
                 );
             END";
 
@@ -214,9 +394,12 @@ namespace Quanlykhohanglogicts
                             existing.Id = user.Id;
                             existing.PasswordHash = user.PasswordHash;
                             existing.FullName = !string.IsNullOrWhiteSpace(user.FullName) ? user.FullName : existing.FullName;
+                            existing.Email = !string.IsNullOrWhiteSpace(user.Email) ? user.Email : existing.Email;
+                            existing.PhoneNumber = !string.IsNullOrWhiteSpace(user.PhoneNumber) ? user.PhoneNumber : existing.PhoneNumber;
                             existing.Role = user.Role;
                             existing.IsActive = user.IsActive;
                             existing.CreatedAt = user.CreatedAt;
+                            existing.LastLoginAt = user.LastLoginAt;
                         }
                     }
                 }
@@ -262,7 +445,15 @@ namespace Quanlykhohanglogicts
                                 CreatedDate = o.CreatedDate,
                                 EstimatedDeliveryDate = o.EstimatedDeliveryDate,
                                 DeliveredDate = o.DeliveredDate,
-                                Notes = o.Notes
+                                Notes = o.Notes,
+                                FailedDeliveryCount = o.FailedDeliveryCount,
+                                FailureReason = o.FailureReason,
+                                FailureTimestamp = o.FailureTimestamp,
+                                RtoTrackingCode = o.RtoTrackingCode,
+                                RtoLocationCode = o.RtoLocationCode,
+                                RtoApprovedDate = o.RtoApprovedDate,
+                                ReturnShippingFee = o.ReturnShippingFee,
+                                ReturnHandoverBatchCode = o.ReturnHandoverBatchCode
                             });
                         }
                         db.SaveChanges();
@@ -303,10 +494,17 @@ namespace Quanlykhohanglogicts
                                 ImportCode = o.ImportCode,
                                 SourceType = o.SourceType,
                                 SenderName = o.SenderName,
+                                SenderPhone = o.SenderPhone,
+                                SenderAddress = o.SenderAddress,
                                 WaybillNumber = o.WaybillNumber,
                                 VehiclePlate = o.VehiclePlate,
+                                DriverName = o.DriverName,
                                 TotalWeight = o.TotalWeight,
+                                TotalValue = o.TotalValue,
                                 Status = o.Status,
+                                CreatedByName = o.CreatedByName,
+                                ApprovedDate = o.ApprovedDate,
+                                ApprovedByName = o.ApprovedByName,
                                 Notes = o.Notes,
                                 CreatedDate = o.CreatedDate
                             });
@@ -348,10 +546,15 @@ namespace Quanlykhohanglogicts
                             {
                                 FullName = s.FullName,
                                 Phone = s.Phone,
+                                CitizenId = s.CitizenId,
                                 VehicleType = s.VehicleType,
                                 VehiclePlate = s.VehiclePlate,
                                 DeliveryArea = s.DeliveryArea,
                                 Status = s.Status,
+                                IsLocked = s.IsLocked,
+                                WorkShift = s.WorkShift,
+                                MaxOrdersPerDay = s.MaxOrdersPerDay,
+                                MaxWeightCapacity = s.MaxWeightCapacity,
                                 CompletedTodayCount = s.CompletedTodayCount,
                                 Rating = s.Rating
                             });
@@ -419,6 +622,192 @@ namespace Quanlykhohanglogicts
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[SyncActivities EF Core Error] {ex.Message}");
+            }
+        }
+
+        private void SyncLocationsFromDatabase(WarehouseDbContext db)
+        {
+            try
+            {
+                int count = db.WarehouseLocations.Count();
+                if (count == 0)
+                {
+                    lock (_lock)
+                    {
+                        foreach (var loc in _locations)
+                        {
+                            db.WarehouseLocations.Add(new WarehouseLocation
+                            {
+                                LocationCode = loc.LocationCode,
+                                WarehouseName = loc.WarehouseName,
+                                Zone = loc.Zone,
+                                Aisle = loc.Aisle,
+                                Rack = loc.Rack,
+                                Shelf = loc.Shelf,
+                                Bin = loc.Bin,
+                                MaxWeightCapacity = loc.MaxWeightCapacity,
+                                CurrentWeight = loc.CurrentWeight,
+                                MaxVolumeCapacity = loc.MaxVolumeCapacity,
+                                Status = loc.Status
+                            });
+                        }
+                        db.SaveChanges();
+                    }
+                }
+                else
+                {
+                    var dbLocations = db.WarehouseLocations.AsNoTracking().OrderBy(l => l.Id).ToList();
+                    lock (_lock)
+                    {
+                        _locations.Clear();
+                        _locations.AddRange(dbLocations);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SyncLocations EF Core Error] {ex.Message}");
+            }
+        }
+
+        private void SyncMovementsFromDatabase(WarehouseDbContext db)
+        {
+            try
+            {
+                int count = db.WarehouseMovements.Count();
+                if (count == 0)
+                {
+                    lock (_lock)
+                    {
+                        foreach (var m in _warehouseMovements)
+                        {
+                            db.WarehouseMovements.Add(new WarehouseMovement
+                            {
+                                TransactionCode = m.TransactionCode,
+                                Timestamp = m.Timestamp,
+                                MovementType = m.MovementType,
+                                ItemName = m.ItemName,
+                                ReferenceCode = m.ReferenceCode,
+                                Quantity = m.Quantity,
+                                Weight = m.Weight,
+                                SourceOrDestination = m.SourceOrDestination,
+                                LocationCode = m.LocationCode,
+                                OperatorName = m.OperatorName,
+                                Notes = m.Notes
+                            });
+                        }
+                        db.SaveChanges();
+                    }
+                }
+                else
+                {
+                    var dbMovements = db.WarehouseMovements.AsNoTracking().OrderByDescending(m => m.Timestamp).ToList();
+                    lock (_lock)
+                    {
+                        _warehouseMovements.Clear();
+                        _warehouseMovements.AddRange(dbMovements);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SyncMovements EF Core Error] {ex.Message}");
+            }
+        }
+
+        private void SyncDispatchRecordsFromDatabase(WarehouseDbContext db)
+        {
+            try
+            {
+                int count = db.DispatchRecords.Count();
+                if (count == 0)
+                {
+                    lock (_lock)
+                    {
+                        foreach (var d in _dispatchRecords)
+                        {
+                            db.DispatchRecords.Add(new DispatchRecord
+                            {
+                                DispatchCode = d.DispatchCode,
+                                DispatchDate = d.DispatchDate,
+                                CreatedTime = d.CreatedTime,
+                                ShipperId = d.ShipperId,
+                                ShipperName = d.ShipperName,
+                                ShipperPhone = d.ShipperPhone,
+                                VehiclePlate = d.VehiclePlate,
+                                DeliveryArea = d.DeliveryArea,
+                                TotalOrders = d.TotalOrders,
+                                ExpressOrdersCount = d.ExpressOrdersCount,
+                                TotalCodAmount = d.TotalCodAmount,
+                                TotalWeight = d.TotalWeight,
+                                DispatcherName = d.DispatcherName,
+                                Status = d.Status,
+                                Notes = d.Notes,
+                                OrderIds = d.OrderIds.ToList()
+                            });
+                        }
+                        db.SaveChanges();
+                    }
+                }
+                else
+                {
+                    var dbDispatches = db.DispatchRecords.AsNoTracking().OrderByDescending(d => d.CreatedTime).ToList();
+                    lock (_lock)
+                    {
+                        _dispatchRecords.Clear();
+                        _dispatchRecords.AddRange(dbDispatches);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SyncDispatchRecords EF Core Error] {ex.Message}");
+            }
+        }
+
+        private void SyncReturnBatchesFromDatabase(WarehouseDbContext db)
+        {
+            try
+            {
+                int count = db.ReturnHandoverBatches.Count();
+                if (count == 0)
+                {
+                    lock (_lock)
+                    {
+                        foreach (var b in _returnBatches)
+                        {
+                            db.ReturnHandoverBatches.Add(new ReturnHandoverBatch
+                            {
+                                BatchCode = b.BatchCode,
+                                SenderName = b.SenderName,
+                                SenderPhone = b.SenderPhone,
+                                SenderAddress = b.SenderAddress,
+                                CreatedTime = b.CreatedTime,
+                                TotalOrders = b.TotalOrders,
+                                TotalCodValue = b.TotalCodValue,
+                                TotalReturnFee = b.TotalReturnFee,
+                                OperatorName = b.OperatorName,
+                                Status = b.Status,
+                                Notes = b.Notes,
+                                OrderIds = b.OrderIds.ToList()
+                            });
+                        }
+                        db.SaveChanges();
+                    }
+                }
+                else
+                {
+                    var dbBatches = db.ReturnHandoverBatches.AsNoTracking().OrderByDescending(b => b.CreatedTime).ToList();
+                    lock (_lock)
+                    {
+                        _returnBatches.Clear();
+                        _returnBatches.AddRange(dbBatches);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SyncReturnBatches EF Core Error] {ex.Message}");
             }
         }
         #endregion
@@ -777,9 +1166,12 @@ namespace Quanlykhohanglogicts
                         Username = nguoiDung.Username,
                         PasswordHash = nguoiDung.PasswordHash,
                         FullName = nguoiDung.FullName,
+                        Email = nguoiDung.Email,
+                        PhoneNumber = nguoiDung.PhoneNumber,
                         Role = nguoiDung.Role,
                         IsActive = nguoiDung.IsActive,
-                        CreatedAt = nguoiDung.CreatedAt
+                        CreatedAt = nguoiDung.CreatedAt,
+                        LastLoginAt = nguoiDung.LastLoginAt
                     };
                     db.Users.Add(entity);
                     db.SaveChanges();
@@ -962,10 +1354,17 @@ namespace Quanlykhohanglogicts
                         ImportCode = phieuNhap.ImportCode,
                         SourceType = phieuNhap.SourceType,
                         SenderName = phieuNhap.SenderName,
+                        SenderPhone = phieuNhap.SenderPhone,
+                        SenderAddress = phieuNhap.SenderAddress,
                         WaybillNumber = phieuNhap.WaybillNumber,
                         VehiclePlate = phieuNhap.VehiclePlate,
+                        DriverName = phieuNhap.DriverName,
                         TotalWeight = phieuNhap.TotalWeight,
+                        TotalValue = phieuNhap.TotalValue,
                         Status = phieuNhap.Status,
+                        CreatedByName = phieuNhap.CreatedByName,
+                        ApprovedDate = phieuNhap.ApprovedDate,
+                        ApprovedByName = phieuNhap.ApprovedByName,
                         Notes = phieuNhap.Notes,
                         CreatedDate = phieuNhap.CreatedDate
                     };
@@ -1050,11 +1449,21 @@ namespace Quanlykhohanglogicts
                         ExpressSurcharge = donHang.ExpressSurcharge,
                         ReceiverPaysFee = donHang.ReceiverPaysFee,
                         Status = donHang.Status,
+                        AssignedShipperId = donHang.AssignedShipperId,
                         AssignedShipperName = donHang.AssignedShipperName,
                         ShipperPhone = donHang.ShipperPhone,
                         CreatedDate = donHang.CreatedDate,
                         EstimatedDeliveryDate = donHang.EstimatedDeliveryDate,
-                        Notes = donHang.Notes
+                        DeliveredDate = donHang.DeliveredDate,
+                        Notes = donHang.Notes,
+                        FailedDeliveryCount = donHang.FailedDeliveryCount,
+                        FailureReason = donHang.FailureReason,
+                        FailureTimestamp = donHang.FailureTimestamp,
+                        RtoTrackingCode = donHang.RtoTrackingCode,
+                        RtoLocationCode = donHang.RtoLocationCode,
+                        RtoApprovedDate = donHang.RtoApprovedDate,
+                        ReturnShippingFee = donHang.ReturnShippingFee,
+                        ReturnHandoverBatchCode = donHang.ReturnHandoverBatchCode
                     };
                     db.ShippingOrders.Add(entity);
 
@@ -1190,6 +1599,26 @@ namespace Quanlykhohanglogicts
             {
                 hoatDong.Id = _recentActivities.Count + 1;
                 _recentActivities.Insert(0, hoatDong);
+            }
+
+            if (IsDatabaseConnected)
+            {
+                try
+                {
+                    using var db = new WarehouseDbContext();
+                    db.RecentActivities.Add(new RecentActivity
+                    {
+                        Title = hoatDong.Title,
+                        Description = hoatDong.Description,
+                        Timestamp = hoatDong.Timestamp,
+                        Type = hoatDong.Type
+                    });
+                    db.SaveChanges();
+                }
+                catch (Exception ngoaiLe)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AddRecentActivity EF Core Error] {ngoaiLe.Message}");
+                }
             }
         }
 
@@ -1387,10 +1816,15 @@ namespace Quanlykhohanglogicts
                     {
                         FullName = taiXe.FullName,
                         Phone = taiXe.Phone,
+                        CitizenId = taiXe.CitizenId,
                         VehicleType = taiXe.VehicleType,
                         VehiclePlate = taiXe.VehiclePlate,
                         DeliveryArea = taiXe.DeliveryArea,
                         Status = taiXe.Status,
+                        IsLocked = taiXe.IsLocked,
+                        WorkShift = taiXe.WorkShift,
+                        MaxOrdersPerDay = taiXe.MaxOrdersPerDay,
+                        MaxWeightCapacity = taiXe.MaxWeightCapacity,
                         CompletedTodayCount = taiXe.CompletedTodayCount,
                         Rating = taiXe.Rating
                     };
@@ -1435,6 +1869,36 @@ namespace Quanlykhohanglogicts
                     });
                 }
             }
+
+            if (IsDatabaseConnected)
+            {
+                try
+                {
+                    using var db = new WarehouseDbContext();
+                    var taiXeDb = db.Shippers.Find(maTaiXe);
+                    if (taiXeDb != null)
+                    {
+                        var taiXeMem = _shippers.FirstOrDefault(s => s.Id == maTaiXe);
+                        if (taiXeMem != null)
+                        {
+                            taiXeDb.IsLocked = taiXeMem.IsLocked;
+                            taiXeDb.Status = taiXeMem.Status;
+                        }
+                        db.RecentActivities.Add(new RecentActivity
+                        {
+                            Title = $"{(taiXeDb.IsLocked ? "Khóa tài khoản" : "Mở khóa")} Shipper: {taiXeDb.FullName}",
+                            Description = $"Trạng thái mới: {(taiXeDb.IsLocked ? "Tạm khóa nhận đơn" : "Sẵn sàng hoạt động")}",
+                            Timestamp = DateTime.Now,
+                            Type = ActivityType.Warning
+                        });
+                        db.SaveChanges();
+                    }
+                }
+                catch (Exception ngoaiLe)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ToggleShipperLock EF Core Error] {ngoaiLe.Message}");
+                }
+            }
         }
 
         /// <summary>
@@ -1460,6 +1924,7 @@ namespace Quanlykhohanglogicts
                     var taiXe = db.Shippers.Find(maTaiXe);
                     if (taiXe != null)
                     {
+                        taiXe.WorkShift = caLamViec;
                         taiXe.Status = trangThaiMoi;
                         db.SaveChanges();
                     }
@@ -1495,6 +1960,7 @@ namespace Quanlykhohanglogicts
                     if (taiXe != null)
                     {
                         taiXe.DeliveryArea = khuVucMoi;
+                        taiXe.MaxOrdersPerDay = gioiHanDonMoi;
                         db.SaveChanges();
                     }
                 }
@@ -1550,6 +2016,43 @@ namespace Quanlykhohanglogicts
                     Type = bienDong.MovementType == WarehouseMovementType.InboundReceiving ? ActivityType.Import : ActivityType.ShipperAssigned
                 });
             }
+
+            if (IsDatabaseConnected)
+            {
+                try
+                {
+                    using var db = new WarehouseDbContext();
+                    var entity = new WarehouseMovement
+                    {
+                        TransactionCode = bienDong.TransactionCode,
+                        Timestamp = bienDong.Timestamp,
+                        MovementType = bienDong.MovementType,
+                        ItemName = bienDong.ItemName,
+                        ReferenceCode = bienDong.ReferenceCode,
+                        Quantity = bienDong.Quantity,
+                        Weight = bienDong.Weight,
+                        SourceOrDestination = bienDong.SourceOrDestination,
+                        LocationCode = bienDong.LocationCode,
+                        OperatorName = bienDong.OperatorName,
+                        Notes = bienDong.Notes
+                    };
+                    db.WarehouseMovements.Add(entity);
+
+                    db.RecentActivities.Add(new RecentActivity
+                    {
+                        Title = $"{bienDong.MovementTypeDisplayName}: {bienDong.ItemName}",
+                        Description = $"{bienDong.SourceOrDestination} ({bienDong.Weight:N1} kg)",
+                        Timestamp = DateTime.Now,
+                        Type = bienDong.MovementType == WarehouseMovementType.InboundReceiving ? ActivityType.Import : ActivityType.ShipperAssigned
+                    });
+                    db.SaveChanges();
+                    bienDong.Id = entity.Id;
+                }
+                catch (Exception ngoaiLe)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AddWarehouseMovement EF Core Error] {ngoaiLe.Message}");
+                }
+            }
         }
 
         /// <summary>
@@ -1587,6 +2090,92 @@ namespace Quanlykhohanglogicts
                 Notes = ghiChu
             };
             AddWarehouseMovement(bienDong);
+        }
+
+        /// <summary>
+        /// HÀM NGHIỆP VỤ: Phân loại tự động hàng loạt bưu kiện tại sàn Dock (Automated Sorting System)
+        /// Dựa trên thuật toán định tuyến địa chỉ (Destination Routing) để tự động phân luồng vào Máng Tuyến hoặc Xe Trung Chuyển.
+        /// </summary>
+        public (int tongSo, int changCuoi, int trungChuyen) XacNhanPhanLoaiHangLoat(IEnumerable<ShippingOrder> danhSachDon, string nguoiPhanLoai)
+        {
+            var dsList = danhSachDon?.ToList() ?? new List<ShippingOrder>();
+            if (dsList.Count == 0) return (0, 0, 0);
+
+            int soChangCuoi = 0;
+            int soTrungChuyen = 0;
+            var listMovements = new List<WarehouseMovement>();
+            DateTime now = DateTime.Now;
+
+            foreach (var don in dsList)
+            {
+                bool isLocal = don.IsLocalHubDelivery;
+                var loaiPhanLuong = isLocal ? WarehouseMovementType.SortingLastMile : WarehouseMovementType.SortingTransit;
+                string viTriMoi = isLocal ? $"Máng Bưu Tá ({don.DestinationArea})" : "DOCK-OUTBOUND (Cửa Xuất Xe Tải)";
+                string ghiChu = isLocal 
+                    ? $"Hệ thống tự động phân loại chặng cuối nội tỉnh ({don.DestinationArea})" 
+                    : $"Hệ thống tự động phân loại trung chuyển liên tỉnh ({don.DestinationArea})";
+
+                if (isLocal) soChangCuoi++;
+                else soTrungChuyen++;
+
+                var bienDong = new WarehouseMovement
+                {
+                    TransactionCode = $"GD-PL-{now:yyMMdd}-{new Random().Next(1000, 9999)}",
+                    Timestamp = now,
+                    MovementType = loaiPhanLuong,
+                    ItemName = don.ProductSummary,
+                    ReferenceCode = don.OrderCode,
+                    Quantity = 1,
+                    Weight = don.Weight,
+                    SourceOrDestination = $"Sàn Dock Inbound -> {viTriMoi}",
+                    LocationCode = viTriMoi,
+                    OperatorName = nguoiPhanLoai,
+                    Notes = ghiChu
+                };
+                listMovements.Add(bienDong);
+            }
+
+            lock (_lock)
+            {
+                int maxId = _warehouseMovements.Count > 0 ? _warehouseMovements.Max(m => m.Id) : 0;
+                foreach (var m in listMovements)
+                {
+                    m.Id = ++maxId;
+                    _warehouseMovements.Insert(0, m);
+                }
+
+                _recentActivities.Insert(0, new RecentActivity
+                {
+                    Id = _recentActivities.Count + 1,
+                    Title = $"⚡ Tự động phân luồng: {dsList.Count} bưu kiện tại Dock",
+                    Description = $"{soChangCuoi} chặng cuối bưu tá, {soTrungChuyen} trung chuyển xe tải",
+                    Timestamp = now,
+                    Type = ActivityType.ShipperAssigned
+                });
+            }
+
+            if (IsDatabaseConnected)
+            {
+                try
+                {
+                    using var db = new WarehouseDbContext();
+                    db.WarehouseMovements.AddRange(listMovements);
+                    db.RecentActivities.Add(new RecentActivity
+                    {
+                        Title = $"⚡ Tự động phân luồng: {dsList.Count} bưu kiện tại Dock",
+                        Description = $"{soChangCuoi} chặng cuối bưu tá, {soTrungChuyen} trung chuyển xe tải",
+                        Timestamp = now,
+                        Type = ActivityType.ShipperAssigned
+                    });
+                    db.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[XacNhanPhanLoaiHangLoat EF Core Error] {ex.Message}");
+                }
+            }
+
+            return (dsList.Count, soChangCuoi, soTrungChuyen);
         }
 
         /// <summary>
@@ -1655,6 +2244,31 @@ namespace Quanlykhohanglogicts
                     Type = ActivityType.System
                 });
 
+                if (IsDatabaseConnected)
+                {
+                    try
+                    {
+                        using var db = new WarehouseDbContext();
+                        var locNguon = db.WarehouseLocations.Find(viTriNguonId);
+                        var locDich = db.WarehouseLocations.Find(viTriDichId);
+                        if (locNguon != null)
+                        {
+                            locNguon.CurrentWeight = nguon.CurrentWeight;
+                            locNguon.Status = nguon.Status;
+                        }
+                        if (locDich != null)
+                        {
+                            locDich.CurrentWeight = dich.CurrentWeight;
+                            locDich.Status = dich.Status;
+                        }
+                        db.SaveChanges();
+                    }
+                    catch (Exception ngoaiLe)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[DieuChuyenViTriKe EF Core Error] {ngoaiLe.Message}");
+                    }
+                }
+
                 return true;
             }
         }
@@ -1703,174 +2317,300 @@ namespace Quanlykhohanglogicts
         /// </summary>
         public void GenerateThaiNguyenOrdersForSimulation(int count = 100)
         {
-            lock (_lock)
-            {
-                var ngauNhien = new Random();
-                string[] danhSachKhuVucTN = { "TP. Thái Nguyên", "Sông Công", "Phổ Yên", "Đại Từ", "Phú Bình", "Đồng Hỷ", "Định Hóa", "Võ Nhai" };
-                string[] danhSachNguoiNhan = { 
-                    "Nguyễn Hoàng Anh", "Trần Mai Phương", "Lê Văn Tuấn", "Phạm Thu Hương", 
-                    "Vũ Quốc Bảo", "Đặng Thị Lan", "Bùi Minh Đức", "Hoàng Kim Ngân", 
-                    "Trịnh Xuân Tùng", "Đỗ Quỳnh Chi", "Ngô Thành Đạt", "Lý Gia Hân" 
-                };
-                string[] danhSachHangHoa = {
-                    "Chè Thái Nguyên Tân Cương Thượng Hạng", "Điện thoại Samsung Galaxy (KCN Yên Bình, Phổ Yên)", 
-                    "Set mỹ phẩm dưỡng da", "Thùng sữa chua Ba Vì", "Áo thun polo thể thao nam", 
-                    "Bộ nồi chiên không dầu", "Giày sneaker thời trang", "Tai nghe bluetooth chống ồn", 
-                    "Tài liệu hợp đồng khẩn cấp", "Lô dược phẩm y tế", "Chuột gaming không dây"
-                };
-
-                int startId = _shippingOrders.Count > 0 ? _shippingOrders.Max(o => o.Id) + 1 : 1;
-
-                for (int i = 0; i < count; i++)
-                {
-                    int currentId = startId + i;
-                    string khuVuc = danhSachKhuVucTN[ngauNhien.Next(danhSachKhuVucTN.Length)];
-                    string nguoiNhan = danhSachNguoiNhan[ngauNhien.Next(danhSachNguoiNhan.Length)];
-                    string hangHoa = danhSachHangHoa[ngauNhien.Next(danhSachHangHoa.Length)];
-                    
-                    // Khoảng 30-35 đơn là đơn Hỏa Tốc Express
-                    bool isExpress = (i < 30) || (ngauNhien.Next(100) < 32);
-                    
-                    // Giờ hẹn giao cam kết SLA
-                    DateTime hanGiao;
-                    if (isExpress)
-                    {
-                        // Hỏa tốc: Giao gấp trong vòng -30 phút (quá hạn) đến +2h
-                        int deltaMinutes = ngauNhien.Next(-30, 120);
-                        hanGiao = DateTime.Now.AddMinutes(deltaMinutes);
-                    }
-                    else
-                    {
-                        // Tiêu chuẩn: Giao trong 6h đến 48h
-                        int deltaHours = ngauNhien.Next(6, 48);
-                        hanGiao = DateTime.Now.AddHours(deltaHours);
-                    }
-
-                    decimal cod = ngauNhien.Next(0, 20) * 50000;
-                    double weight = Math.Round(0.3 + ngauNhien.NextDouble() * 5.0, 1);
-
-                    var donMoi = new ShippingOrder
-                    {
-                        Id = currentId,
-                        OrderCode = $"LOGIX-TN-{(isExpress ? "EXP" : "STD")}-{DateTime.Now:yyMMdd}-{currentId:D4}",
-                        SenderName = isExpress ? "Kho Hỏa Tốc Hub Thái Nguyên" : "Tổng Kho Vận Thái Nguyên Logistics",
-                        SenderPhone = "0280 3855 888",
-                        SenderAddress = "Số 168 Đường Hoàng Văn Thụ, TP. Thái Nguyên",
-                        ReceiverName = nguoiNhan,
-                        ReceiverPhone = $"09{ngauNhien.Next(10000000, 99999999)}",
-                        ReceiverAddress = $"Số {ngauNhien.Next(1, 150)} Đường Lương Ngọc Quyến, {khuVuc}, Thái Nguyên",
-                        DestinationArea = $"Thái Nguyên - {khuVuc}",
-                        ProductSummary = hangHoa,
-                        Weight = weight,
-                        IsExpress = isExpress,
-                        CodAmount = cod,
-                        ShippingFee = isExpress ? 25000 : 20000,
-                        ExpressSurcharge = isExpress ? 20000 : 0,
-                        ReceiverPaysFee = true,
-                        Status = ShippingOrderStatus.PendingProcessing,
-                        AssignedShipperName = "Chưa phân phối",
-                        CreatedDate = DateTime.Now.AddHours(-ngauNhien.Next(1, 24)),
-                        EstimatedDeliveryDate = hanGiao,
-                        Notes = isExpress ? "⚡ HỎA TỐC THÁI NGUYÊN (ƯU TIÊN XUẤT BẾN)" : "Giao tiêu chuẩn theo tuyến Thái Nguyên"
-                    };
-
-                    _shippingOrders.Add(donMoi);
-                }
-
-                _recentActivities.Insert(0, new RecentActivity
-                {
-                    Id = _recentActivities.Count + 1,
-                    Title = $"Khởi tạo kịch bản {count} đơn Thái Nguyên",
-                    Description = $"Mô phỏng 100 đơn Thái Nguyên: Giao 40 đơn Hỏa tốc & SLA trước, 60 đơn thường lưu kho",
-                    Timestamp = DateTime.Now,
-                    Type = ActivityType.OrderSuccess
-                });
-            }
+            ResetAndGenerateSimulationOrders("ThaiNguyen", 40);
         }
 
         public void GenerateSampleOrdersForSimulation(int count = 100)
         {
+            ResetAndGenerateSimulationOrders("Hanoi", 50);
+        }
+
+        /// <summary>
+        /// NGHIỆP VỤ ĐIỀU PHỐI ĐẶC BIỆT: Tự động dọn sạch các đơn thử nghiệm cũ và sinh đúng 100 đơn hàng mô phỏng kịch bản chuẩn
+        /// - scenario == "Hanoi": 30 đơn Hỏa Tốc (Express) + 20 đơn Cận hạn/Quá hạn SLA + 50 đơn Tiêu chuẩn an toàn
+        /// - scenario == "ThaiNguyen": 25 đơn Hỏa Tốc + 15 đơn Cận hạn/Quá hạn SLA + 60 đơn Tiêu chuẩn an toàn
+        /// - Đảm bảo tính toán chính xác 100%: Khi Quota = 50 (Hà Nội) hoặc 40 (Thái Nguyên), 100% đơn Hỏa Tốc được duyệt, không bị đẩy sang lưu kho!
+        /// - Đồng bộ cả In-memory và Database (SQL Server).
+        /// </summary>
+        public void ResetAndGenerateSimulationOrders(string scenario = "Hanoi", int quota = 50)
+        {
+            var createdOrders = new List<ShippingOrder>();
             lock (_lock)
             {
-                var ngauNhien = new Random();
-                string[] danhSachKhuVuc = { "Cầu Giấy", "Nam Từ Liêm", "Đống Đa", "Ba Đình", "Hoàn Kiếm", "Thanh Xuân", "Hà Đông", "Hai Bà Trưng" };
-                string[] danhSachNguoiNhan = { 
-                    "Nguyễn Hoàng Anh", "Trần Mai Phương", "Lê Văn Tuấn", "Phạm Thu Hương", 
-                    "Vũ Quốc Bảo", "Đặng Thị Lan", "Bùi Minh Đức", "Hoàng Kim Ngân", 
-                    "Trịnh Xuân Tùng", "Đỗ Quỳnh Chi", "Ngô Thành Đạt", "Lý Gia Hân" 
-                };
-                string[] danhSachHangHoa = {
-                    "Điện thoại thông minh Xiaomi Note 13", "Set mỹ phẩm dưỡng trắng da", "Thùng sữa tươi tiệt trùng",
-                    "Áo thun polo thể thao nam", "Bộ nồi chiên không dầu", "Giày sneaker thời trang",
-                    "Tai nghe bluetooth chống ồn", "Tài liệu hợp đồng khẩn cấp", "Lô dược phẩm y tế", "Chuột không dây gaming"
-                };
+                // 1. Chỉ dọn dẹp các đơn mô phỏng cũ trong In-memory (TUYỆT ĐỐI BẢO TOÀN toàn bộ đơn hàng thực tế của hệ thống)
+                _shippingOrders.RemoveAll(o => 
+                    o.OrderCode.StartsWith("LOGIX-EXP-") || 
+                    o.OrderCode.StartsWith("LOGIX-STD-") || 
+                    o.OrderCode.StartsWith("LOGIX-TN-") || 
+                    o.OrderCode.StartsWith("LOGIX-HN-"));
 
+                _warehouseMovements.RemoveAll(m => 
+                    m.ReferenceCode != null && (
+                        m.ReferenceCode.StartsWith("LOGIX-EXP-") || 
+                        m.ReferenceCode.StartsWith("LOGIX-STD-") || 
+                        m.ReferenceCode.StartsWith("LOGIX-TN-") || 
+                        m.ReferenceCode.StartsWith("LOGIX-HN-")));
+
+                var ngauNhien = new Random();
                 int startId = _shippingOrders.Count > 0 ? _shippingOrders.Max(o => o.Id) + 1 : 1;
 
-                for (int i = 0; i < count; i++)
+                if (scenario.Equals("ThaiNguyen", StringComparison.OrdinalIgnoreCase))
                 {
-                    int currentId = startId + i;
-                    string khuVuc = danhSachKhuVuc[ngauNhien.Next(danhSachKhuVuc.Length)];
-                    string nguoiNhan = danhSachNguoiNhan[ngauNhien.Next(danhSachNguoiNhan.Length)];
-                    string hangHoa = danhSachHangHoa[ngauNhien.Next(danhSachHangHoa.Length)];
-                    
-                    // Khoảng 35% là đơn Hỏa Tốc Express
-                    bool isExpress = (i < 35) || (ngauNhien.Next(100) < 35);
-                    
-                    // Giờ hẹn giao cam kết SLA
-                    DateTime hanGiao;
-                    if (isExpress)
-                    {
-                        // Hỏa tốc: Giao gấp trong vòng -45 phút (quá hạn) đến +3h
-                        int deltaMinutes = ngauNhien.Next(-45, 180);
-                        hanGiao = DateTime.Now.AddMinutes(deltaMinutes);
-                    }
-                    else
-                    {
-                        // Tiêu chuẩn: Giao trong 4h đến 48h
-                        int deltaHours = ngauNhien.Next(4, 48);
-                        hanGiao = DateTime.Now.AddHours(deltaHours);
-                    }
-
-                    decimal cod = ngauNhien.Next(1, 30) * 50000;
-                    double weight = Math.Round(0.3 + ngauNhien.NextDouble() * 5.0, 1);
-
-                    var donMoi = new ShippingOrder
-                    {
-                        Id = currentId,
-                        OrderCode = $"LOGIX-{(isExpress ? "EXP" : "STD")}-{DateTime.Now:yyMMdd}-{currentId:D4}",
-                        SenderName = isExpress ? "Trung Tâm Phân Phối Hỏa Tốc" : "Kho Vận Tổng Hợp Hà Nội",
-                        SenderPhone = "024 3888 9999",
-                        SenderAddress = "Kho Tổng WMS Logistics, Hà Nội",
-                        ReceiverName = nguoiNhan,
-                        ReceiverPhone = $"09{ngauNhien.Next(10000000, 99999999)}",
-                        ReceiverAddress = $"Số {ngauNhien.Next(1, 150)} Phố {khuVuc}, Hà Nội",
-                        DestinationArea = khuVuc,
-                        ProductSummary = hangHoa,
-                        Weight = weight,
-                        IsExpress = isExpress,
-                        CodAmount = cod,
-                        ShippingFee = isExpress ? 25000 : 20000,
-                        ExpressSurcharge = isExpress ? 20000 : 0,
-                        ReceiverPaysFee = true,
-                        Status = ShippingOrderStatus.PendingProcessing,
-                        AssignedShipperName = "Chưa phân phối",
-                        CreatedDate = DateTime.Now.AddHours(-ngauNhien.Next(1, 24)),
-                        EstimatedDeliveryDate = hanGiao,
-                        Notes = isExpress ? "⚡ ƯU TIÊN GIAO GẤP HỎA TỐC" : "Giao tiêu chuẩn theo tuyến"
+                    string[] danhSachKhuVucTN = { "TP. Thái Nguyên", "Sông Công", "Phổ Yên", "Đại Từ", "Phú Bình", "Đồng Hỷ", "Định Hóa", "Võ Nhai" };
+                    string[] danhSachNguoiNhan = { 
+                        "Nguyễn Hoàng Anh", "Trần Mai Phương", "Lê Văn Tuấn", "Phạm Thu Hương", 
+                        "Vũ Quốc Bảo", "Đặng Thị Lan", "Bùi Minh Đức", "Hoàng Kim Ngân", 
+                        "Trịnh Xuân Tùng", "Đỗ Quỳnh Chi", "Ngô Thành Đạt", "Lý Gia Hân" 
+                    };
+                    string[] danhSachHangHoa = {
+                        "Chè Thái Nguyên Tân Cương Thượng Hạng", "Điện thoại Samsung Galaxy (KCN Yên Bình, Phổ Yên)", 
+                        "Set mỹ phẩm dưỡng da", "Thùng sữa chua Ba Vì", "Áo thun polo thể thao nam", 
+                        "Bộ nồi chiên không dầu", "Giày sneaker thời trang", "Tai nghe bluetooth chống ồn", 
+                        "Tài liệu hợp đồng khẩn cấp", "Lô dược phẩm y tế", "Chuột gaming không dây"
                     };
 
-                    _shippingOrders.Add(donMoi);
+                    // Tổng 100 đơn: 25 Hỏa Tốc + 15 Cận hạn SLA + 60 An toàn lưu kho
+                    for (int i = 0; i < 100; i++)
+                    {
+                        int currentId = startId + i;
+                        string khuVuc = danhSachKhuVucTN[i % danhSachKhuVucTN.Length];
+                        string nguoiNhan = danhSachNguoiNhan[ngauNhien.Next(danhSachNguoiNhan.Length)];
+                        string hangHoa = danhSachHangHoa[ngauNhien.Next(danhSachHangHoa.Length)];
+                        decimal cod = ngauNhien.Next(1, 20) * 50000;
+                        double weight = Math.Round(0.4 + ngauNhien.NextDouble() * 3.5, 1);
+
+                        bool isExpress = i < 25;
+                        DateTime hanGiao;
+                        string notes;
+
+                        if (isExpress)
+                        {
+                            // 25 đơn Hỏa tốc: Giao gấp trong 25 phút đến 2.5 giờ
+                            int deltaMinutes = 25 + (i * 4);
+                            hanGiao = DateTime.Now.AddMinutes(deltaMinutes);
+                            notes = "⚡ HỎA TỐC THÁI NGUYÊN (ƯU TIÊN TUYỆT ĐỐI XUẤT BẾN)";
+                        }
+                        else if (i < 40) // 15 đơn cận hạn SLA (i từ 25 đến 39)
+                        {
+                            if (i == 25)
+                            {
+                                // 1 đơn quá hạn nhẹ 10 phút cần cứu nguy khẩn cấp
+                                hanGiao = DateTime.Now.AddMinutes(-10);
+                                notes = "🚨 Đơn Thái Nguyên trễ SLA 10 phút - Cứu nguy giao ngay";
+                            }
+                            else
+                            {
+                                int deltaMinutes = 35 + ((i - 26) * 5);
+                                hanGiao = DateTime.Now.AddMinutes(deltaMinutes);
+                                notes = "⏱️ Đơn Thái Nguyên cận hạn cam kết SLA - Cần giao ca này";
+                            }
+                        }
+                        else // 60 đơn an toàn lưu kho (i từ 40 đến 99)
+                        {
+                            int deltaHours = 20 + ((i - 40) % 28);
+                            hanGiao = DateTime.Now.AddHours(deltaHours);
+                            notes = "📦 Đơn tiêu chuẩn an toàn lưu kho Thái Nguyên (Hạn SLA còn dài)";
+                        }
+
+                        var donMoi = new ShippingOrder
+                        {
+                            Id = currentId,
+                            OrderCode = $"LOGIX-TN-{(isExpress ? "EXP" : "STD")}-{DateTime.Now:yyMMdd}-{(2000 + i)}",
+                            SenderName = isExpress ? "Kho Hỏa Tốc Hub Thái Nguyên" : "Tổng Kho Vận Thái Nguyên Logistics",
+                            SenderPhone = "0280 3855 888",
+                            SenderAddress = "Số 168 Đường Hoàng Văn Thụ, TP. Thái Nguyên",
+                            ReceiverName = nguoiNhan,
+                            ReceiverPhone = $"09{ngauNhien.Next(10000000, 99999999)}",
+                            ReceiverAddress = $"Số {ngauNhien.Next(1, 150)} Đường Lương Ngọc Quyến, {khuVuc}, Thái Nguyên",
+                            DestinationArea = $"Thái Nguyên - {khuVuc}",
+                            ProductSummary = hangHoa,
+                            Weight = weight,
+                            IsExpress = isExpress,
+                            CodAmount = cod,
+                            ShippingFee = isExpress ? 25000 : 20000,
+                            ExpressSurcharge = isExpress ? 20000 : 0,
+                            ReceiverPaysFee = true,
+                            Status = ShippingOrderStatus.PendingProcessing,
+                            AssignedShipperName = "Chưa phân phối",
+                            CreatedDate = DateTime.Now.AddHours(-1 - (i % 8)),
+                            EstimatedDeliveryDate = hanGiao,
+                            Notes = notes
+                        };
+
+                        _shippingOrders.Add(donMoi);
+                        createdOrders.Add(donMoi);
+                    }
+                }
+                else
+                {
+                    // Kịch bản Hà Nội (Chuẩn 100 đơn -> Năng lực 50 đơn)
+                    string[] danhSachKhuVucHN = { "Cầu Giấy", "Nam Từ Liêm", "Đống Đa", "Ba Đình", "Hoàn Kiếm", "Thanh Xuân", "Hà Đông", "Hai Bà Trưng" };
+                    string[] danhSachNguoiNhan = { 
+                        "Nguyễn Hoàng Anh", "Trần Mai Phương", "Lê Văn Tuấn", "Phạm Thu Hương", 
+                        "Vũ Quốc Bảo", "Đặng Thị Lan", "Bùi Minh Đức", "Hoàng Kim Ngân", 
+                        "Trịnh Xuân Tùng", "Đỗ Quỳnh Chi", "Ngô Thành Đạt", "Lý Gia Hân" 
+                    };
+                    string[] danhSachHangHoa = {
+                        "Điện thoại thông minh Xiaomi Note 13", "Set mỹ phẩm dưỡng trắng da", "Thùng sữa tươi tiệt trùng",
+                        "Áo thun polo thể thao nam", "Bộ nồi chiên không dầu", "Giày sneaker thời trang",
+                        "Tai nghe bluetooth chống ồn", "Tài liệu hợp đồng khẩn cấp", "Lô dược phẩm y tế", "Chuột không dây gaming"
+                    };
+
+                    // Tổng 100 đơn: 30 Hỏa Tốc + 20 Cận hạn SLA + 50 An toàn lưu kho
+                    for (int i = 0; i < 100; i++)
+                    {
+                        int currentId = startId + i;
+                        string khuVuc = danhSachKhuVucHN[i % danhSachKhuVucHN.Length];
+                        string nguoiNhan = danhSachNguoiNhan[ngauNhien.Next(danhSachNguoiNhan.Length)];
+                        string hangHoa = danhSachHangHoa[ngauNhien.Next(danhSachHangHoa.Length)];
+                        decimal cod = ngauNhien.Next(1, 30) * 50000;
+                        double weight = Math.Round(0.3 + ngauNhien.NextDouble() * 4.5, 1);
+
+                        bool isExpress = i < 30;
+                        DateTime hanGiao;
+                        string notes;
+
+                        if (isExpress)
+                        {
+                            // 30 đơn Hỏa tốc: Giao gấp trong 25 phút đến 2.5 giờ
+                            int deltaMinutes = 25 + (i * 4);
+                            hanGiao = DateTime.Now.AddMinutes(deltaMinutes);
+                            notes = "⚡ ƯU TIÊN GIAO GẤP HỎA TỐC (CAM KẾT 2H)";
+                        }
+                        else if (i < 50) // 20 đơn cận hạn SLA (i từ 30 đến 49)
+                        {
+                            if (i == 30)
+                            {
+                                // 1 đơn quá hạn nhẹ 12 phút để cứu nguy
+                                hanGiao = DateTime.Now.AddMinutes(-12);
+                                notes = "🚨 Đơn trễ SLA 12 phút - Giải cứu khẩn cấp";
+                            }
+                            else
+                            {
+                                int deltaMinutes = 35 + ((i - 31) * 4);
+                                hanGiao = DateTime.Now.AddMinutes(deltaMinutes);
+                                notes = "⏱️ Đơn cận hạn cam kết SLA - Cần giao ca này";
+                            }
+                        }
+                        else // 50 đơn an toàn lưu kho (i từ 50 đến 99)
+                        {
+                            int deltaHours = 20 + ((i - 50) % 28);
+                            hanGiao = DateTime.Now.AddHours(deltaHours);
+                            notes = "📦 Đơn tiêu chuẩn an toàn lưu kho (Hạn SLA còn 24h-48h)";
+                        }
+
+                        var donMoi = new ShippingOrder
+                        {
+                            Id = currentId,
+                            OrderCode = $"LOGIX-HN-{(isExpress ? "EXP" : "STD")}-{DateTime.Now:yyMMdd}-{(1000 + i)}",
+                            SenderName = isExpress ? "Trung Tâm Phân Phối Hỏa Tốc Hà Nội" : "Kho Vận Tổng Hợp Hà Nội",
+                            SenderPhone = "024 3888 9999",
+                            SenderAddress = "Kho Tổng WMS Logistics, Hà Nội",
+                            ReceiverName = nguoiNhan,
+                            ReceiverPhone = $"09{ngauNhien.Next(10000000, 99999999)}",
+                            ReceiverAddress = $"Số {ngauNhien.Next(1, 150)} Phố {khuVuc}, Hà Nội",
+                            DestinationArea = khuVuc,
+                            ProductSummary = hangHoa,
+                            Weight = weight,
+                            IsExpress = isExpress,
+                            CodAmount = cod,
+                            ShippingFee = isExpress ? 25000 : 20000,
+                            ExpressSurcharge = isExpress ? 20000 : 0,
+                            ReceiverPaysFee = true,
+                            Status = ShippingOrderStatus.PendingProcessing,
+                            AssignedShipperName = "Chưa phân phối",
+                            CreatedDate = DateTime.Now.AddHours(-1 - (i % 6)),
+                            EstimatedDeliveryDate = hanGiao,
+                            Notes = notes
+                        };
+
+                        _shippingOrders.Add(donMoi);
+                        createdOrders.Add(donMoi);
+                    }
                 }
 
                 _recentActivities.Insert(0, new RecentActivity
                 {
                     Id = _recentActivities.Count + 1,
-                    Title = $"Khởi tạo kịch bản {count} đơn hàng mô phỏng",
-                    Description = $"Tập dữ liệu kiểm thử năng lực điều phối ưu tiên ({count} đơn)",
+                    Title = $"Khởi tạo 100 đơn mô phỏng kịch bản {scenario}",
+                    Description = $"Chuẩn hóa 100 đơn hàng: {scenario} (Đủ hạn mức phân bổ theo ma trận SLA)",
                     Timestamp = DateTime.Now,
                     Type = ActivityType.OrderSuccess
                 });
+            }
+
+            // Đồng bộ xuống CSDL SQL Server qua EF Core
+            if (IsDatabaseConnected && createdOrders.Count > 0)
+            {
+                try
+                {
+                    using var db = new WarehouseDbContext();
+                    // Xóa các đơn mô phỏng cũ
+                    var oldDbSimOrders = db.ShippingOrders.Where(o => 
+                        o.OrderCode.StartsWith("LOGIX-EXP-") || 
+                        o.OrderCode.StartsWith("LOGIX-STD-") || 
+                        o.OrderCode.StartsWith("LOGIX-TN-") || 
+                        o.OrderCode.StartsWith("LOGIX-HN-")).ToList();
+                    if (oldDbSimOrders.Count > 0)
+                    {
+                        db.ShippingOrders.RemoveRange(oldDbSimOrders);
+                    }
+
+                    var oldMovements = db.WarehouseMovements.Where(m => 
+                        m.ReferenceCode != null && (
+                            m.ReferenceCode.StartsWith("LOGIX-EXP-") || 
+                            m.ReferenceCode.StartsWith("LOGIX-STD-") || 
+                            m.ReferenceCode.StartsWith("LOGIX-TN-") || 
+                            m.ReferenceCode.StartsWith("LOGIX-HN-"))).ToList();
+                    if (oldMovements.Count > 0)
+                    {
+                        db.WarehouseMovements.RemoveRange(oldMovements);
+                    }
+
+                    // 2. Thêm 100 đơn mới của kịch bản mô phỏng (TUYỆT ĐỐI KHÔNG ẢNH HƯỞNG đến các đơn hàng thực tế khác)
+
+                    // Thêm 100 đơn mới
+                    foreach (var don in createdOrders)
+                    {
+                        db.ShippingOrders.Add(new ShippingOrder
+                        {
+                            OrderCode = don.OrderCode,
+                            SenderName = don.SenderName,
+                            SenderPhone = don.SenderPhone,
+                            SenderAddress = don.SenderAddress,
+                            ReceiverName = don.ReceiverName,
+                            ReceiverPhone = don.ReceiverPhone,
+                            ReceiverAddress = don.ReceiverAddress,
+                            DestinationArea = don.DestinationArea,
+                            ProductSummary = don.ProductSummary,
+                            Weight = don.Weight,
+                            IsExpress = don.IsExpress,
+                            CodAmount = don.CodAmount,
+                            ShippingFee = don.ShippingFee,
+                            ExpressSurcharge = don.ExpressSurcharge,
+                            ReceiverPaysFee = don.ReceiverPaysFee,
+                            Status = don.Status,
+                            AssignedShipperName = don.AssignedShipperName,
+                            CreatedDate = don.CreatedDate,
+                            EstimatedDeliveryDate = don.EstimatedDeliveryDate,
+                            Notes = don.Notes
+                        });
+                    }
+
+                    db.RecentActivities.Add(new RecentActivity
+                    {
+                        Title = $"Khởi tạo 100 đơn mô phỏng kịch bản {scenario}",
+                        Description = $"Chuẩn hóa 100 đơn hàng: {scenario} (Đủ hạn mức phân bổ theo ma trận SLA)",
+                        Timestamp = DateTime.Now,
+                        Type = ActivityType.OrderSuccess
+                    });
+
+                    db.SaveChanges();
+                }
+                catch (Exception ngoaiLe)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ResetAndGenerateSimulationOrders EF Core Error] {ngoaiLe.Message}");
+                }
             }
         }
 
@@ -1927,6 +2667,39 @@ namespace Quanlykhohanglogicts
                         Timestamp = DateTime.Now,
                         Type = ActivityType.ShipperAssigned
                     });
+                }
+            }
+
+            if (IsDatabaseConnected && demThanhCong > 0)
+            {
+                try
+                {
+                    using var db = new WarehouseDbContext();
+                    var dsDonDb = db.ShippingOrders.Where(o => danhSachMaDon.Contains(o.Id)).ToList();
+                    foreach (var donDb in dsDonDb)
+                    {
+                        var donMem = _shippingOrders.FirstOrDefault(o => o.Id == donDb.Id);
+                        if (donMem != null)
+                        {
+                            donDb.Status = ShippingOrderStatus.Delivering;
+                            donDb.AssignedShipperId = donMem.AssignedShipperId;
+                            donDb.AssignedShipperName = donMem.AssignedShipperName;
+                            donDb.ShipperPhone = donMem.ShipperPhone;
+                        }
+                    }
+
+                    db.RecentActivities.Add(new RecentActivity
+                    {
+                        Title = $"Phê duyệt điều phối {demThanhCong} đơn hàng ưu tiên",
+                        Description = "Đã xuất kho và phân công tự động cho đội ngũ Shipper",
+                        Timestamp = DateTime.Now,
+                        Type = ActivityType.ShipperAssigned
+                    });
+                    db.SaveChanges();
+                }
+                catch (Exception ngoaiLe)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[BatchAssignOrdersToShippers EF Core Error] {ngoaiLe.Message}");
                 }
             }
 
@@ -2020,6 +2793,64 @@ namespace Quanlykhohanglogicts
                     Type = ActivityType.ShipperAssigned
                 });
 
+                if (IsDatabaseConnected)
+                {
+                    try
+                    {
+                        using var db = new WarehouseDbContext();
+                        var entity = new DispatchRecord
+                        {
+                            DispatchCode = maChuyen,
+                            DispatchDate = ngayGiao,
+                            CreatedTime = DateTime.Now,
+                            ShipperId = shipperId,
+                            ShipperName = shipperName,
+                            ShipperPhone = shipperPhone,
+                            VehiclePlate = vehiclePlate,
+                            DeliveryArea = deliveryArea,
+                            TotalOrders = donHangs.Count,
+                            ExpressOrdersCount = soDonHoaToc,
+                            TotalCodAmount = tongCod,
+                            TotalWeight = Math.Round(tongKhoiLuong, 1),
+                            DispatcherName = nguoiDieuPhoi,
+                            Status = "Đang Đi Giao",
+                            Notes = ghiChu,
+                            OrderIds = maDonHangs.ToList()
+                        };
+                        db.DispatchRecords.Add(entity);
+
+                        var dsDonDb = db.ShippingOrders.Where(o => maDonHangs.Contains(o.Id)).ToList();
+                        foreach (var don in dsDonDb)
+                        {
+                            don.Status = ShippingOrderStatus.Delivering;
+                            don.AssignedShipperId = shipperId;
+                            don.AssignedShipperName = shipperName;
+                            don.ShipperPhone = shipperPhone;
+                        }
+
+                        var dbShipper = db.Shippers.Find(shipperId);
+                        if (dbShipper != null)
+                        {
+                            dbShipper.Status = ShipperStatus.Active;
+                        }
+
+                        db.RecentActivities.Add(new RecentActivity
+                        {
+                            Title = $"Lập lệnh điều phối {maChuyen} cho {shipperName}",
+                            Description = $"Số lượng: {donHangs.Count} đơn (Có {soDonHoaToc} Express) - COD: {tongCod:N0}đ",
+                            Timestamp = DateTime.Now,
+                            Type = ActivityType.ShipperAssigned
+                        });
+
+                        db.SaveChanges();
+                        banGhi.Id = entity.Id;
+                    }
+                    catch (Exception ngoaiLe)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[CreateDispatchRecord EF Core Error] {ngoaiLe.Message}");
+                    }
+                }
+
                 return banGhi;
             }
         }
@@ -2063,6 +2894,39 @@ namespace Quanlykhohanglogicts
                     });
                 }
             }
+
+            if (IsDatabaseConnected)
+            {
+                try
+                {
+                    using var db = new WarehouseDbContext();
+                    var don = db.ShippingOrders.Find(orderId);
+                    if (don != null)
+                    {
+                        don.FailedDeliveryCount++;
+                        don.Status = ShippingOrderStatus.Failed;
+                        don.FailureReason = reason;
+                        don.FailureTimestamp = DateTime.Now;
+                        if (!string.IsNullOrWhiteSpace(notes))
+                        {
+                            don.Notes = string.IsNullOrWhiteSpace(don.Notes) ? notes : $"{don.Notes} | {notes}";
+                        }
+
+                        db.RecentActivities.Add(new RecentActivity
+                        {
+                            Title = $"Đơn {don.OrderCode} giao thất bại (Lần {don.FailedDeliveryCount})",
+                            Description = $"Lý do: {reason}",
+                            Timestamp = DateTime.Now,
+                            Type = ActivityType.OrderFailed
+                        });
+                        db.SaveChanges();
+                    }
+                }
+                catch (Exception ngoaiLe)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MarkOrderAsFailed EF Core Error] {ngoaiLe.Message}");
+                }
+            }
         }
 
         /// <summary>
@@ -2089,6 +2953,36 @@ namespace Quanlykhohanglogicts
                         Timestamp = DateTime.Now,
                         Type = ActivityType.Warning
                     });
+                }
+            }
+
+            if (IsDatabaseConnected)
+            {
+                try
+                {
+                    using var db = new WarehouseDbContext();
+                    var don = db.ShippingOrders.Find(orderId);
+                    if (don != null)
+                    {
+                        don.Status = ShippingOrderStatus.PendingProcessing;
+                        don.EstimatedDeliveryDate = newDeliveryDate;
+                        don.Notes = string.IsNullOrWhiteSpace(don.Notes) 
+                            ? $"Hẹn phát lại: {newDeliveryDate:dd/MM/yyyy HH:mm} ({notes})" 
+                            : $"{don.Notes} | Hẹn phát lại: {newDeliveryDate:dd/MM/yyyy HH:mm} ({notes})";
+
+                        db.RecentActivities.Add(new RecentActivity
+                        {
+                            Title = $"Hẹn lịch phát lại đơn {don.OrderCode}",
+                            Description = $"Ngày hẹn mới: {newDeliveryDate:dd/MM/yyyy HH:mm} - {notes}",
+                            Timestamp = DateTime.Now,
+                            Type = ActivityType.Warning
+                        });
+                        db.SaveChanges();
+                    }
+                }
+                catch (Exception ngoaiLe)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[RescheduleOrder EF Core Error] {ngoaiLe.Message}");
                 }
             }
         }
@@ -2121,6 +3015,40 @@ namespace Quanlykhohanglogicts
                         Timestamp = DateTime.Now,
                         Type = ActivityType.OrderFailed
                     });
+                }
+            }
+
+            if (IsDatabaseConnected)
+            {
+                try
+                {
+                    using var db = new WarehouseDbContext();
+                    var don = db.ShippingOrders.Find(orderId);
+                    if (don != null)
+                    {
+                        don.Status = ShippingOrderStatus.Returned;
+                        don.RtoApprovedDate = DateTime.Now;
+                        don.RtoLocationCode = string.IsNullOrWhiteSpace(rtoLocation) ? "KHO-RTO-01" : rtoLocation;
+                        don.ReturnShippingFee = returnFee;
+                        don.RtoTrackingCode = $"RTO-{DateTime.Now:yyMMdd}-{don.Id:D4}";
+                        if (!string.IsNullOrWhiteSpace(notes))
+                        {
+                            don.Notes = string.IsNullOrWhiteSpace(don.Notes) ? $"Duyệt hoàn: {notes}" : $"{don.Notes} | Duyệt hoàn: {notes}";
+                        }
+
+                        db.RecentActivities.Add(new RecentActivity
+                        {
+                            Title = $"Duyệt chuyển hoàn đơn {don.OrderCode}",
+                            Description = $"Mã vận đơn hoàn: {don.RtoTrackingCode} - Lưu tại: {don.RtoLocationCode}",
+                            Timestamp = DateTime.Now,
+                            Type = ActivityType.OrderFailed
+                        });
+                        db.SaveChanges();
+                    }
+                }
+                catch (Exception ngoaiLe)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ApproveRto EF Core Error] {ngoaiLe.Message}");
                 }
             }
         }
@@ -2170,6 +3098,51 @@ namespace Quanlykhohanglogicts
                     Timestamp = DateTime.Now,
                     Type = ActivityType.OrderSuccess
                 });
+
+                if (IsDatabaseConnected)
+                {
+                    try
+                    {
+                        using var db = new WarehouseDbContext();
+                        var entity = new ReturnHandoverBatch
+                        {
+                            BatchCode = maBienBan,
+                            SenderName = senderName,
+                            SenderPhone = senderPhone,
+                            SenderAddress = senderAddress,
+                            CreatedTime = DateTime.Now,
+                            TotalOrders = donHoans.Count,
+                            TotalCodValue = tongCod,
+                            TotalReturnFee = tongCuocHoan,
+                            OperatorName = operatorName,
+                            Status = "Đã Trả Shop",
+                            Notes = notes,
+                            OrderIds = orderIds.ToList()
+                        };
+                        db.ReturnHandoverBatches.Add(entity);
+
+                        var dbOrders = db.ShippingOrders.Where(o => orderIds.Contains(o.Id)).ToList();
+                        foreach (var don in dbOrders)
+                        {
+                            don.ReturnHandoverBatchCode = maBienBan;
+                        }
+
+                        db.RecentActivities.Add(new RecentActivity
+                        {
+                            Title = $"Lập biên bản hoàn trả {maBienBan} cho {senderName}",
+                            Description = $"Số lượng: {donHoans.Count} đơn - Phí hoàn: {tongCuocHoan:N0}đ",
+                            Timestamp = DateTime.Now,
+                            Type = ActivityType.OrderSuccess
+                        });
+
+                        db.SaveChanges();
+                        bienBan.Id = entity.Id;
+                    }
+                    catch (Exception ngoaiLe)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[CreateReturnHandoverBatch EF Core Error] {ngoaiLe.Message}");
+                    }
+                }
 
                 return bienBan;
             }
@@ -2255,6 +3228,92 @@ namespace Quanlykhohanglogicts
                         AssignedShipperName = "Nguyễn Văn Tuấn",
                         EstimatedDeliveryDate = DateTime.Now.AddHours(-6)
                     });
+                }
+            }
+
+            if (IsDatabaseConnected)
+            {
+                try
+                {
+                    using var db = new WarehouseDbContext();
+                    var dbDon9 = db.ShippingOrders.Find(9);
+                    if (dbDon9 != null)
+                    {
+                        dbDon9.Status = ShippingOrderStatus.Failed;
+                        dbDon9.FailedDeliveryCount = 1;
+                        dbDon9.FailureReason = "Khách hẹn lại sau 18h tối";
+                        dbDon9.FailureTimestamp = DateTime.Now.AddHours(-3);
+                    }
+
+                    var dbDon10 = db.ShippingOrders.Find(10);
+                    if (dbDon10 != null)
+                    {
+                        dbDon10.Status = ShippingOrderStatus.Returned;
+                        dbDon10.FailedDeliveryCount = 3;
+                        dbDon10.FailureReason = "Khách từ chối nhận (Boom hàng / Không đúng màu)";
+                        dbDon10.FailureTimestamp = DateTime.Now.AddDays(-1);
+                        dbDon10.RtoTrackingCode = "RTO-260924-0010";
+                        dbDon10.RtoLocationCode = "KHO-RTO-01";
+                        dbDon10.RtoApprovedDate = DateTime.Now.AddHours(-5);
+                        dbDon10.ReturnShippingFee = 15000;
+                        dbDon10.ReturnHandoverBatchCode = "BBH-260925-001";
+                    }
+
+                    if (!db.ShippingOrders.Any(o => o.OrderCode == "LOGIX-FAIL-01"))
+                    {
+                        db.ShippingOrders.Add(new ShippingOrder
+                        {
+                            OrderCode = "LOGIX-FAIL-01",
+                            SenderName = "Shop Thời Trang GenZ Official",
+                            SenderPhone = "0944555666",
+                            SenderAddress = "Số 88 Cầu Giấy, Hà Nội",
+                            ReceiverName = "Vũ Đình Duy",
+                            ReceiverPhone = "0988776655",
+                            ReceiverAddress = "Tòa Keangnam Landmark 72, Nam Từ Liêm, Hà Nội",
+                            DestinationArea = "Nam Từ Liêm",
+                            ProductSummary = "Áo bomber nỉ lót lông",
+                            Weight = 0.9,
+                            IsExpress = true,
+                            CodAmount = 650000,
+                            Status = ShippingOrderStatus.Failed,
+                            FailedDeliveryCount = 2,
+                            FailureReason = "Khách không nghe máy (Gọi 3 cuộc không liên lạc được)",
+                            FailureTimestamp = DateTime.Now.AddHours(-1),
+                            AssignedShipperName = "Trần Đình Trọng",
+                            EstimatedDeliveryDate = DateTime.Now.AddHours(-2)
+                        });
+                    }
+
+                    if (!db.ShippingOrders.Any(o => o.OrderCode == "LOGIX-FAIL-02"))
+                    {
+                        db.ShippingOrders.Add(new ShippingOrder
+                        {
+                            OrderCode = "LOGIX-FAIL-02",
+                            SenderName = "Trung Tâm Phân Phối Mỹ Phẩm Korea",
+                            SenderPhone = "0934889900",
+                            SenderAddress = "Số 18 Lý Thường Kiệt, Hoàn Kiếm, Hà Nội",
+                            ReceiverName = "Hoàng Kim Ngân",
+                            ReceiverPhone = "0977443322",
+                            ReceiverAddress = "Ngõ 45 Chùa Láng, Đống Đa, Hà Nội",
+                            DestinationArea = "Đống Đa",
+                            ProductSummary = "Set mỹ phẩm dưỡng trắng da",
+                            Weight = 0.7,
+                            IsExpress = false,
+                            CodAmount = 1250000,
+                            Status = ShippingOrderStatus.Failed,
+                            FailedDeliveryCount = 3,
+                            FailureReason = "Sai địa chỉ / Không tìm thấy số nhà (Khách đã chuyển trọ)",
+                            FailureTimestamp = DateTime.Now.AddHours(-4),
+                            AssignedShipperName = "Nguyễn Văn Tuấn",
+                            EstimatedDeliveryDate = DateTime.Now.AddHours(-6)
+                        });
+                    }
+
+                    db.SaveChanges();
+                }
+                catch (Exception ngoaiLe)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SeedSampleRtoData EF Core Error] {ngoaiLe.Message}");
                 }
             }
         }

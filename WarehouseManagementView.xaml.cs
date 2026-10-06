@@ -111,8 +111,15 @@ namespace Quanlykhohanglogicts
             // =========================================================================
             // 3. DỮ LIỆU NHÁNH 3: PHÂN LUỒNG BƯU KIỆN TẠI DOCK
             // =========================================================================
+            var maDonDaPhanLoai = WarehouseContext.Instance.GetAllWarehouseMovements()
+                .Where(m => m.MovementType == WarehouseMovementType.SortingLastMile || m.MovementType == WarehouseMovementType.SortingTransit)
+                .Select(m => m.ReferenceCode)
+                .Where(code => !string.IsNullOrEmpty(code))
+                .ToHashSet();
+
             _danhSachDonChoPhanLoai = tatCaDonHang
-                .Where(d => d.Status == ShippingOrderStatus.PendingProcessing || d.Status == ShippingOrderStatus.NewReceived)
+                .Where(d => (d.Status == ShippingOrderStatus.PendingProcessing || d.Status == ShippingOrderStatus.NewReceived)
+                            && !maDonDaPhanLoai.Contains(d.OrderCode))
                 .ToList();
             ApDungLocPhanLoai();
 
@@ -244,7 +251,9 @@ namespace Quanlykhohanglogicts
 
             if (txtDemKienChoPhanLoai != null)
             {
-                txtDemKienChoPhanLoai.Text = $"{danhSach.Count} bưu kiện đang chờ phân luồng tại sàn Dock tiếp nhận";
+                txtDemKienChoPhanLoai.Text = danhSach.Count > 0
+                    ? $"{danhSach.Count} bưu kiện đang chờ phân luồng tại sàn Dock tiếp nhận"
+                    : "Sàn Dock tiếp nhận đã sạch hàng (0 bưu kiện chờ phân luồng)";
             }
         }
 
@@ -305,6 +314,48 @@ namespace Quanlykhohanglogicts
 
                 NapDuLieuKho();
             }
+        }
+
+        /// <summary>
+        /// SỰ KIỆN: Phân luồng tự động hàng loạt bưu kiện tại sàn Dock (Auto-Sort)
+        /// Thuật toán quét toàn bộ đơn trên Dock và tự động phân vào Máng Bưu Tá hoặc Pallet Xuất Xe Trung Chuyển.
+        /// </summary>
+        private void BtnTuDongPhanLuongHangLoat_Click(object sender, RoutedEventArgs e)
+        {
+            if (_danhSachDonChoPhanLoai == null || _danhSachDonChoPhanLoai.Count == 0)
+            {
+                MessageBox.Show(
+                    "Hiện tại trên sàn Dock tiếp nhận không còn bưu kiện nào chờ phân luồng!\nToàn bộ bưu kiện đã được đưa vào máng tuyến hoặc xếp lên pallet xuất xe.",
+                    "Sàn Dock Đã Sạch Hàng", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            int tong = _danhSachDonChoPhanLoai.Count;
+            int changCuoiDuKien = _danhSachDonChoPhanLoai.Count(d => d.IsLocalHubDelivery);
+            int trungChuyenDuKien = tong - changCuoiDuKien;
+
+            var xacNhan = MessageBox.Show(
+                $"HỆ THỐNG PHÂN LUỒNG TỰ ĐỘNG BƯU CHÍNH (AUTO-SORTING SYSTEM)\n\n" +
+                $"Phát hiện {tong} bưu kiện đang chờ xử lý tại sàn Dock tiếp nhận:\n" +
+                $"• Dự kiến Chặng Cuối (Nội tỉnh Thái Nguyên): {changCuoiDuKien} kiện -> Máng bưu tá shipper\n" +
+                $"• Dự kiến Trung Chuyển (Liên tỉnh Hà Nội,...): {trungChuyenDuKien} kiện -> Cửa xuất xe tải Outbound\n\n" +
+                $"Bạn có muốn kích hoạt hệ thống tự động quét mã & phân luồng hàng loạt không?",
+                "Kích Hoạt Phân Luồng Tự Động", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (xacNhan != MessageBoxResult.Yes) return;
+
+            string nguoiThaoTac = UserSession.Current.CurrentUser?.FullName ?? "Hệ Thống Tự Động (Auto-Sorter)";
+            var (tongSo, soChangCuoi, soTrungChuyen) = WarehouseContext.Instance.XacNhanPhanLoaiHangLoat(_danhSachDonChoPhanLoai, nguoiThaoTac);
+
+            NapDuLieuKho();
+
+            MessageBox.Show(
+                $"⚡ TỰ ĐỘNG PHÂN LUỒNG HOÀN TẤT THÀNH CÔNG!\n\n" +
+                $"• Tổng bưu kiện đã xử lý: {tongSo} kiện\n" +
+                $"• 🛵 Phân luồng Chặng Cuối (Thái Nguyên): {soChangCuoi} kiện -> Đã gạt vào máng bưu tá Shipper\n" +
+                $"• 🚛 Phân luồng Trung Chuyển (Hà Nội, liên tỉnh): {soTrungChuyen} kiện -> Đã xếp vào Pallet cửa xuất xe tải (Dock Outbound)\n\n" +
+                $"Toàn bộ dữ liệu đã được ghi nhận vào nhật ký kiểm toán kho (Audit Trail). Sàn Dock tiếp nhận đã được giải phóng!",
+                "Hoàn Tất Phân Luồng Tự Động", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         #endregion
 
