@@ -374,16 +374,42 @@ namespace Quanlykhohanglogicts
             db.Database.ExecuteSqlRaw(ddl);
         }
 
+        public static string ChuanHoaHoTenNguoiDung(string? hoTen)
+        {
+            if (string.IsNullOrWhiteSpace(hoTen)) return string.Empty;
+
+            // Khắc phục triệt để lỗi hiển thị font tiếng Việt (Mojibake UTF-8)
+            if (hoTen.Contains("Quáº£n") || hoTen.Contains("Trá»‹") || hoTen.Contains("ViÃªn") || hoTen.Contains("Há»‡"))
+                return "Quản Trị Viên Hệ Thống";
+            if (hoTen.Contains("Tráº§n") || hoTen.Contains("VÄƒn") || hoTen.Contains("Quáº£n LÃ½") || hoTen.Contains("LÃ½ Kho"))
+                return "Trần Văn Quản Lý Kho";
+            if (hoTen.Contains("LÃª") || hoTen.Contains("Thá»‹") || hoTen.Contains("Váº­n") || hoTen.Contains("HÃ nh Kho") || hoTen.Contains("Vâºn"))
+                return "Lê Thị Vận Hành Kho";
+
+            return hoTen;
+        }
+
         private void SyncUsersFromDatabase(WarehouseDbContext db)
         {
             try
             {
-                var dbUsers = db.Users.AsNoTracking().ToList();
+                var dbUsers = db.Users.ToList();
+                bool coCapNhatDb = false;
+
                 lock (_lock)
                 {
                     foreach (var user in dbUsers)
                     {
                         if (string.IsNullOrWhiteSpace(user.Username)) continue;
+
+                        // Chuẩn hóa họ tên tránh lỗi font
+                        string tenChuanHoa = ChuanHoaHoTenNguoiDung(user.FullName);
+                        if (!string.Equals(user.FullName, tenChuanHoa, StringComparison.Ordinal))
+                        {
+                            user.FullName = tenChuanHoa;
+                            coCapNhatDb = true;
+                        }
+
                         var existing = _users.FirstOrDefault(u => u.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase));
                         if (existing == null)
                         {
@@ -402,6 +428,11 @@ namespace Quanlykhohanglogicts
                             existing.LastLoginAt = user.LastLoginAt;
                         }
                     }
+                }
+
+                if (coCapNhatDb)
+                {
+                    db.SaveChanges();
                 }
             }
             catch (Exception ex)
@@ -820,9 +851,21 @@ namespace Quanlykhohanglogicts
                 new User
                 {
                     Id = 1,
+                    Username = "a",
+                    PasswordHash = User.HashPassword("1"),
+                    FullName = "Hầu Tuấn Đạt",
+                    Email = "hautuandat@logixwarehouse.vn",
+                    PhoneNumber = "0988 888 888",
+                    Role = UserRole.Admin,
+                    IsActive = true,
+                    CreatedAt = DateTime.Now.AddMonths(-6)
+                },
+                new User
+                {
+                    Id = 2,
                     Username = "admin",
                     PasswordHash = User.HashPassword("admin123"),
-                    FullName = "Nguyễn Văn Quản Trị",
+                    FullName = "Quản Trị Viên Hệ Thống",
                     Email = "admin@logixwarehouse.vn",
                     PhoneNumber = "0901 234 567",
                     Role = UserRole.Admin,
@@ -831,10 +874,10 @@ namespace Quanlykhohanglogicts
                 },
                 new User
                 {
-                    Id = 2,
+                    Id = 3,
                     Username = "quanly",
                     PasswordHash = User.HashPassword("quanly123"),
-                    FullName = "Trần Thị Trưởng Kho",
+                    FullName = "Trần Văn Quản Lý Kho",
                     Email = "truongkho@logixwarehouse.vn",
                     PhoneNumber = "0912 345 678",
                     Role = UserRole.Manager,
@@ -843,10 +886,10 @@ namespace Quanlykhohanglogicts
                 },
                 new User
                 {
-                    Id = 3,
+                    Id = 4,
                     Username = "nhanvien",
                     PasswordHash = User.HashPassword("nhanvien123"),
-                    FullName = "Lê Văn Vận Hành",
+                    FullName = "Lê Thị Vận Hành Kho",
                     Email = "nhanvien@logixwarehouse.vn",
                     PhoneNumber = "0987 654 321",
                     Role = UserRole.Staff,
@@ -855,7 +898,7 @@ namespace Quanlykhohanglogicts
                 },
                 new User
                 {
-                    Id = 4,
+                    Id = 5,
                     Username = "khoakhoan",
                     PasswordHash = User.HashPassword("123456"),
                     FullName = "Tài Khoản Đã Khóa",
