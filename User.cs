@@ -15,7 +15,8 @@ namespace Quanlykhohanglogicts
     {
         Admin,      // Quản trị viên hệ thống (Toàn quyền)
         Manager,    // Quản lý / Trưởng kho (Duyệt nhập xuất, kiểm kê, báo cáo)
-        Staff       // Nhân viên kho vận (Tạo phiếu nhập xuất, kiểm đếm)
+        Staff,      // Nhân viên kho vận (Tạo phiếu nhập xuất, kiểm đếm)
+        Customer    // Khách hàng / Chủ Shop đối tác (Tạo đơn, theo dõi lộ trình & GPS)
     }
 
     /// <summary>
@@ -74,6 +75,7 @@ namespace Quanlykhohanglogicts
             UserRole.Admin => "Quản trị viên (Admin)",
             UserRole.Manager => "Quản lý kho (Manager)",
             UserRole.Staff => "Nhân viên kho (Staff)",
+            UserRole.Customer => "Khách hàng / Chủ Shop",
             _ => "Người dùng"
         };
 
@@ -85,6 +87,7 @@ namespace Quanlykhohanglogicts
             UserRole.Admin => "#DC2626",    // Đỏ nổi bật
             UserRole.Manager => "#2563EB",  // Xanh dương doanh nghiệp
             UserRole.Staff => "#059669",    // Xanh lá vận hành
+            UserRole.Customer => "#8B5CF6", // Tím sang trọng dành cho Chủ Shop
             _ => "#6B7280"
         };
 
@@ -96,6 +99,7 @@ namespace Quanlykhohanglogicts
             UserRole.Admin => "Toàn quyền quản trị hệ thống, tài khoản, cấu hình và bảo mật.",
             UserRole.Manager => "Quản lý luồng hàng, duyệt phiếu xuất nhập, kiểm kê và xem báo cáo tài chính.",
             UserRole.Staff => "Thực hiện nhập kho, xuất kho, kiểm đếm tồn bãi và quét barcode.",
+            UserRole.Customer => "Tạo bưu gửi trực tuyến, tra cứu tiến độ đơn hàng và theo dõi lộ trình GPS thời gian thực.",
             _ => "Quyền hạn cơ bản"
         };
 
@@ -134,6 +138,11 @@ namespace Quanlykhohanglogicts
                     Permissions.CreateExportOrder => true,
                     Permissions.ViewStock => true,
                     Permissions.BarcodeScan => true,
+                    _ => false
+                },
+                UserRole.Customer => maQuyenHan switch
+                {
+                    Permissions.CreateExportOrder => true,
                     _ => false
                 },
                 _ => false

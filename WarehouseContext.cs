@@ -428,6 +428,26 @@ namespace Quanlykhohanglogicts
                             existing.LastLoginAt = user.LastLoginAt;
                         }
                     }
+
+                    if (!dbUsers.Any(u => u.Username.Equals("shop", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        var shopUser = _users.FirstOrDefault(u => u.Username.Equals("shop", StringComparison.OrdinalIgnoreCase));
+                        if (shopUser != null)
+                        {
+                            db.Users.Add(new User
+                            {
+                                Username = shopUser.Username,
+                                PasswordHash = shopUser.PasswordHash,
+                                FullName = shopUser.FullName,
+                                Email = shopUser.Email,
+                                PhoneNumber = shopUser.PhoneNumber,
+                                Role = shopUser.Role,
+                                IsActive = shopUser.IsActive,
+                                CreatedAt = shopUser.CreatedAt
+                            });
+                            coCapNhatDb = true;
+                        }
+                    }
                 }
 
                 if (coCapNhatDb)
@@ -907,6 +927,18 @@ namespace Quanlykhohanglogicts
                     Role = UserRole.Staff,
                     IsActive = false,
                     CreatedAt = DateTime.Now.AddYears(-1)
+                },
+                new User
+                {
+                    Id = 6,
+                    Username = "shop",
+                    PasswordHash = User.HashPassword("123"),
+                    FullName = "Shop ChunsHousepetFood (Chủ Shop)",
+                    Email = "chunshouse@logixwarehouse.vn",
+                    PhoneNumber = "0978 999 888",
+                    Role = UserRole.Customer,
+                    IsActive = true,
+                    CreatedAt = DateTime.Now.AddMonths(-1)
                 }
             });
         }

@@ -92,6 +92,18 @@ namespace Quanlykhohanglogicts
                 entity.Ignore(e => e.RoutingCategoryTextColor);
                 entity.Ignore(e => e.RoutingActionRecommendation);
                 entity.Ignore(e => e.CanQuickDeliverLocal);
+                entity.Ignore(e => e.CreatedBySource);
+                entity.Ignore(e => e.SenderShopName);
+                entity.Ignore(e => e.IsWarehouseCheckedIn);
+                entity.Ignore(e => e.WarehouseCheckedInTime);
+                entity.Ignore(e => e.WarehouseStaffReceived);
+                entity.Ignore(e => e.WarehouseAssignedVehicle);
+                entity.Ignore(e => e.GpsLatitude);
+                entity.Ignore(e => e.GpsLongitude);
+                entity.Ignore(e => e.GpsSpeedKmH);
+                entity.Ignore(e => e.GpsDistanceKm);
+                entity.Ignore(e => e.GpsEtaMinutes);
+                entity.Ignore(e => e.GpsStatusDescription);
             });
 
             // =========================================================================

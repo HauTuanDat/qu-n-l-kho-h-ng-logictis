@@ -420,6 +420,15 @@
                                                         Click="BtnQuickAdvanceStatus_Click" ToolTip="Chuyển sang trạng thái tiếp theo">
                                                     <TextBlock Text="Tiến Độ ➔"/>
                                                 </Button>
+                                                <Button Style="{StaticResource NutCongCuTintedStyle}" Height="28" Padding="7,0" FontSize="11" Margin="0,0,5,0"
+                                                        Background="#FEF3C7" Foreground="#B45309" BorderBrush="#FDE68A"
+                                                        Click="BtnPrintOrderThermalLabel_Click" ToolTip="In tem nhiệt dán kiện hàng (100x150mm) - Tuấn Đạt Giao Hàng Nhanh">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="🏷️" Margin="0,0,3,0"/>
+                                                        <TextBlock Text="In Tem"/>
+                                                    </StackPanel>
+                                                </Button>
+
                                                 <Button Style="{StaticResource NutCongCuTintedStyle}" Height="28" Padding="8,0" FontSize="11"
                                                         Background="#F8FAFC" Foreground="#475569" BorderBrush="#CBD5E1"
                                                         Click="BtnQuickTrackOrder_Click" ToolTip="Xem dòng thời gian hành trình chi tiết">
@@ -652,6 +661,200 @@
                         <Button Grid.Column="1" Content="🛵 Xác Nhận Điều Phối" Height="40" Margin="6,0,0,0" Style="{StaticResource PrimaryButtonStyle}" Background="#2563EB" Click="BtnConfirmAssignShipper_Click"/>
                     </Grid>
                 </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ================= MODAL IN TEM NHIỆT (100x150mm) TUẤN ĐẠT GIAO HÀNG NHANH ================= -->
+        <Grid x:Name="gridModalInTemNhietOrder" Visibility="Collapsed" Background="#8C000000">
+            <Border Background="#F1F5F9" CornerRadius="12" Width="520" MaxHeight="720" VerticalAlignment="Center" Padding="16"
+                    BorderBrush="#94A3B8" BorderThickness="1.5">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🏷️" FontSize="18" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="TEM NHIỆT DÁN KIỆN HÀNG (100x150mm)" FontWeight="Bold" FontSize="15" Foreground="#0F172A" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Tem dán trực tiếp lên kiện hàng - Shipper quét mã đi giao ngay trong ca" FontSize="11" Foreground="#475569" Margin="24,2,0,0"/>
+                        </StackPanel>
+                        <Button Content="✕" FontWeight="Bold" FontSize="15" Foreground="#64748B" Background="Transparent" 
+                                BorderThickness="0" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="Hand" Click="BtnDongModalInTemOrder_Click"/>
+                    </Grid>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <Border x:Name="vungInTemNhietOrder" Width="430" Background="White" BorderBrush="Black" BorderThickness="2" Padding="12" Margin="0,4,0,4" HorizontalAlignment="Center">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="TUẤN ĐẠT GIAO HÀNG NHANH" FontWeight="Black" FontSize="15" Foreground="Black"/>
+                                        <TextBlock Text="Trạm Hub: Tổ 53, P. Phan Đình Phùng, TP Thái Nguyên" FontSize="9.5" Foreground="#1E293B"/>
+                                        <TextBlock Text="Hotline: 0988.888.888 | Hệ thống Logistics Nội Tỉnh" FontSize="9" Foreground="#334155"/>
+                                    </StackPanel>
+                                    <Border Grid.Column="1" Background="Black" CornerRadius="4" Padding="6,3" VerticalAlignment="Top">
+                                        <TextBlock x:Name="txtOrderTemServiceTag" Text="⚡ GIAO NHANH 24H" FontWeight="Bold" FontSize="10.5" Foreground="White"/>
+                                    </Border>
+                                </Grid>
+
+                                <Rectangle Height="1.5" Fill="Black" Margin="0,2,0,6"/>
+
+                                <StackPanel HorizontalAlignment="Center" Margin="0,0,0,6">
+                                    <Image x:Name="imgOrderBarcodeTem" Height="48" Width="380" Stretch="Fill" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                                    <TextBlock x:Name="txtOrderTemOrderCode" Text="LOGIX-RET-261006-888" FontWeight="Bold" FontSize="13" Foreground="Black" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                </StackPanel>
+
+                                <Rectangle Height="1.5" Fill="Black" Margin="0,2,0,6"/>
+
+                                <Border BorderBrush="Black" BorderThickness="1" Padding="6" Margin="0,0,0,6">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="70"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="NGƯỜI GỬI:" FontSize="9.5" FontWeight="Bold" Foreground="#334155"/>
+                                            <TextBlock x:Name="txtOrderTemNguoiGui" Grid.Column="1" Text="Shop Phụ Kiện Pet Care - 0944.888.999" FontSize="10" Foreground="Black" TextWrapping="Wrap"/>
+                                        </Grid>
+                                        <TextBlock x:Name="txtOrderTemDiaChiGui" Text="Đ/C gửi: Số 12 Chùa Bộc, Đống Đa, Hà Nội" FontSize="9" Foreground="#475569" Margin="0,0,0,4"/>
+
+                                        <Rectangle Height="1" Fill="#94A3B8" Margin="0,2,0,4"/>
+
+                                        <TextBlock Text="NGƯỜI NHẬN HÀNG (RECEIVER):" FontSize="10" FontWeight="Black" Foreground="Black"/>
+                                        <Grid Margin="0,2,0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock x:Name="txtOrderTemNguoiNhan" Grid.Column="0" Text="Tuấn Đạt" FontSize="15" FontWeight="Black" Foreground="Black"/>
+                                            <TextBlock x:Name="txtOrderTemSdtNhan" Grid.Column="1" Text="(+84) 912 345 678" FontSize="13" FontWeight="Bold" Foreground="Black"/>
+                                        </Grid>
+
+                                        <Border Background="#F8FAFC" BorderBrush="Black" BorderThickness="1" CornerRadius="4" Padding="6,5" Margin="0,3,0,0">
+                                            <StackPanel>
+                                                <TextBlock Text="ĐỊA CHỈ PHÁT HÀNG CHÍNH XÁC:" FontSize="9" FontWeight="Bold" Foreground="#334155"/>
+                                                <TextBlock x:Name="txtOrderTemDiaChiNhan" Text="Dốc Lên Đối Diện Trung Tâm Học Liệu, Dốc đối diện trung tâm học liệu đại học Thái Nguyên - tổ 53 phường Phan Đình Phùng, Thái Nguyên" 
+                                                           FontSize="12" FontWeight="Black" Foreground="Black" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border BorderBrush="Black" BorderThickness="1" Padding="6" Margin="0,0,0,6">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="135"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                            <Border Background="Black" CornerRadius="4" Padding="6,2" Margin="0,0,0,4">
+                                                <TextBlock x:Name="txtOrderTemSortCode" Text="B208A28 003" FontWeight="Black" FontSize="13" Foreground="White" HorizontalAlignment="Center"/>
+                                            </Border>
+                                            <Image x:Name="imgOrderQrCodeTem" Height="88" Width="88" Stretch="Uniform" Margin="0,2,0,0"/>
+                                            <TextBlock Text="QUÉT MÃ ĐI GIAO" FontSize="8.5" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                            <Grid Margin="0,0,0,3">
+                                                <TextBlock Text="Trọng lượng:" FontSize="10" Foreground="#334155"/>
+                                                <TextBlock x:Name="txtOrderTemTrongLuong" Text="0.200 KG" FontWeight="Bold" FontSize="10.5" HorizontalAlignment="Right"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,3">
+                                                <TextBlock Text="Mã đơn / Order:" FontSize="10" Foreground="#334155"/>
+                                                <TextBlock x:Name="txtOrderTemOrderId" Text="586323516381169266" FontWeight="SemiBold" FontSize="9.5" HorizontalAlignment="Right"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,3">
+                                                <TextBlock Text="Ngày tiếp nhận:" FontSize="9.5" Foreground="#334155"/>
+                                                <TextBlock x:Name="txtOrderTemNgayTiepNhan" Text="06/10/2026 17:30" FontSize="9.5" HorizontalAlignment="Right"/>
+                                            </Grid>
+                                            <Grid Margin="0,0,0,4">
+                                                <TextBlock Text="Hạn phát dự kiến:" FontSize="9.5" Foreground="#334155"/>
+                                                <TextBlock x:Name="txtOrderTemHanGiao" Text="Giao luôn trong ca" FontWeight="Bold" FontSize="9.5" Foreground="#047857" HorizontalAlignment="Right"/>
+                                            </Grid>
+
+                                            <Border Background="#F1F5F9" BorderBrush="Black" BorderThickness="1" CornerRadius="4" Padding="6,4" Margin="0,2,0,0">
+                                                <Grid>
+                                                    <StackPanel>
+                                                        <TextBlock Text="TIỀN THU HỘ (COD):" FontSize="9" FontWeight="Bold" Foreground="#334155"/>
+                                                        <TextBlock x:Name="txtOrderTemTienCod" Text="0 VNĐ" FontWeight="Black" FontSize="15" Foreground="Black"/>
+                                                    </StackPanel>
+                                                    <TextBlock x:Name="txtOrderTemNguoiTraCuoc" Text="Khách nhận trả cước" FontSize="9" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <Border BorderBrush="Black" BorderThickness="1" Margin="0,0,0,6">
+                                    <StackPanel>
+                                        <Grid Background="#E2E8F0" Height="22">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="40"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Product Name" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                            <TextBlock Text="SKU" Grid.Column="1" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                            <TextBlock Text="Qty" Grid.Column="2" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Grid>
+
+                                        <Rectangle Height="1" Fill="Black"/>
+
+                                        <Grid MinHeight="32" Margin="0,4,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="40"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock x:Name="txtOrderTemTenHangHoa" Grid.Column="0" Text="Xịt Ve Rận Bọ Chét Cho Chó Mèo 300ML Pet Care Hiệu Quả Rõ Rệt" 
+                                                       FontSize="9.5" FontWeight="SemiBold" TextWrapping="Wrap" Margin="6,0,4,0"/>
+                                            <TextBlock x:Name="txtOrderTemSkuHangHoa" Grid.Column="1" Text="1 CHAI XỊT 100ML" 
+                                                       FontSize="9" FontWeight="SemiBold" TextWrapping="Wrap" Margin="4,0,4,0"/>
+                                            <TextBlock x:Name="txtOrderTemSoLuong" Grid.Column="2" Text="1" 
+                                                       FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Grid>
+
+                                        <Rectangle Height="1" Fill="#CBD5E1"/>
+
+                                        <Grid Height="20" Background="#F8FAFC">
+                                            <TextBlock Text="Qty Total:" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,50,0"/>
+                                            <TextBlock x:Name="txtOrderTemTongQty" Text="1" FontSize="10.5" FontWeight="Black" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Background="#FEF3C7" BorderBrush="#D97706" BorderThickness="1" CornerRadius="4" Padding="6,3">
+                                    <TextBlock Text="⚡ ĐƠN CÙNG TUYẾN KHO THÁI NGUYÊN: Dán tem lên hộp -> Shipper lấy đi giao ngay!" 
+                                               FontSize="9" FontWeight="Bold" Foreground="#92400E" HorizontalAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </ScrollViewer>
+
+                    <Grid Grid.Row="2" Margin="0,10,0,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="Đóng" Height="36" Padding="16,0" Style="{StaticResource NutCongCuTintedStyle}"
+                                    Background="#E2E8F0" Foreground="#334155" Margin="0,0,8,0" Click="BtnDongModalInTemOrder_Click"/>
+
+                            <Button x:Name="btnThucHienInTemOrder" Height="36" Padding="20,0" Style="{StaticResource PrimaryButtonStyle}"
+                                    Background="#059669" Foreground="White" Click="BtnThucHienInTemOrder_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🖨️" FontSize="13" Margin="0,0,6,0"/>
+                                    <TextBlock Text="IN TEM NGAY (Máy In Nhiệt / PDF)" FontWeight="Bold" FontSize="12.5"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
             </Border>
         </Grid>
     </Grid>

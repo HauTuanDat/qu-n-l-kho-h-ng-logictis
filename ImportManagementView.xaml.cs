@@ -845,7 +845,8 @@ namespace Quanlykhohanglogicts
                 txtRetailShippingFee.Text = "0 đ";
                 txtRetailSurcharge.Text = "0 đ";
                 if (txtRetailCodDisplay != null) txtRetailCodDisplay.Text = $"{tienCod:N0} đ";
-                txtRetailTotalAmount.Text = $"{tienCod:N0} đ";
+                if (txtRetailSenderPayAmount != null) txtRetailSenderPayAmount.Text = "0 đ";
+                if (txtRetailTotalAmount != null) txtRetailTotalAmount.Text = $"{tienCod:N0} đ";
 
                 if (txtRetailPutAwaySuggestion != null && borderRetailPutAway != null)
                 {
@@ -886,15 +887,56 @@ namespace Quanlykhohanglogicts
             if (laDeVo) phuPhi += 10000;
             if (laGiaTriCao) phuPhi += 15000;
 
-            // Người chịu cước
-            bool nguoiGuiTra = rbRetailSenderPays?.IsChecked == true;
+            // Phân bổ cước phí: Người nhận trả ship hay Người gửi trả tại quầy
+            bool nguoiNhanTraCuoc = rbRetailReceiverPays?.IsChecked == true;
             decimal tongCuocPhi = cuocChinh + phuPhi;
-            decimal tongTienKhachTra = nguoiGuiTra ? tongCuocPhi : (tienCod + tongCuocPhi);
+
+            // Nếu người nhận trả cước: Thu tại quầy = 0đ, Shipper thu người nhận = COD + Cước
+            // Nếu người gửi trả cước: Thu tại quầy = Cước ship, Shipper thu người nhận = Chỉ COD
+            decimal tienThuNguoiGuiTaiQuay = nguoiNhanTraCuoc ? 0 : tongCuocPhi;
+            decimal tienShipperThuNguoiNhan = nguoiNhanTraCuoc ? (tienCod + tongCuocPhi) : tienCod;
 
             txtRetailShippingFee.Text = $"{cuocChinh:N0} đ";
             txtRetailSurcharge.Text = $"{phuPhi:N0} đ";
             if (txtRetailCodDisplay != null) txtRetailCodDisplay.Text = $"{tienCod:N0} đ";
-            txtRetailTotalAmount.Text = $"{tongTienKhachTra:N0} đ";
+
+            if (txtRetailSenderPayAmount != null)
+                txtRetailSenderPayAmount.Text = $"{tienThuNguoiGuiTaiQuay:N0} đ";
+
+            if (txtRetailTotalAmount != null)
+                txtRetailTotalAmount.Text = $"{tienShipperThuNguoiNhan:N0} đ";
+
+            if (txtSenderPayNote != null)
+            {
+                txtSenderPayNote.Text = nguoiNhanTraCuoc
+                    ? "(Miễn phí tại quầy - Người nhận sẽ trả phí ship)"
+                    : "(Người gửi thanh toán cước phí ngay tại quầy)";
+            }
+
+            if (txtReceiverPayNote != null)
+            {
+                txtReceiverPayNote.Text = nguoiNhanTraCuoc
+                    ? $"(Gồm Tiền COD: {tienCod:N0} đ + Cước ship: {tongCuocPhi:N0} đ)"
+                    : $"(Chỉ thu Tiền COD: {tienCod:N0} đ - Cước ship đã trả tại quầy)";
+            }
+
+            if (borderSenderPayment != null && borderReceiverPayment != null)
+            {
+                if (nguoiNhanTraCuoc)
+                {
+                    borderReceiverPayment.Background = new SolidColorBrush(Color.FromRgb(236, 253, 245));
+                    borderReceiverPayment.BorderBrush = new SolidColorBrush(Color.FromRgb(16, 185, 129));
+                    borderSenderPayment.Background = new SolidColorBrush(Color.FromRgb(248, 250, 252));
+                    borderSenderPayment.BorderBrush = new SolidColorBrush(Color.FromRgb(226, 232, 240));
+                }
+                else
+                {
+                    borderSenderPayment.Background = new SolidColorBrush(Color.FromRgb(239, 246, 255));
+                    borderSenderPayment.BorderBrush = new SolidColorBrush(Color.FromRgb(59, 130, 246));
+                    borderReceiverPayment.Background = new SolidColorBrush(Color.FromRgb(248, 250, 252));
+                    borderReceiverPayment.BorderBrush = new SolidColorBrush(Color.FromRgb(226, 232, 240));
+                }
+            }
 
             // Thuật toán gợi ý vị trí lưu kệ thông minh cho khách lẻ (Smart Put-away)
             if (txtRetailPutAwaySuggestion != null && borderRetailPutAway != null)
@@ -938,29 +980,29 @@ namespace Quanlykhohanglogicts
         /// </summary>
         private void BtnFillSampleRetail_Click(object sender, RoutedEventArgs e)
         {
-            txtRetailSenderName.Text = "Chị Mai Phương";
+            txtRetailSenderName.Text = "ChunsHousepetFood";
             txtRetailSenderPhone.Text = "0944888999";
-            txtRetailSenderAddress.Text = "Cửa Hàng Thời Trang H&M, Cầu Giấy, Hà Nội";
-            txtRetailReceiverName.Text = "Anh Hoàng Nam";
+            txtRetailSenderAddress.Text = "Cửa Hàng Phụ Kiện Thú Cưng, Cầu Giấy, Hà Nội";
+            txtRetailReceiverName.Text = "Tuấn Đạt";
             txtRetailReceiverPhone.Text = "0912345678";
-            txtRetailReceiverAddress.Text = "Số 45 Đường Lương Ngọc Quyến, Phường Hoàng Văn Thụ";
-            cbRetailDestinationArea.SelectedIndex = 1; // Thái Nguyên
-            txtRetailProductName.Text = "Giày thể thao & Quần áo";
+            txtRetailReceiverAddress.Text = "Dốc Lên Đối Diện Trung Tâm Học Liệu, Dốc đối diện trung tâm học liệu đại học Thái Nguyên - tổ 53 phường Phan Đình Phùng, Thái Nguyên";
+            cbRetailDestinationArea.SelectedIndex = 1; // Thái Nguyên (TP Thái Nguyên)
+            txtRetailProductName.Text = "Xịt Ve Rận Bọ Chét Cho Chó Mèo 300ML Pet Care Hiệu Quả Rõ Rệt Sau 48-72H";
             cbRetailProductType.SelectedIndex = 0;
-            txtRetailWeight.Text = "1.8";
-            txtRetailLength.Text = "32";
-            txtRetailWidth.Text = "24";
-            txtRetailHeight.Text = "18";
+            txtRetailWeight.Text = "0.2";
+            txtRetailLength.Text = "16";
+            txtRetailWidth.Text = "10";
+            txtRetailHeight.Text = "8";
             rbRetailStandardService.IsChecked = true;
             chkRetailFragile.IsChecked = false;
             chkRetailHighValue.IsChecked = false;
-            txtRetailCodAmount.Text = "480000";
+            txtRetailCodAmount.Text = "0";
             rbRetailReceiverPays.IsChecked = true;
             rbRetailPayCash.IsChecked = true;
 
             XoaTatCaDanhDauLoi();
             TinhToanCuocKhachLe();
-            MessageBox.Show("Đã điền nhanh thông tin khách lẻ mẫu gửi hàng đi Thái Nguyên!", "Thông Báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Đã điền thông tin kiện hàng mẫu cùng tuyến kho Tuấn Đạt (Thái Nguyên) giống kiện hàng thực tế!", "Điền Mẫu Khách Hàng", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         /// <summary>
@@ -1216,70 +1258,228 @@ namespace Quanlykhohanglogicts
             // Đặt lại form về mặc định rỗng sẵn sàng cho bưu gửi tiếp theo
             DatLaiFormKhachLeMacDinh();
 
-            var luaChon = MessageBox.Show(
-                $"TIẾP NHẬN BƯU KIỆN KHÁCH LẺ THÀNH CÔNG!\n\n" +
-                $"• Mã vận đơn: {donHangMoi.OrderCode}\n" +
-                $"• Người gửi: {donHangMoi.SenderName} ({donHangMoi.SenderPhone})\n" +
-                $"• Người nhận: {donHangMoi.ReceiverName} ({donHangMoi.DestinationArea})\n" +
-                $"• Dịch vụ: {(laHoaToc ? "⚡ HỎA TỐC EXPRESS (2-4h)" : "📦 TIÊU CHUẨN")}\n" +
-                $"• Trọng lượng tính cước: {trongLuongTinhCuoc:N1} kg (Thể tích: {canNangQuyDoi:N1} kg)\n" +
-                $"• Cước vận chuyển: {cuocChinh:N0} đ (+ Phụ phí: {phuPhi:N0} đ)\n" +
-                $"• Tiền thu hộ COD: {tienCod:N0} đ\n" +
-                $"• Vị trí cất giữ: {txtRetailPutAwaySuggestion.Text}\n\n" +
-                $"Đơn hàng đã được TỰ ĐỘNG ĐẨY SANG PHÂN HỆ VẬN CHUYỂN & GOM TUYẾN!\n\n" +
-                $"Bạn có muốn chuyển sang XEM DANH SÁCH ĐƠN HÀNG ngay bây giờ không?",
-                "Nhập Kho Khách Lẻ Hoàn Tất", MessageBoxButton.YesNo, MessageBoxImage.Information);
-
-            if (luaChon == MessageBoxResult.Yes)
+            // =========================================================================
+            // KIỂM TRA ĐỊA CHỈ NGƯỜI NHẬN CÓ CÙNG VỚI ĐỊA CHỈ KHO HAY KHÔNG
+            // TÊN KHO: TUẤN ĐẠT GIAO HÀNG NHANH (HUB THÁI NGUYÊN)
+            // - Nếu CÙNG ĐỊA CHỈ KHO: Lập tức mở mẫu in tem nhiệt dán kiện hàng (100x150mm),
+            //   đầy đủ thông tin người nhận, SĐT, địa chỉ chi tiết, thông tin sản phẩm,
+            //   để dán luôn lên kiện hàng và Shipper đến lấy đi giao ngay!
+            // =========================================================================
+            if (donHangMoi.IsLocalHubDelivery)
             {
-                if (Application.Current.MainWindow is MainWindow cuaSoChinh2)
+                var thongBaoNoiVung = MessageBox.Show(
+                    $"⚡ PHÁT HIỆN ĐƠN HÀNG CÙNG TUYẾN KHO (NỘI VÙNG THÁI NGUYÊN)!\n\n" +
+                    $"• Kho phát: TUẤN ĐẠT GIAO HÀNG NHANH\n" +
+                    $"• Mã vận đơn: {donHangMoi.OrderCode}\n" +
+                    $"• Người nhận: {donHangMoi.ReceiverName} - SĐT: {donHangMoi.ReceiverPhone}\n" +
+                    $"• Địa chỉ nhận: {donHangMoi.ReceiverAddress}\n" +
+                    $"• Sản phẩm: {tenHang}\n" +
+                    $"• Tiền thu COD: {tienCod:N0} đ\n\n" +
+                    $"👉 HÀNG GIAO NGAY CHẶNG CUỐI (LAST-MILE): KHÔNG CẦN LƯU KHO!\n" +
+                    $"Hệ thống sẽ TỰ ĐỘNG BẬT PHIẾU IN TEM NHIỆT (100x150mm) ngay bây giờ.\n" +
+                    $"Bạn chỉ cần in tem, dán lên hộp sản phẩm là Shipper có thể lấy đi ship luôn!\n\n" +
+                    $"Bạn có muốn mở xem trước và IN TEM NGAY không?",
+                    "⚡ Đơn Cùng Tuyến Kho - Tuấn Đạt Giao Hàng Nhanh",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information);
+
+                if (thongBaoNoiVung == MessageBoxResult.Yes)
                 {
-                    cuaSoChinh2.ChuyenSangTrangDonHang(donHangMoi.OrderCode);
+                    HienThiModalInTemNhiet(donHangMoi);
+                }
+            }
+            else
+            {
+                var luaChon = MessageBox.Show(
+                    $"TIẾP NHẬN BƯU KIỆN KHÁCH LẺ THÀNH CÔNG!\n\n" +
+                    $"• Mã vận đơn: {donHangMoi.OrderCode}\n" +
+                    $"• Người gửi: {donHangMoi.SenderName} ({donHangMoi.SenderPhone})\n" +
+                    $"• Người nhận: {donHangMoi.ReceiverName} ({donHangMoi.DestinationArea})\n" +
+                    $"• Tuyến: TRUNG CHUYỂN LIÊN TỈNH (Chờ xe tải)\n" +
+                    $"• Dịch vụ: {(laHoaToc ? "⚡ HỎA TỐC EXPRESS (2-4h)" : "📦 TIÊU CHUẨN")}\n" +
+                    $"• Trọng lượng tính cước: {trongLuongTinhCuoc:N1} kg (Thể tích: {canNangQuyDoi:N1} kg)\n" +
+                    $"• Cước vận chuyển: {cuocChinh:N0} đ (+ Phụ phí: {phuPhi:N0} đ)\n" +
+                    $"• Tiền thu hộ COD: {tienCod:N0} đ\n" +
+                    $"• Vị trí cất giữ: {txtRetailPutAwaySuggestion.Text}\n\n" +
+                    $"Bạn có muốn chuyển sang XEM DANH SÁCH ĐƠN HÀNG ngay bây giờ không?",
+                    "Nhập Kho Khách Lẻ Hoàn Tất", MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                if (luaChon == MessageBoxResult.Yes)
+                {
+                    if (Application.Current.MainWindow is MainWindow cuaSoChinh2)
+                    {
+                        cuaSoChinh2.ChuyenSangTrangDonHang(donHangMoi.OrderCode);
+                    }
                 }
             }
         }
 
+        #region Xử Lý In Tem Nhiệt Dán Gói Hàng (100x150mm) - Tuấn Đạt Giao Hàng Nhanh
+        /// <summary>
+        /// Điền đầy đủ thông tin vào mẫu tem nhiệt dán kiện hàng và hiển thị Popup
+        /// </summary>
+        public void HienThiModalInTemNhiet(ShippingOrder donHang)
+        {
+            if (donHang == null || gridModalInTemNhiet == null) return;
+
+            // 1. Tạo Barcode Code 128 và QR Code siêu nét thuần C#
+            try
+            {
+                imgBarcodeTem.Source = BarcodeHelper.TaoAnhBarcode(donHang.OrderCode, 380, 50);
+                string qrData = $"{donHang.OrderCode}|{donHang.ReceiverName}|{donHang.ReceiverPhone}|{donHang.ReceiverAddress}|COD:{donHang.CodAmount}";
+                imgQrCodeTem.Source = BarcodeHelper.TaoAnhQRCode(qrData, 120);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Barcode Error] {ex.Message}");
+            }
+
+            // 2. Điền thông tin tiêu đề và vận đơn
+            txtTemOrderCode.Text = donHang.OrderCode;
+            txtTemServiceTag.Text = donHang.IsExpress ? "⚡ HỎA TỐC EXPRESS" : "📦 GIAO NHANH 24H";
+
+            // 3. Thông tin người gửi
+            txtTemNguoiGui.Text = $"{donHang.SenderName} - {donHang.SenderPhone}";
+            txtTemDiaChiGui.Text = $"Đ/C gửi: {(string.IsNullOrWhiteSpace(donHang.SenderAddress) ? "Kho Tuấn Đạt, Thái Nguyên" : donHang.SenderAddress)}";
+
+            // 4. Thông tin người nhận (Nổi bật nhất để Shipper nhìn thấy ngay)
+            txtTemNguoiNhan.Text = donHang.ReceiverName;
+            txtTemSdtNhan.Text = donHang.ReceiverPhone;
+            txtTemDiaChiNhan.Text = donHang.ReceiverAddress;
+
+            // 5. Mã định tuyến bưu cục & Siêu dữ liệu
+            txtTemSortCode.Text = donHang.RoutingHubSortCode;
+            txtTemTrongLuong.Text = $"{donHang.Weight:N3} KG";
+            txtTemOrderId.Text = donHang.Id > 0 ? $"586323{donHang.Id:D8}" : $"586323516381169266";
+            txtTemNgayTiepNhan.Text = donHang.CreatedDate.ToString("dd/MM/yyyy HH:mm");
+            txtTemHanGiao.Text = donHang.IsLocalHubDelivery ? "Giao luôn trong ca" : donHang.EstimatedDeliveryDate.ToString("dd/MM/yyyy");
+
+            // 6. Tiền thu người nhận và bên trả cước
+            decimal tongThuNguoiNhan = donHang.ReceiverPaysFee 
+                ? (donHang.CodAmount + donHang.ShippingFee + donHang.ExpressSurcharge) 
+                : donHang.CodAmount;
+
+            txtTemTienCod.Text = $"{tongThuNguoiNhan:N0} VNĐ";
+            txtTemNguoiTraCuoc.Text = donHang.ReceiverPaysFee ? "Khách nhận trả ship" : "Người gửi đã trả ship";
+            if (txtTemChiTietThu != null)
+            {
+                txtTemChiTietThu.Text = donHang.ReceiverPaysFee
+                    ? $"(Gồm COD: {donHang.CodAmount:N0} đ + Ship: {(donHang.ShippingFee + donHang.ExpressSurcharge):N0} đ)"
+                    : $"(Chỉ thu COD: {donHang.CodAmount:N0} đ - Cước ship đã trả tại quầy)";
+            }
+
+            // 7. Bảng chi tiết sản phẩm & SKU (giống ảnh 1)
+            string moTaHang = string.IsNullOrWhiteSpace(donHang.ProductSummary) ? "Bưu kiện hàng hóa" : donHang.ProductSummary;
+            txtTemTenHangHoa.Text = moTaHang;
+            txtTemSkuHangHoa.Text = moTaHang.Length > 20 ? moTaHang.Substring(0, 18) + "..." : "1 KIỆN";
+            txtTemSoLuong.Text = "1";
+            txtTemTongQty.Text = "1";
+
+            // 8. Hiển thị Popup
+            gridModalInTemNhiet.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>
+        /// SỰ KIỆN: Bấm nút "🏷️ In Tem (100x150)" trên form khách lẻ
+        /// </summary>
         private void BtnPrintRetailThermalLabel_Click(object sender, RoutedEventArgs e)
         {
-            string nguoiGui = string.IsNullOrWhiteSpace(txtRetailSenderName.Text) ? "Người gửi lẻ" : txtRetailSenderName.Text.Trim();
-            string sdtGui = string.IsNullOrWhiteSpace(txtRetailSenderPhone.Text) ? "0988 888 888" : txtRetailSenderPhone.Text.Trim();
-            string nguoiNhan = string.IsNullOrWhiteSpace(txtRetailReceiverName.Text) ? "Người nhận" : txtRetailReceiverName.Text.Trim();
+            string nguoiGui = string.IsNullOrWhiteSpace(txtRetailSenderName.Text) ? "ChunsHousepetFood" : txtRetailSenderName.Text.Trim();
+            string sdtGui = string.IsNullOrWhiteSpace(txtRetailSenderPhone.Text) ? "0944 888 999" : txtRetailSenderPhone.Text.Trim();
+            string diaChiGui = string.IsNullOrWhiteSpace(txtRetailSenderAddress.Text) ? "Cửa Hàng Phụ Kiện Thú Cưng, Cầu Giấy, Hà Nội" : txtRetailSenderAddress.Text.Trim();
+            string nguoiNhan = string.IsNullOrWhiteSpace(txtRetailReceiverName.Text) ? "Tuấn Đạt" : txtRetailReceiverName.Text.Trim();
             string sdtNhan = string.IsNullOrWhiteSpace(txtRetailReceiverPhone.Text) ? "0912 345 678" : txtRetailReceiverPhone.Text.Trim();
-            string diaChiNhan = string.IsNullOrWhiteSpace(txtRetailReceiverAddress.Text) ? "TP Thái Nguyên" : txtRetailReceiverAddress.Text.Trim();
-            string tenHang = string.IsNullOrWhiteSpace(txtRetailProductName.Text) ? "Bưu kiện hàng hóa" : txtRetailProductName.Text.Trim();
-            string khuVuc = (cbRetailDestinationArea.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Thái Nguyên";
+            string diaChiNhan = string.IsNullOrWhiteSpace(txtRetailReceiverAddress.Text) 
+                ? "Dốc Lên Đối Diện Trung Tâm Học Liệu, Dốc đối diện trung tâm học liệu đại học Thái Nguyên - tổ 53 phường Phan Đình Phùng, Thái Nguyên" 
+                : txtRetailReceiverAddress.Text.Trim();
+            string tenHang = string.IsNullOrWhiteSpace(txtRetailProductName.Text) 
+                ? "Xịt Ve Rận Bọ Chét Cho Chó Mèo 300ML Pet Care Hiệu Quả Rõ Rệt Sau 48-72H" 
+                : txtRetailProductName.Text.Trim();
+            string khuVuc = (cbRetailDestinationArea.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Thái Nguyên (TP Thái Nguyên)";
             bool laHoaToc = rbRetailExpressService?.IsChecked == true;
 
-            string maVanDon = $"LOGIX-{(laHoaToc ? "EXP" : "RET")}-{DateTime.Now:yyMMdd}-{new Random().Next(100, 999)}";
+            double.TryParse(txtRetailWeight.Text.Replace(",", ".").Trim(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double trongLuong);
+            if (trongLuong <= 0) trongLuong = 0.2;
 
-            string mauInTem = 
-                "==========================================================\n" +
-                "               LOGIX WMS - PHIẾU GỬI BƯU KIỆN             \n" +
-                "              TEM NHIỆT DÁN GÓI HÀNG (100x150mm)          \n" +
-                "==========================================================\n\n" +
-                $"MÃ VẬN ĐƠN:  {maVanDon}\n" +
-                $"DỊCH VỤ:     {(laHoaToc ? "⚡ HỎA TỐC EXPRESS (2-4H)" : "📦 CHUYỂN PHÁT TIÊU CHUẨN")}\n" +
-                $"NGÀY TIẾP NHẬN: {DateTime.Now:dd/MM/yyyy HH:mm}\n" +
-                "----------------------------------------------------------\n" +
-                $"NGƯỜI GỬI:   {nguoiGui} - SĐT: {sdtGui}\n" +
-                $"ĐỊA CHỈ GỬI: {txtRetailSenderAddress.Text}\n" +
-                "----------------------------------------------------------\n" +
-                $"NGƯỜI NHẬN:  {nguoiNhan} - SĐT: {sdtNhan}\n" +
-                $"ĐỊA CHỈ NHẬN: {diaChiNhan}\n" +
-                $"KHU VỰC:     {khuVuc}\n" +
-                "----------------------------------------------------------\n" +
-                $"HÀNG HÓA:    {tenHang}\n" +
-                $"TRỌNG LƯỢNG: {txtBillableWeightText.Text}\n" +
-                $"TIỀN THU COD:{txtRetailCodAmount.Text} VNĐ\n" +
-                $"TỔNG CƯỚC:   {txtRetailShippingFee.Text}\n" +
-                $"VỊ TRÍ KHO:  {txtRetailPutAwaySuggestion.Text}\n" +
-                "----------------------------------------------------------\n" +
-                "           |||| |||||| |||||||| |||| ||||||||||           \n" +
-                $"                    *{maVanDon}*                         \n" +
-                "==========================================================";
+            decimal.TryParse(txtRetailCodAmount.Text.Replace(".", "").Replace(",", "").Trim(), out decimal tienCod);
 
-            MessageBox.Show(mauInTem, "Xem Trước Tem In Nhiệt Bưu Kiện (100x150mm)", MessageBoxButton.OK, MessageBoxImage.Information);
+            decimal cuocChinh = 22000;
+            if (trongLuong > 2.0)
+            {
+                int soKgVuot = (int)Math.Ceiling(trongLuong - 2.0);
+                cuocChinh += soKgVuot * 5000;
+            }
+            decimal phuPhi = laHoaToc ? 20000 : 0;
+            if (chkRetailFragile?.IsChecked == true) phuPhi += 10000;
+            if (chkRetailHighValue?.IsChecked == true) phuPhi += 15000;
+
+            var donHangXemTruoc = new ShippingOrder
+            {
+                Id = new Random().Next(100, 999),
+                OrderCode = $"LOGIX-{(laHoaToc ? "EXP" : "RET")}-{DateTime.Now:yyMMdd}-{new Random().Next(100, 999)}",
+                SenderName = nguoiGui,
+                SenderPhone = sdtGui,
+                SenderAddress = diaChiGui,
+                ReceiverName = nguoiNhan,
+                ReceiverPhone = sdtNhan,
+                ReceiverAddress = diaChiNhan,
+                DestinationArea = khuVuc,
+                ProductSummary = tenHang,
+                Weight = trongLuong,
+                IsExpress = laHoaToc,
+                CodAmount = tienCod,
+                ShippingFee = cuocChinh,
+                ExpressSurcharge = phuPhi,
+                ReceiverPaysFee = rbRetailReceiverPays?.IsChecked == true,
+                CreatedDate = DateTime.Now,
+                EstimatedDeliveryDate = DateTime.Now.AddHours(24)
+            };
+
+            HienThiModalInTemNhiet(donHangXemTruoc);
         }
+
+        /// <summary>
+        /// SỰ KIỆN: Đóng Modal in tem nhiệt
+        /// </summary>
+        private void BtnDongModalInTem_Click(object sender, RoutedEventArgs e)
+        {
+            if (gridModalInTemNhiet != null)
+            {
+                gridModalInTemNhiet.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        /// <summary>
+        /// SỰ KIỆN: Bấm nút "IN TEM NGAY (Máy In Nhiệt / PDF)"
+        /// Gọi PrintDialog để in trực tiếp Visual sang máy in nhiệt hoặc máy in PDF
+        /// </summary>
+        private void BtnThucHienInTem_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var hopThoaiIn = new PrintDialog();
+                if (hopThoaiIn.ShowDialog() == true)
+                {
+                    hopThoaiIn.PrintVisual(vungInTemNhiet, $"TemDanGoiHang_{txtTemOrderCode.Text}");
+                    MessageBox.Show(
+                        $"✅ ĐÃ GỬI LỆNH IN TEM NHIỆT THÀNH CÔNG!\n\n" +
+                        $"• Mã vận đơn: {txtTemOrderCode.Text}\n" +
+                        $"• Tên kho: TUẤN ĐẠT GIAO HÀNG NHANH\n" +
+                        $"• Người nhận: {txtTemNguoiNhan.Text} ({txtTemSdtNhan.Text})\n" +
+                        $"• Địa chỉ: {txtTemDiaChiNhan.Text}\n\n" +
+                        $"👉 Bạn hãy bóc tem dán trực tiếp lên sản phẩm / hộp hàng.\n" +
+                        $"Shipper chỉ việc đến lấy hàng và đi phát luôn cho khách!",
+                        "In Tem Dán Kiện Hoàn Tất",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi gửi lệnh in: {ex.Message}", "Lỗi In Ấn", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        #endregion
 
         /// <summary>
         /// SỰ KIỆN: Xóa trắng toàn bộ form khách lẻ về mặc định rỗng

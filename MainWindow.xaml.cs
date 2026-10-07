@@ -24,6 +24,7 @@ namespace Quanlykhohanglogicts
         private ShipperManagementView? _trangQuanLyShipper;
         private ReturnManagementView? _trangQuanLyHangHoan;
         private UserManagementView? _trangQuanLyNguoiDung;
+        private CustomerPortalView? _trangCongKhachHang;
 
         public MainWindow()
         {
@@ -88,8 +89,54 @@ namespace Quanlykhohanglogicts
             // 5. Cập nhật trạng thái kết nối máy chủ SQL Server quanlykho
             CapNhatTrangThaiKetNoiCoSoDuLieu();
 
-            // 6. Mặc định mở Trang Tổng Quan hệ thống tại vị trí đầu tiên
-            lvSidebarNavigation.SelectedIndex = 0;
+            // 6. CẤU HÌNH GIAO DIỆN PHÂN QUYỀN RBAC (KHÁCH HÀNG VS NHÂN VIÊN KHO):
+            if (nguoiDungHienTai.Role == UserRole.Customer)
+            {
+                // ================= TÀI KHOẢN KHÁCH HÀNG / CHỦ SHOP =================
+                // 1. Ẩn TOÀN BỘ 8 nghiệp vụ nội bộ kho bãi (Bảng tổng quan, Đơn hàng, WMS, TMS, Shipper, Hoàn hàng, Quản trị, Tiếp nhận kho)
+                navItemOverview.Visibility = Visibility.Collapsed;
+                navItemOrders.Visibility = Visibility.Collapsed;
+                navItemWarehouse.Visibility = Visibility.Collapsed;
+                navItemDeliveryDispatch.Visibility = Visibility.Collapsed;
+                navItemShipper.Visibility = Visibility.Collapsed;
+                navItemReturnManagement.Visibility = Visibility.Collapsed;
+                navItemUsers.Visibility = Visibility.Collapsed;
+                navItemWarehouseCheckIn.Visibility = Visibility.Collapsed;
+
+                // 2. Hiện các mục dành riêng cho Khách hàng
+                navItemCustCreateOrder.Visibility = Visibility.Visible;
+                navItemCustGps.Visibility = Visibility.Visible;
+                navItemCustOrders.Visibility = Visibility.Visible;
+
+                // 3. Đổi tiêu đề nhóm sidebar & TopBar
+                txtNavCategoryTitle.Text = "CỔNG DỊCH VỤ KHÁCH HÀNG";
+                txtCurrentPageTitle.Text = "CỔNG DỊCH VỤ DÀNH CHO KHÁCH HÀNG & CHỦ SHOP";
+
+                // Mặc định chọn mục 1: Lên Đơn Giao Hàng
+                lvSidebarNavigation.SelectedItem = navItemCustCreateOrder;
+            }
+            else
+            {
+                // ================= NHÂN VIÊN ĐIỀU HÀNH KHO / QUẢN LÝ / ADMIN =================
+                // 1. Hiện đầy đủ các nghiệp vụ quản lý kho bãi
+                navItemOverview.Visibility = Visibility.Visible;
+                navItemOrders.Visibility = Visibility.Visible;
+                navItemWarehouse.Visibility = Visibility.Visible;
+                navItemDeliveryDispatch.Visibility = Visibility.Visible;
+                navItemShipper.Visibility = Visibility.Visible;
+                navItemReturnManagement.Visibility = Visibility.Visible;
+                navItemUsers.Visibility = Visibility.Visible;
+                navItemWarehouseCheckIn.Visibility = Visibility.Visible;
+
+                // 2. Ẩn các mục dành riêng cho Khách hàng
+                navItemCustCreateOrder.Visibility = Visibility.Collapsed;
+                navItemCustGps.Visibility = Visibility.Collapsed;
+                navItemCustOrders.Visibility = Visibility.Collapsed;
+
+                txtNavCategoryTitle.Text = "PHÂN HỆ NGHIỆP VỤ KHO VẬN";
+
+                lvSidebarNavigation.SelectedIndex = 0;
+            }
         }
 
         /// <summary>
@@ -174,6 +221,25 @@ namespace Quanlykhohanglogicts
 
             var nguoiDungHienTai = UserSession.Current.CurrentUser;
 
+            // KIỂM SOÁT BẢO MẬT: Tài khoản khách hàng bị cấm tuyệt đối truy cập các nghiệp vụ nội bộ kho bãi
+            if (nguoiDungHienTai?.Role == UserRole.Customer)
+            {
+                if (mucDuocChon != navItemCustCreateOrder &&
+                    mucDuocChon != navItemCustGps &&
+                    mucDuocChon != navItemCustOrders)
+                {
+                    MessageBox.Show(
+                        "TRUY CẬP BỊ TỪ CHỐI!\n\n" +
+                        "Tài khoản Khách hàng / Chủ Shop không có quyền xem thông tin và nghiệp vụ nội bộ kho bãi.",
+                        "Phân Quyền Khách Hàng",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+
+                    lvSidebarNavigation.SelectedItem = navItemCustCreateOrder;
+                    return;
+                }
+            }
+
             if (mucDuocChon == navItemOverview)
             {
                 // 1. PHÂN HỆ TỔNG QUAN HỆ THỐNG
@@ -251,6 +317,43 @@ namespace Quanlykhohanglogicts
                 _trangQuanLyNguoiDung ??= new UserManagementView();
                 _trangQuanLyNguoiDung.LoadData();
                 MainContentArea.Content = _trangQuanLyNguoiDung;
+            }
+            else if (mucDuocChon == navItemWarehouseCheckIn)
+            {
+                // 8. TIẾP NHẬN BƯU KIỆN & PHÂN XE (DÀNH CHO NHÂN VIÊN KHO)
+                // Nhiệm vụ: Quét mã QR/Barcode từ khách hàng mang tới, kiểm tra tính hợp lệ, đối chiếu địa bàn & phân bổ xe
+                txtCurrentPageTitle.Text = "TIẾP NHẬN BƯU KIỆN TẠI KHO & PHÂN XE ĐIỀU PHỐI (QUÉT QR / KIỂM TRA ĐỊA CHỈ)";
+                _trangCongKhachHang ??= new CustomerPortalView();
+                _trangCongKhachHang.CauHinhGiaoDienKhachHang(laKhachHang: false);
+                _trangCongKhachHang.ChuyenSangTabTiepNhanKho();
+                MainContentArea.Content = _trangCongKhachHang;
+            }
+            else if (mucDuocChon == navItemCustCreateOrder)
+            {
+                // K1. CỔNG KHÁCH HÀNG: LÊN ĐƠN GIAO HÀNG
+                txtCurrentPageTitle.Text = "KHỞI TẠO BƯU GỬI TRỰC TUYẾN & LẤY MÃ QR ĐIỆN TỬ";
+                _trangCongKhachHang ??= new CustomerPortalView();
+                _trangCongKhachHang.CauHinhGiaoDienKhachHang(laKhachHang: true);
+                _trangCongKhachHang.ChuyenSangTabTaoDon();
+                MainContentArea.Content = _trangCongKhachHang;
+            }
+            else if (mucDuocChon == navItemCustGps)
+            {
+                // K2. CỔNG KHÁCH HÀNG: ĐỊNH VỊ GPS ĐƠN HÀNG
+                txtCurrentPageTitle.Text = "ĐỊNH VỊ GPS THỜI GIAN THỰC ĐƠN HÀNG CỦA BẠN";
+                _trangCongKhachHang ??= new CustomerPortalView();
+                _trangCongKhachHang.CauHinhGiaoDienKhachHang(laKhachHang: true);
+                _trangCongKhachHang.ChuyenSangTabGps();
+                MainContentArea.Content = _trangCongKhachHang;
+            }
+            else if (mucDuocChon == navItemCustOrders)
+            {
+                // K3. CỔNG KHÁCH HÀNG: SỔ BƯU GỬI & VÍ COD
+                txtCurrentPageTitle.Text = "SỔ BƯU GỬI & ĐỐI SOÁT TIỀN THU HỘ COD CỦA BẠN";
+                _trangCongKhachHang ??= new CustomerPortalView();
+                _trangCongKhachHang.CauHinhGiaoDienKhachHang(laKhachHang: true);
+                _trangCongKhachHang.ChuyenSangTabSoDon();
+                MainContentArea.Content = _trangCongKhachHang;
             }
         }
         #endregion

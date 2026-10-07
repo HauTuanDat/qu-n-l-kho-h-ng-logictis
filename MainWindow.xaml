@@ -82,7 +82,7 @@
                 <!-- 2. THANH ĐIỀU HƯỚNG SỬ DỤNG LISTVIEW THEO YÊU CẦU -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel>
-                        <TextBlock Text="PHÂN HỆ NGHIỆP VỤ" FontSize="10.5" FontWeight="Bold" Foreground="#64748B" Margin="10,6,0,8"/>
+                        <TextBlock x:Name="txtNavCategoryTitle" Text="PHÂN HỆ NGHIỆP VỤ" FontSize="10.5" FontWeight="Bold" Foreground="#64748B" Margin="10,6,0,8"/>
 
                         <ListView x:Name="lvSidebarNavigation"
                                   Background="Transparent"
@@ -180,6 +180,63 @@
                                     <TextBlock Grid.Column="1" Text="7. Quản Trị Hệ Thống" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                     <!-- Ổ khóa nếu không phải admin -->
                                     <TextBlock x:Name="badgeAdminLock" Grid.Column="2" Text="🔒" FontSize="11" Foreground="#EF4444" VerticalAlignment="Center" Margin="6,0,0,0" Visibility="Collapsed"/>
+                                </Grid>
+                            </ListViewItem>
+
+                            <!-- 8. TIẾP NHẬN BƯU KIỆN & PHÂN XE (DÀNH CHO NHÂN VIÊN KHO) -->
+                            <ListViewItem x:Name="navItemWarehouseCheckIn">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="24"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="⚡" FontSize="15" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="8. Tiếp Nhận Kho &amp; Phân Xe" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    <Border Grid.Column="2" Background="#059669" CornerRadius="8" Padding="5,1" VerticalAlignment="Center" Margin="4,0,0,0">
+                                        <TextBlock Text="HUB" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                                    </Border>
+                                </Grid>
+                            </ListViewItem>
+
+                            <!-- ================= CÁC MỤC DÀNH RIÊNG CHO KHÁCH HÀNG & CHỦ SHOP ================= -->
+                            <!-- K1. LÊN ĐƠN GIAO HÀNG (LẤY MÃ QR) -->
+                            <ListViewItem x:Name="navItemCustCreateOrder" Visibility="Collapsed">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="24"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="📝" FontSize="15" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="1. Lên Đơn Giao Hàng" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                </Grid>
+                            </ListViewItem>
+
+                            <!-- K2. ĐỊNH VỊ GPS ĐƠN HÀNG -->
+                            <ListViewItem x:Name="navItemCustGps" Visibility="Collapsed">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="24"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="🛰️" FontSize="15" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="2. Định Vị GPS Đơn Hàng" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    <Border Grid.Column="2" Background="#8B5CF6" CornerRadius="8" Padding="5,1" VerticalAlignment="Center" Margin="4,0,0,0">
+                                        <TextBlock Text="LIVE" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                                    </Border>
+                                </Grid>
+                            </ListViewItem>
+
+                            <!-- K3. SỔ BƯU GỬI & VÍ COD -->
+                            <ListViewItem x:Name="navItemCustOrders" Visibility="Collapsed">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="24"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="📊" FontSize="15" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="3. Sổ Bưu Gửi &amp; Ví COD" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </ListViewItem>
                         </ListView>

@@ -219,6 +219,21 @@ namespace Quanlykhohanglogicts
         // =========================================================================
 
         /// <summary>
+        /// Tên thương hiệu kho / bưu cục giao nhận
+        /// </summary>
+        public static string WarehouseBrandName { get; set; } = "Tuấn Đạt Giao hàng nhanh";
+
+        /// <summary>
+        /// Địa chỉ kho bãi vận hành hiện tại
+        /// </summary>
+        public static string WarehouseAddress { get; set; } = "Dốc Đối Diện Trung Tâm Học Liệu, Tổ 53, P. Phan Đình Phùng, Thái Nguyên";
+
+        /// <summary>
+        /// Hotline liên hệ bưu cục
+        /// </summary>
+        public static string WarehouseHotline { get; set; } = "0988 888 888";
+
+        /// <summary>
         /// Tên kho / bưu cục vận hành hiện tại của trạm (Mặc định: Thái Nguyên)
         /// </summary>
         public static string CurrentOperatingHub { get; set; } = "Thái Nguyên";
@@ -233,11 +248,13 @@ namespace Quanlykhohanglogicts
                 string diaChi = ((DestinationArea ?? "") + " " + (ReceiverAddress ?? "")).ToLower();
                 string khoHienTai = (CurrentOperatingHub ?? "thái nguyên").ToLower();
 
-                if (khoHienTai.Contains("thái nguyên") || khoHienTai.Contains("thai nguyen"))
+                if (khoHienTai.Contains("thái nguyên") || khoHienTai.Contains("thai nguyen") || khoHienTai.Contains("tuấn đạt") || khoHienTai.Contains("tuan dat"))
                 {
                     return diaChi.Contains("thái nguyên") || diaChi.Contains("thai nguyen") ||
                            diaChi.Contains("thịnh đán") || diaChi.Contains("thinh dan") ||
                            diaChi.Contains("phan đình phùng") || diaChi.Contains("phan dinh phung") ||
+                           diaChi.Contains("học liệu") || diaChi.Contains("hoc lieu") ||
+                           diaChi.Contains("đại học thái nguyên") ||
                            diaChi.Contains("sông công") || diaChi.Contains("song cong") ||
                            diaChi.Contains("phổ yên") || diaChi.Contains("pho yen") ||
                            diaChi.Contains("lương ngọc quyến") || diaChi.Contains("luong ngoc quyen") ||
@@ -245,10 +262,33 @@ namespace Quanlykhohanglogicts
                            diaChi.Contains("quang trung") || diaChi.Contains("tân cương") ||
                            diaChi.Contains("đồng hỷ") || diaChi.Contains("đại từ") ||
                            diaChi.Contains("phú bình") || diaChi.Contains("định hóa") ||
-                           diaChi.Contains("võ nhai");
+                           diaChi.Contains("võ nhai") || diaChi.Contains("tích lương") ||
+                           diaChi.Contains("gia sàng") || diaChi.Contains("quang vinh") ||
+                           diaChi.Contains("tân thịnh") || diaChi.Contains("cam giá");
                 }
 
                 return diaChi.Contains(khoHienTai);
+            }
+            set { }
+        }
+
+        /// <summary>
+        /// Mã định tuyến bưu cục (Sort Code / Hub Route Code) in trên tem nhiệt (VD: B208A28 003)
+        /// </summary>
+        public string RoutingHubSortCode
+        {
+            get
+            {
+                if (IsLocalHubDelivery)
+                {
+                    string dc = ((ReceiverAddress ?? "") + " " + (DestinationArea ?? "")).ToLower();
+                    if (dc.Contains("phan đình phùng") || dc.Contains("học liệu")) return "B208A28 003";
+                    if (dc.Contains("lương ngọc quyến") || dc.Contains("hoàng văn thụ")) return "B208A28 001";
+                    if (dc.Contains("thịnh đán")) return "B208A28 002";
+                    if (dc.Contains("sông công") || dc.Contains("phổ yên")) return "B208A28 005";
+                    return "B208A28 000";
+                }
+                return "LINEHAUL-99";
             }
             set { }
         }
@@ -317,5 +357,72 @@ namespace Quanlykhohanglogicts
             get => IsLocalHubDelivery && (Status == ShippingOrderStatus.NewReceived || Status == ShippingOrderStatus.PendingProcessing);
             set { }
         }
+
+        // =========================================================================
+        // THÔNG TIN CỔNG KHÁCH HÀNG & CHỦ SHOP VÀ ĐỊNH VỊ GPS THỜI GIAN THỰC
+        // =========================================================================
+
+        /// <summary>
+        /// Nguồn gốc tạo đơn: "Shop Online", "Khách Vãng Lai", "Nhân Viên Kho"
+        /// </summary>
+        public string CreatedBySource { get; set; } = "Shop Online";
+
+        /// <summary>
+        /// Tên cửa hàng / Chủ shop tạo đơn
+        /// </summary>
+        public string SenderShopName { get; set; } = "Shop ChunsHousepetFood";
+
+        /// <summary>
+        /// Cờ đánh dấu bưu kiện đã được nhân viên kho quét mã xác nhận tiếp nhận vào kho hay chưa
+        /// </summary>
+        public bool IsWarehouseCheckedIn { get; set; } = false;
+
+        /// <summary>
+        /// Thời điểm nhân viên kho quét tiếp nhận
+        /// </summary>
+        public DateTime? WarehouseCheckedInTime { get; set; }
+
+        /// <summary>
+        /// Tên nhân viên kho thực hiện kiểm tra và tiếp nhận bưu gửi
+        /// </summary>
+        public string? WarehouseStaffReceived { get; set; }
+
+        /// <summary>
+        /// Phương tiện được kho phân bổ sau khi kiểm tra địa chỉ người nhận:
+        /// - Đơn nội thành Thái Nguyên -> "🛵 Xe máy Shipper (Tuyến Nội Vùng)"
+        /// - Đơn ngoại tỉnh -> "🚛 Xe tải trung chuyển (Tuyến Liên Tỉnh)"
+        /// </summary>
+        public string? WarehouseAssignedVehicle { get; set; }
+
+        // --- CÁC THÔNG SỐ ĐỊNH VỊ GPS VÀ THEO DÕI HÀNH TRÌNH THỜI GIAN THỰC ---
+        /// <summary>
+        /// Vĩ độ GPS hiện tại của phương tiện vận chuyển
+        /// </summary>
+        public double GpsLatitude { get; set; } = 21.5850;
+
+        /// <summary>
+        /// Kinh độ GPS hiện tại của phương tiện vận chuyển
+        /// </summary>
+        public double GpsLongitude { get; set; } = 105.8450;
+
+        /// <summary>
+        /// Vận tốc di chuyển tức thời (km/h)
+        /// </summary>
+        public double GpsSpeedKmH { get; set; } = 35.0;
+
+        /// <summary>
+        /// Khoảng cách còn lại tới địa chỉ người nhận (km)
+        /// </summary>
+        public double GpsDistanceKm { get; set; } = 4.2;
+
+        /// <summary>
+        /// Thời gian dự kiến còn lại để giao tới tay người nhận (phút)
+        /// </summary>
+        public int GpsEtaMinutes { get; set; } = 15;
+
+        /// <summary>
+        /// Trạng thái / vị trí mô tả ngắn của GPS
+        /// </summary>
+        public string GpsStatusDescription { get; set; } = "Đang di chuyển trên đường phát hàng";
     }
 }
