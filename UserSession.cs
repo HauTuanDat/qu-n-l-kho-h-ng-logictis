@@ -108,6 +108,5 @@ namespace Quanlykhohanglogicts
         public bool IsAdmin => HasRole(UserRole.Admin);
         public bool IsManager => HasRole(UserRole.Manager);
         public bool IsStaff => HasRole(UserRole.Staff);
-        public bool IsCustomer => HasRole(UserRole.Customer);
     }
 }

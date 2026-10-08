@@ -244,15 +244,6 @@ namespace Quanlykhohanglogicts
             CapNhatGoiYMangMatKhau();
             BtnLogin_Click(sender, e);
         }
-
-        private void BtnQuickLoginShop_Click(object sender, RoutedEventArgs e)
-        {
-            txtUsername.Text = "shop";
-            txtPassword.Password = "123";
-            if (_dangHienThiMatKhau) txtPasswordUnmasked.Text = "123";
-            CapNhatGoiYMangMatKhau();
-            BtnLogin_Click(sender, e);
-        }
         #endregion
     }
 }

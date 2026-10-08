@@ -927,18 +927,6 @@ namespace Quanlykhohanglogicts
                     Role = UserRole.Staff,
                     IsActive = false,
                     CreatedAt = DateTime.Now.AddYears(-1)
-                },
-                new User
-                {
-                    Id = 6,
-                    Username = "shop",
-                    PasswordHash = User.HashPassword("123"),
-                    FullName = "Shop ChunsHousepetFood (Chủ Shop)",
-                    Email = "chunshouse@logixwarehouse.vn",
-                    PhoneNumber = "0978 999 888",
-                    Role = UserRole.Customer,
-                    IsActive = true,
-                    CreatedAt = DateTime.Now.AddMonths(-1)
                 }
             });
         }

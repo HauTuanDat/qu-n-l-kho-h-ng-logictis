@@ -275,7 +275,6 @@
                         <WrapPanel Orientation="Horizontal">
                             <Button Content="👑 Admin" Background="#F1F5F9" Foreground="#1E293B" BorderBrush="#CBD5E1" BorderThickness="1" FontSize="11" FontWeight="SemiBold" Padding="8,4" Margin="0,0,6,4" Cursor="Hand" Click="BtnQuickLoginAdmin_Click"/>
                             <Button Content="📦 Nhân Viên Kho" Background="#F1F5F9" Foreground="#1E293B" BorderBrush="#CBD5E1" BorderThickness="1" FontSize="11" FontWeight="SemiBold" Padding="8,4" Margin="0,0,6,4" Cursor="Hand" Click="BtnQuickLoginStaff_Click"/>
-                            <Button Content="🛍️ Khách Hàng (Shop)" Background="#F3E8FF" Foreground="#7C3AED" BorderBrush="#C084FC" BorderThickness="1" FontSize="11" FontWeight="Bold" Padding="8,4" Margin="0,0,6,4" Cursor="Hand" Click="BtnQuickLoginShop_Click"/>
                         </WrapPanel>
                     </StackPanel>
                 </StackPanel>
